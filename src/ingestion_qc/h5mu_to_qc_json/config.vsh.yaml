@@ -1,6 +1,6 @@
-name: h5mu_qc_to_json
-description: Convert QC metrics from h5mu to JSON
+name: h5mu_to_qc_json
 namespace: ingestion_qc
+description: Convert QC metrics from h5mu to JSON
 authors: 
   - __merge__: /src/authors/jakub_majercik.yaml
     roles: [author]
@@ -19,6 +19,7 @@ argument_groups:
         required: true
         direction: input
         description: The input h5mu file(s)
+        example: path/to/file.h5mu
       - name: --modality
         type: string
         description: The modality to use
@@ -30,6 +31,7 @@ argument_groups:
         required: true
         direction: output
         description: The output JSON file
+        example: path/to/file.json
   - name: Options
     arguments:
       - name: --min_total_counts
