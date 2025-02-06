@@ -1,0 +1,11 @@
+viash_version: 0.9.1
+
+source: src
+target: target
+
+name: incubator
+organization: openpipelines-bio
+
+links:
+  repository: https://github.com/openpipelines-bio/incubator
+  docker_registry: ghcr.io
