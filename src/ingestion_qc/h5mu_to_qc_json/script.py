@@ -1,13 +1,14 @@
-import mudata as mu
 import json
 import pandas as pd
 from pathlib import Path
+import anndata as ad
+import h5py
 
 ## VIASH START
-inputs = list(Path("data/sample_data/sample_data").glob("*.h5mu"))
-output = "data/sample-data.json"
-# inputs = list(Path("data/sample_data/various_cart").glob("*.h5mu"))
-# output = "data/various_cart.json"
+# inputs = list(Path("data/sample_data/sample_data").glob("*.h5mu"))
+# output = "data/sample-data.json"
+inputs = list(Path("data/sample_data/various_cart").glob("*.h5mu"))
+output = "data/various_cart.json"
 par = {
     "input": sorted([str(x) for x in inputs]),
     "output": output,
@@ -70,32 +71,42 @@ def main(par):
         print(f"Processing {mudata_file}")
 
         # read h5mu file
-        mudata = mu.read_h5mu(mudata_file)
-        modality = mudata.mod[par["modality"]]
-        obs = modality.obs.copy().reset_index(drop=False)
-        barcodes_original_count = obs.shape[0]
+        file = h5py.File(mudata_file, "r")
+
+        # read the necessary info
+        grp_mod = file["mod"][par["modality"]]
+        mod_obs = ad.experimental.read_elem(grp_mod["obs"])
+        uns = ad.experimental.read_elem(file["uns"])
+
+        # close the h5mu file
+        file.close()
+
+        # mudata = mu.read_h5mu(mudata_file)
+        # modality = mudata.mod[par["modality"]]
+        # obs = modality.obs.copy().reset_index(drop=False)
+        barcodes_original_count = mod_obs.shape[0]
 
         # pre-filter cells
         if "min_total_counts" in par:
-            obs = obs[obs["total_counts"] >= par["min_total_counts"]]
+            mod_obs = mod_obs[mod_obs["total_counts"] >= par["min_total_counts"]]
         if "min_num_nonzero_vars" in par:
-            obs = obs[obs["num_nonzero_vars"] >= par["min_num_nonzero_vars"]]
-        barcodes_filtered_count = obs.shape[0]
+            mod_obs = mod_obs[mod_obs["num_nonzero_vars"] >= par["min_num_nonzero_vars"]]
+        barcodes_filtered_count = mod_obs.shape[0]
 
-        missing_keys = [key for key in par["obs_keys"] if key not in obs.columns]
+        missing_keys = [key for key in par["obs_keys"] if key not in mod_obs.columns]
         if missing_keys:
             raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
 
         sample_id = (
-            modality.obs[par["sample_id_key"]].tolist()
-            if par["sample_id_key"] in modality.obs.columns
-            else [f"sample_{i}"] * obs.shape[0]
+            mod_obs[par["sample_id_key"]].tolist()
+            if par["sample_id_key"] in mod_obs.columns
+            else [f"sample_{i}"] * mod_obs.shape[0]
         )
 
         cell_rna_stats = pd.DataFrame(
             {
                 "sample_id": pd.Categorical(sample_id),
-                **{key: obs[key] for key in par["obs_keys"]},
+                **{key: mod_obs[key] for key in par["obs_keys"]},
             }
         )
 
@@ -104,16 +115,16 @@ def main(par):
                 "sample_id": pd.Categorical([sample_id[0]]),
                 "rna_num_barcodes": [barcodes_original_count],
                 "rna_num_barcodes_filtered": [barcodes_filtered_count],
-                "rna_sum_total_counts": [obs["total_counts"].sum()],
-                "rna_median_total_counts": [obs["total_counts"].median()],
-                "rna_overall_num_nonzero_vars": [obs["num_nonzero_vars"].sum()],
-                "rna_median_num_nonzero_vars": [obs["num_nonzero_vars"].median()],
+                "rna_sum_total_counts": [mod_obs["total_counts"].sum()],
+                "rna_median_total_counts": [mod_obs["total_counts"].median()],
+                "rna_overall_num_nonzero_vars": [mod_obs["num_nonzero_vars"].sum()],
+                "rna_median_num_nonzero_vars": [mod_obs["num_nonzero_vars"].median()],
             }
         )
 
-        if par["cellranger_metrics_uns_key"] in mudata.uns:
+        if par["cellranger_metrics_uns_key"] in uns:
             metrics = (
-                mudata.uns[par["cellranger_metrics_uns_key"]]
+                uns[par["cellranger_metrics_uns_key"]]
                 .pivot_table(
                     index=[],
                     columns="Metric Name",
