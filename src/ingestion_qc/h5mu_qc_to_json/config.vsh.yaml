@@ -1,5 +1,6 @@
 name: h5mu_qc_to_json
 description: Convert QC metrics from h5mu to JSON
+namespace: ingestion_qc
 authors: 
   - __merge__: /src/authors/jakub_majercik.yaml
     roles: [author]
