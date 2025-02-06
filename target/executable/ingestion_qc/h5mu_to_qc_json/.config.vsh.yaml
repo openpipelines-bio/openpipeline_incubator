@@ -255,7 +255,7 @@ build_info:
   output: "target/executable/ingestion_qc/h5mu_to_qc_json"
   executable: "target/executable/ingestion_qc/h5mu_to_qc_json/h5mu_to_qc_json"
   viash_version: "0.9.1"
-  git_commit: "615aa022d8e2f118c2f1a138d01b0d84aa73f392"
+  git_commit: "511c6268e0c6cc6c95facb14a8f632a29a693a77"
   git_remote: "https://github.com/openpipelines-bio/incubator"
 package_config:
   name: "incubator"

@@ -3329,7 +3329,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/incubator/incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "615aa022d8e2f118c2f1a138d01b0d84aa73f392",
+    "git_commit" : "511c6268e0c6cc6c95facb14a8f632a29a693a77",
     "git_remote" : "https://github.com/openpipelines-bio/incubator"
   },
   "package_config" : {
@@ -3407,7 +3407,7 @@ workflow run_wf {
     )
 
     // emit output
-    | setState(["output_qc_json"])
+    | setState(["output_qc_json", "_meta"])
 
   emit: output_ch
 }

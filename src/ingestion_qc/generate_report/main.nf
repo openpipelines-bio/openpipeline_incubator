@@ -41,7 +41,7 @@ workflow run_wf {
     )
 
     // emit output
-    | setState(["output_qc_json"])
+    | setState(["output_qc_json", "_meta"])
 
   emit: output_ch
 }
