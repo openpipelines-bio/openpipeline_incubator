@@ -81,9 +81,6 @@ def main(par):
         # close the h5mu file
         file.close()
 
-        # mudata = mu.read_h5mu(mudata_file)
-        # modality = mudata.mod[par["modality"]]
-        # obs = modality.obs.copy().reset_index(drop=False)
         barcodes_original_count = mod_obs.shape[0]
 
         # pre-filter cells

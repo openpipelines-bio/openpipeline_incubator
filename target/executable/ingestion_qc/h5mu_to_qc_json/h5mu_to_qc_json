@@ -460,9 +460,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik, Dorien Roosen, Robrecht Cannoodt, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc h5mu_to_qc_json"
-LABEL org.opencontainers.image.created="2025-02-06T13:22:36Z"
+LABEL org.opencontainers.image.created="2025-02-06T13:57:09Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/incubator"
-LABEL org.opencontainers.image.revision="511c6268e0c6cc6c95facb14a8f632a29a693a77"
+LABEL org.opencontainers.image.revision="f5be9ee10701de12b52a26283130b89d76a22b73"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1288,9 +1288,6 @@ def main(par):
         # close the h5mu file
         file.close()
 
-        # mudata = mu.read_h5mu(mudata_file)
-        # modality = mudata.mod[par["modality"]]
-        # obs = modality.obs.copy().reset_index(drop=False)
         barcodes_original_count = mod_obs.shape[0]
 
         # pre-filter cells

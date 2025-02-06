@@ -12,6 +12,7 @@ workflow run_wf {
     | qc_wf.run(
       fromState: ["id", "input"],
       args: [
+        var_gene_names: "gene_symbol",
         var_name_mitochondrial_genes: "mitochondrial_genes",
         var_name_ribosomal_genes: "ribosomal_genes"
       ],
@@ -37,6 +38,7 @@ workflow run_wf {
     // generate qc json
     | h5mu_to_qc_json.run(
       fromState: ["input"],
+      args: [sample_id_key: "sample_id"]
       toState: [output_qc_json: "output"]
     )
 

@@ -3381,7 +3381,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/incubator/incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
     "viash_version" : "0.9.1",
-    "git_commit" : "511c6268e0c6cc6c95facb14a8f632a29a693a77",
+    "git_commit" : "f5be9ee10701de12b52a26283130b89d76a22b73",
     "git_remote" : "https://github.com/openpipelines-bio/incubator"
   },
   "package_config" : {
@@ -3512,9 +3512,6 @@ def main(par):
         # close the h5mu file
         file.close()
 
-        # mudata = mu.read_h5mu(mudata_file)
-        # modality = mudata.mod[par["modality"]]
-        # obs = modality.obs.copy().reset_index(drop=False)
         barcodes_original_count = mod_obs.shape[0]
 
         # pre-filter cells

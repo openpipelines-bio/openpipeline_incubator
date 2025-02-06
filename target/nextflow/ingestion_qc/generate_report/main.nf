@@ -3329,7 +3329,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/incubator/incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "511c6268e0c6cc6c95facb14a8f632a29a693a77",
+    "git_commit" : "f5be9ee10701de12b52a26283130b89d76a22b73",
     "git_remote" : "https://github.com/openpipelines-bio/incubator"
   },
   "package_config" : {
@@ -3378,6 +3378,7 @@ workflow run_wf {
     | qc_wf.run(
       fromState: ["id", "input"],
       args: [
+        var_gene_names: "gene_symbol",
         var_name_mitochondrial_genes: "mitochondrial_genes",
         var_name_ribosomal_genes: "ribosomal_genes"
       ],
@@ -3403,6 +3404,7 @@ workflow run_wf {
     // generate qc json
     | h5mu_to_qc_json.run(
       fromState: ["input"],
+      args: [sample_id_key: "sample_id"]
       toState: [output_qc_json: "output"]
     )
 
