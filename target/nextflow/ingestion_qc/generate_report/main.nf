@@ -3329,7 +3329,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/incubator/incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "f5be9ee10701de12b52a26283130b89d76a22b73",
+    "git_commit" : "a3cbe7ba5668a5ecb27f567b5516a61266c99fb7",
     "git_remote" : "https://github.com/openpipelines-bio/incubator"
   },
   "package_config" : {
@@ -3404,7 +3404,7 @@ workflow run_wf {
     // generate qc json
     | h5mu_to_qc_json.run(
       fromState: ["input"],
-      args: [sample_id_key: "sample_id"]
+      args: [sample_id_key: "sample_id"],
       toState: [output_qc_json: "output"]
     )
 
