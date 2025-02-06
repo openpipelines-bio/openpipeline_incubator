@@ -19,6 +19,7 @@ argument_groups:
         required: true
         direction: input
         description: The input h5mu file(s)
+        example: path/to/file.h5mu
       - name: --modality
         type: string
         description: The modality to use
@@ -30,6 +31,7 @@ argument_groups:
         required: true
         direction: output
         description: The output JSON file
+        example: path/to/file.json
   - name: Options
     arguments:
       - name: --min_total_counts

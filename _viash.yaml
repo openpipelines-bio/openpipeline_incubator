@@ -9,3 +9,9 @@ organization: openpipelines-bio
 links:
   repository: https://github.com/openpipelines-bio/incubator
   docker_registry: ghcr.io
+
+repositories:
+  - name: openpipeline
+    repo: openpipelines-bio/openpipeline
+    type: github
+    tag: main_build
