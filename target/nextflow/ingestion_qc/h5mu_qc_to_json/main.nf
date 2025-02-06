@@ -3043,6 +3043,7 @@ meta = [
   "resources_dir": moduleDir.toRealPath().normalize(),
   "config": processConfig(readJsonBlob('''{
   "name" : "h5mu_qc_to_json",
+  "namespace" : "ingestion_qc",
   "version" : "build_main",
   "authors" : [
     {
@@ -3361,12 +3362,12 @@ meta = [
     }
   ],
   "build_info" : {
-    "config" : "/home/runner/work/incubator/incubator/src/h5mu_to_json/config.vsh.yaml",
+    "config" : "/home/runner/work/incubator/incubator/src/ingestion_qc/h5mu_qc_to_json/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker",
-    "output" : "/home/runner/work/incubator/incubator/target/nextflow/h5mu_qc_to_json",
+    "output" : "/home/runner/work/incubator/incubator/target/nextflow/ingestion_qc/h5mu_qc_to_json",
     "viash_version" : "0.9.1",
-    "git_commit" : "f0da7ddb9a1a665c5a2e2190992870b7fb4363b5",
+    "git_commit" : "13107eaff43661145db3d480ca75ed6083fab325",
     "git_remote" : "https://github.com/openpipelines-bio/incubator"
   },
   "package_config" : {
@@ -3930,7 +3931,7 @@ meta["defaults"] = [
   directives: readJsonBlob('''{
   "container" : {
     "registry" : "ghcr.io",
-    "image" : "openpipelines-bio/incubator/h5mu_qc_to_json",
+    "image" : "openpipelines-bio/incubator/ingestion_qc/h5mu_qc_to_json",
     "tag" : "build_main"
   },
   "tag" : "$id"

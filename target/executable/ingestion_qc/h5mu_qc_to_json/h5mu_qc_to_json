@@ -459,10 +459,10 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "mudata~=0.3.1"
 
 LABEL org.opencontainers.image.authors="Jakub Majercik, Dorien Roosen, Robrecht Cannoodt, Weiwei Schultz"
-LABEL org.opencontainers.image.description="Companion container for running component h5mu_qc_to_json"
-LABEL org.opencontainers.image.created="2025-02-06T06:26:30Z"
+LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc h5mu_qc_to_json"
+LABEL org.opencontainers.image.created="2025-02-06T06:27:37Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/incubator"
-LABEL org.opencontainers.image.revision="f0da7ddb9a1a665c5a2e2190992870b7fb4363b5"
+LABEL org.opencontainers.image.revision="13107eaff43661145db3d480ca75ed6083fab325"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -862,7 +862,7 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
 
   # determine docker image id
   if [[ "$VIASH_ENGINE_ID" == 'docker' ]]; then
-    VIASH_DOCKER_IMAGE_ID='ghcr.io/openpipelines-bio/incubator/h5mu_qc_to_json:build_main'
+    VIASH_DOCKER_IMAGE_ID='ghcr.io/openpipelines-bio/incubator/ingestion_qc/h5mu_qc_to_json:build_main'
   fi
 
   # print dockerfile

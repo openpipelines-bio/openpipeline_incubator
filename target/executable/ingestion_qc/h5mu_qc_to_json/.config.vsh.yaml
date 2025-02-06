@@ -1,4 +1,5 @@
 name: "h5mu_qc_to_json"
+namespace: "ingestion_qc"
 version: "build_main"
 authors:
 - name: "Jakub Majercik"
@@ -239,13 +240,13 @@ engines:
   entrypoint: []
   cmd: null
 build_info:
-  config: "src/h5mu_to_json/config.vsh.yaml"
-  runner: "nextflow"
+  config: "src/ingestion_qc/h5mu_qc_to_json/config.vsh.yaml"
+  runner: "executable"
   engine: "docker"
-  output: "target/nextflow/h5mu_qc_to_json"
-  executable: "target/nextflow/h5mu_qc_to_json/main.nf"
+  output: "target/executable/ingestion_qc/h5mu_qc_to_json"
+  executable: "target/executable/ingestion_qc/h5mu_qc_to_json/h5mu_qc_to_json"
   viash_version: "0.9.1"
-  git_commit: "f0da7ddb9a1a665c5a2e2190992870b7fb4363b5"
+  git_commit: "13107eaff43661145db3d480ca75ed6083fab325"
   git_remote: "https://github.com/openpipelines-bio/incubator"
 package_config:
   name: "incubator"
