@@ -33,6 +33,12 @@ argument_groups:
         required: false
         description: |
           The name of the adata var column containing gene names; when no gene_name_layer is provided, the var index will be used.
+      - name: "--input_reference_gene_overlap"
+        type: integer
+        default: 100
+        min: 1
+        description: | 
+          The minimum number of genes present in both the reference and query datasets.
   
   - name: Reference data arguments
     description: Dataset to be used as a reference for label transfer and to train annotation algorithms on.
@@ -74,7 +80,7 @@ argument_groups:
         type: string
         multiple: true
         default: scgpt_annotation
-        choices: [harmony_knn, scgpt_annotation]
+        choices: [celltypist, harmony_knn, scgpt_annotation]
         example: harmony_knn
         
   - name: "Pre-processing options: RNA filtering"
@@ -263,6 +269,45 @@ argument_groups:
         description: |
           Seed for random number generation used for binning. If not set, no seed is used.
 
+  - name: CellTypist reference model
+    description: The CellTypist reference model to use for annotation. If not provided, the reference dataset will be used for model training.
+    arguments:
+      - name: "--celltypist_model"
+        type: file
+        description: "Pretrained model in pkl format. If not provided, the model will be trained on the reference data and --reference should be provided."
+        required: false
+        example: pretrained_model.pkl
+
+  - name: CellTypist annotation options
+    description: Specifications for CellTypist annotation.
+    arguments:
+      - name: "--celltypist_feature_selection"
+        type: boolean
+        description: "Whether to perform feature selection."
+        default: false
+      - name: "--celltypist_majority_voting"
+        type: boolean
+        description: "Whether to refine the predicted labels by running the majority voting classifier after over-clustering."
+        default: false
+      - name: "--celltypist_C"
+        type: double
+        description: "Inverse of regularization strength in logistic regression."
+        default: 1.0
+      - name: "--celltypist_max_iter"
+        type: integer
+        description: "Maximum number of iterations before reaching the minimum of the cost function."
+        default: 1000
+      - name: "--celltypist_use_SGD"
+        type: boolean_true
+        description: "Whether to use the stochastic gradient descent algorithm."
+      - name: "--celltypist_min_prop"
+        type: double
+        description: |
+          "For the dominant cell type within a subcluster, the minimum proportion of cells required to 
+          support naming of the subcluster by this cell type. Ignored if majority_voting is set to False. 
+          Subcluster that fails to pass this proportion threshold will be assigned 'Heterogeneous'."
+        default: 0
+
   - name: Outputs
     description: The output file to write the annotated dataset to.
     arguments:
@@ -285,12 +330,19 @@ dependencies:
   - name: workflows/annotation/scgpt_annotation
     alias: scgpt_annotation_workflow
     repository: op
+  - name: annotate/celltypist
+    repository: op
 
 repositories:
   - name: op
     type: github
     repo: openpipelines-bio/openpipeline
     tag: 2.0.0
+  - name: op-harmony
+    type: github
+    repo: openpipelines-bio/openpipeline
+    tag: harmony_knn_annoation_workflow_build
+
 
 resources:
   - type: nextflow_script
