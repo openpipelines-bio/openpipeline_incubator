@@ -460,9 +460,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik, Dorien Roosen, Robrecht Cannoodt, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc h5mu_to_qc_json"
-LABEL org.opencontainers.image.created="2025-02-06T14:03:42Z"
+LABEL org.opencontainers.image.created="2025-02-12T10:27:17Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/incubator"
-LABEL org.opencontainers.image.revision="176b12fe93aecdcdc831e014be3d198dd43a4dca"
+LABEL org.opencontainers.image.revision="c23f8870b8db7ab34cbb477b64ddd9f1c7638a1a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -864,7 +864,7 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
 
   # determine docker image id
   if [[ "$VIASH_ENGINE_ID" == 'docker' ]]; then
-    VIASH_DOCKER_IMAGE_ID='ghcr.io/openpipelines-bio/incubator/ingestion_qc/h5mu_to_qc_json:build_main'
+    VIASH_DOCKER_IMAGE_ID='ghcr.io/openpipelines-bio/openpipeline_incubator/ingestion_qc/h5mu_to_qc_json:build_main'
   fi
 
   # print dockerfile

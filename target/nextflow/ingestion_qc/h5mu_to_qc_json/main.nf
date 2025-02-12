@@ -3376,16 +3376,16 @@ meta = [
     }
   ],
   "build_info" : {
-    "config" : "/home/runner/work/incubator/incubator/src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml",
+    "config" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker",
-    "output" : "/home/runner/work/incubator/incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
+    "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
     "viash_version" : "0.9.1",
-    "git_commit" : "176b12fe93aecdcdc831e014be3d198dd43a4dca",
-    "git_remote" : "https://github.com/openpipelines-bio/incubator"
+    "git_commit" : "c23f8870b8db7ab34cbb477b64ddd9f1c7638a1a",
+    "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
-    "name" : "incubator",
+    "name" : "openpipeline_incubator",
     "version" : "build_main",
     "repositories" : [
       {
@@ -3396,8 +3396,8 @@ meta = [
       }
     ],
     "viash_version" : "0.9.1",
-    "source" : "/home/runner/work/incubator/incubator/src",
-    "target" : "/home/runner/work/incubator/incubator/target",
+    "source" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/src",
+    "target" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target",
     "organization" : "openpipelines-bio",
     "links" : {
       "repository" : "https://github.com/openpipelines-bio/incubator",
@@ -3961,7 +3961,7 @@ meta["defaults"] = [
   directives: readJsonBlob('''{
   "container" : {
     "registry" : "ghcr.io",
-    "image" : "openpipelines-bio/incubator/ingestion_qc/h5mu_to_qc_json",
+    "image" : "openpipelines-bio/openpipeline_incubator/ingestion_qc/h5mu_to_qc_json",
     "tag" : "build_main"
   },
   "tag" : "$id"
