@@ -3,7 +3,7 @@ viash_version: 0.9.1
 source: src
 target: target
 
-name: incubator
+name: openpipeline_incubator
 organization: openpipelines-bio
 
 links:
