@@ -39,6 +39,9 @@ argument_groups:
         min: 1
         description: | 
           The minimum number of genes present in both the reference and query datasets.
+      - name: "--overwrite_existing_key"
+        type: boolean_true
+        description: If provided, will overwrite existing fields in the input dataset when data are copied during the reference alignment process.
   
   - name: Reference data arguments
     description: Dataset to be used as a reference for label transfer and to train annotation algorithms on.
@@ -46,17 +49,16 @@ argument_groups:
       - name: "--reference"
         type: file
         required: false
+        example: reference.h5mu
         description: |
-          The reference dataset to be used as a reference mapper and to train annotation algorithms on.
-        # example: https://zenodo.org/records/7587774/files/TS_Lung_filtered.h5ad
+          The reference dataset in .h5mu format to be used as a reference mapper and to train annotation algorithms on.
       - name: "--reference_layer_raw_counts"
         type: string
         description: "The layer in the reference dataset containing the raw counts, if .X is not to be used."
         required: false
       - name: "--reference_layer_lognormalized_counts"
         type: string
-        default: log_normalized
-        description: "The layer in the reference dataset containing the log-normalized counts."
+        description: "The layer in the reference dataset containing the log-normalized counts, if .X is not to be used."
       - name: "--reference_var_gene_names"
         type: string
         required: false
@@ -72,6 +74,11 @@ argument_groups:
         example: cell_type
         required: false
         description: The `.obs` key of the target labels to tranfer.
+      - name: "--reference_var_input"
+        type: string
+        required: false
+        description: |
+          .var column containing highly variable genes. By default, do not subset genes.
 
   - name: Annotation methods
     description: The available annotation methods to annotate the query dataset(s) with.
@@ -328,21 +335,28 @@ dependencies:
     alias: process_samples_workflow
     repository: op
   - name: workflows/annotation/scgpt_annotation
-    alias: scgpt_annotation_workflow
     repository: op
   - name: annotate/celltypist
-    repository: op
+    repository: op-celltypist
+    alias: celltypist_annotation
+  - name: workflows/annotation/harmony_knn
+    repository: op-harmony
+    alias: harmony_knn_annotation
+
 
 repositories:
   - name: op
     type: github
     repo: openpipelines-bio/openpipeline
     tag: 2.0.0
+  - name: op-celltypist
+    type: github
+    repo: openpipelines-bio/openpipeline
+    tag: celltypist-layer-passing_build
   - name: op-harmony
     type: github
     repo: openpipelines-bio/openpipeline
-    tag: harmony_knn_annoation_workflow_build
-
+    tag: harmony-knn-annoation-workflow_build
 
 resources:
   - type: nextflow_script
