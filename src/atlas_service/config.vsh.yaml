@@ -343,7 +343,6 @@ dependencies:
     repository: op-harmony
     alias: harmony_knn_annotation
 
-
 repositories:
   - name: op
     type: github

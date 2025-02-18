@@ -9,11 +9,12 @@ workflow run_wf {
       [id, new_state]
     }
     // Enforce annotation method-specific required arguments
+    | niceView()
     | map { id, state ->
       def new_state = [:]
       // Check scGPT arguments
       if (state.annotation_methods.contains("scgpt_annotation") && 
-        (!state.scgpt_model || !state.scgpt_model_config || !state.scgp_model_vocab)) {
+        (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
         throw new RuntimeException("Using scgpt_annotation requires --scgpt_model, --scgpt_model_config and --scgp_model_vocab parameters.")
         }
       // Check CellTypist arguments
@@ -26,6 +27,10 @@ workflow run_wf {
           "Warning: --celltypist_model is set and a --reference was provided. \
           The pre-trained Celltypist model will be used for annotation, the reference will be ignored."
           )
+        }
+      // Check Harmony KNN arguments
+            if (state.annotation_methods.contains("harmony_knn") && !state.reference ) {
+        throw new RuntimeException("Harmony KNN was selected as an annotation method. A --reference dataset must be provided.")
         }
 
       [id, state + new_state]
@@ -109,7 +114,7 @@ workflow run_wf {
       toState: [ "query_processed": "output" ]
     )
 
-    | celltypist.run(
+    | celltypist_annotation.run(
       runIf: { id, state -> state.annotation_methods.contains("celltypist") && !state.celltypist_model },
       fromState: [
         "input": "query_processed",
