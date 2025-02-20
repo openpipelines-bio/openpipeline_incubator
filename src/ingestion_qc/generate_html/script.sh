@@ -1,7 +1,4 @@
 cd /opt/incubator_ingestion_qc
-mkdir -p data
-mkdir -p dist
-mkdir -p src/data
 cp $par_input /opt/incubator_ingestion_qc/data/dataset.json
 
 echo "Compressing input data..."
