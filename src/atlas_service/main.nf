@@ -4,14 +4,37 @@ workflow run_wf {
 
   main:
     output_ch = input_ch
-    | map {id, state ->
-      def new_state = state + ["query_processed": state.output]
+    | map { id, state ->
+      def new_state = state + [ "query_processed": state.output, "_meta": ["join_id": id] ]
       [id, new_state]
-      }
-    // | map{ id, state -> 
-    //     def new_state = state + ["_meta": ["join_id": id]]
-    //     [id, new_state]
-    //   }
+    }
+    // Enforce annotation method-specific required arguments
+    | niceView()
+    | map { id, state ->
+      def new_state = [:]
+      // Check scGPT arguments
+      if (state.annotation_methods.contains("scgpt_annotation") && 
+        (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
+        throw new RuntimeException("Using scgpt_annotation requires --scgpt_model, --scgpt_model_config and --scgp_model_vocab parameters.")
+        }
+      // Check CellTypist arguments
+      if (state.annotation_methods.contains("celltypist") && 
+        (!state.celltypist_model && !state.reference)) {
+        throw new RuntimeException("Celltypist was selected as an annotation method. Either --celltypist_model or --reference must be provided.")
+        }
+      if (state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
+        System.err.println(
+          "Warning: --celltypist_model is set and a --reference was provided. \
+          The pre-trained Celltypist model will be used for annotation, the reference will be ignored."
+          )
+        }
+      // Check Harmony KNN arguments
+            if (state.annotation_methods.contains("harmony_knn") && !state.reference ) {
+        throw new RuntimeException("Harmony KNN was selected as an annotation method. A --reference dataset must be provided.")
+        }
+
+      [id, state + new_state]
+    }
     | process_samples_workflow.run(
       fromState: {id, state ->
         def newState = [
@@ -32,46 +55,135 @@ workflow run_wf {
           "mitochondrial_gene_regex": state.mitochondrial_gene_regex,
           "var_qc_metrics": state.var_qc_metrics,
           "top_n_vars": state.top_n_vars,
-          ]
+        ]  
       },
       args: [
         "pca_overwrite": "true",
         "add_id_obs_output": "sample_id"
       ],
       toState: ["query_processed": "output"], 
-      )
-      | view {"After processing query: $it"}
-      | scgpt_annotation_workflow.run(
-        runIf: { id, state -> state.annotation_methods.contains("scgpt_annotation") },
-        fromState: { id, state ->
-          [ 
-            "id": id,
-            "input": state.query_processed,
-            "modality": state.modality,
-            "input_layer": state.input_layer,
-            "input_var_gene_names": state.input_var_gene_names,
-            "model": state.scgpt_model,
-            "model_config": state.scgpt_model_config,
-            "model_vocab": state.scgpt_model_vocab,
-            "finetuned_checkpoints_key": state.scgpt_finetuned_checkpoints_key,
-            "label_mapper_key": state.scgpt_label_mapper_key,
-            "pad_token": state.scgpt_pad_token,
-            "pad_value": state.scgpt_pad_value,
-            "n_hvg": state.scgpt_n_hvg,
-            "dsbn": state.scgpt_dsbn,
-            "batch_size": state.scgpt_batch_size,
-            "n_input_bins": state.scgpt_n_input_bins,
-            "seed": state.scgpt_seed
-          ]
-        },
-        args: [
-          "input_obs_batch_label": "sample_id",
-          "output_obs_predictions": "scgpt_pred",
-          "output_obs_probability": "scgpt_proba"
-        ],
-        toState: [ "query_processed": "output" ]
-        )
-      | setState(["output": "query_processed", "_meta": "_meta"])
+    )
+
+    | scgpt_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("scgpt_annotation") },
+      fromState: { id, state ->
+        [ 
+          "id": id,
+          "input": state.query_processed,
+          "modality": state.modality,
+          "input_layer": state.input_layer,
+          "input_var_gene_names": state.input_var_gene_names,
+          "model": state.scgpt_model,
+          "model_config": state.scgpt_model_config,
+          "model_vocab": state.scgpt_model_vocab,
+          "finetuned_checkpoints_key": state.scgpt_finetuned_checkpoints_key,
+          "label_mapper_key": state.scgpt_label_mapper_key,
+          "pad_token": state.scgpt_pad_token,
+          "pad_value": state.scgpt_pad_value,
+          "n_hvg": state.scgpt_n_hvg,
+          "dsbn": state.scgpt_dsbn,
+          "batch_size": state.scgpt_batch_size,
+          "n_input_bins": state.scgpt_n_input_bins,
+          "seed": state.scgpt_seed
+        ]
+      },
+      args: [
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "scgpt_pred",
+        "output_obs_probability": "scgpt_proba"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | celltypist_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("celltypist") && state.celltypist_model },
+      fromState: [ 
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "model": "celltypist_model",
+        "majority_voting": "celltypist_majority_voting"
+      ],
+      args: [
+        // log normalized counts are expected for celltypist
+        "input_layer": "log_normalized",
+        "output_obs_predictions": "celltypist_pred",
+        "output_obs_probability": "celltypist_proba"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | celltypist_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("celltypist") && !state.celltypist_model },
+      fromState: [
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "reference": "reference",
+        "reference_layer": "reference_layer_lognormalized_counts",
+        "reference_obs_target": "reference_obs_label",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "reference_obs_batch": "reference_obs_batch",
+        "reference_var_input": "reference_var_input",
+        "feature_selection": "celltypist_feature_selection",
+        "C": "celltypist_C",
+        "max_iter": "celltypist_max_iter",
+        "use_SGD": "celltypist_use_SGD",
+        "min_prop": "celltypist_min_prop",
+        "majority_voting": "celltypist_majority_voting"
+      ],
+      args: [
+        // log normalized counts are expected for celltypist
+        "input_layer": "log_normalized",
+        "check_expression": "true",
+        "output_obs_predictions": "celltypist_pred",
+        "output_obs_probability": "celltypist_proba"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | harmony_knn_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
+      fromState: { id, state ->
+        [ 
+          "id": id,
+          "input": state.query_processed,
+          "modality": state.modality,
+          "input_layer": state.input_layer,
+          "input_var_gene_names": state.input_var_gene_names,
+          "input_reference_gene_overlap": state.input_reference_gene_overlap,
+          "overwrite_existing_key": state.overwrite_existing_key,
+          "reference": state.reference,
+          "reference_layer": state.reference_layer_raw_counts,
+          "reference_obs_target": state.reference_obs_label,
+          "reference_var_gene_names": state.reference_var_gene_names,
+          "reference_obs_batch_label": state.reference_obs_batch,
+          "harmony_theta": state.harmony_theta,
+          // disable arguments for pca/leiden/knn for now
+          // "pca_num_components": state.pca_num_components,
+          // "leiden_resolution": state.leiden_resolution,
+          // "knn_weights": state.knn_weights,
+          // "knn_n_neighbors": state.knn_n_neighbors
+        ]
+      },
+      args: [
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "harmony_knn_pred",
+        "output_obs_probability": "harmony_knn_proba",
+        "output_obsm_integrated": "X_integrated_harmony",
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | map {id, state ->
+      def new_state = state + ["output": state.query_processed]
+      [id, new_state]
+    }
+    | view {"After mapping: $it"}
+    | setState(["output", "_meta"])
+    | view {"After setstate: $it"}
 
   emit:
     output_ch
