@@ -18,6 +18,7 @@ argument_groups:
       - name: --id
         type: string
         required: false
+        multiple: true
         direction: input
         description: |
           The sample IDs to include in the report. If not provided,
@@ -26,6 +27,7 @@ argument_groups:
       - name: --input
         type: file
         required: true
+        multiple: true
         direction: input
         description: The input h5mu files.
         example: path/to/file1.h5mu
@@ -46,12 +48,12 @@ argument_groups:
         direction: output
         description: The output JSON file containing the QC metrics
         example: path/to/file.json
-      # - name: --output_report
-      #   type: file
-      #   required: true
-      #   direction: output
-      #   description: The output HTML report
-      #   example: path/to/file.html
+      - name: --output_report
+        type: file
+        required: true
+        direction: output
+        description: The output HTML report
+        example: path/to/file.html
 resources:
   - type: nextflow_script
     entrypoint: run_wf
@@ -63,5 +65,6 @@ dependencies:
     alias: qc_wf
     repository: openpipeline
   - name: ingestion_qc/h5mu_to_qc_json
+  - name: ingestion_qc/generate_html
 runners:
   - type: nextflow
