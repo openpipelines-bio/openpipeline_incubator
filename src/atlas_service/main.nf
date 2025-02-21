@@ -9,7 +9,6 @@ workflow run_wf {
       [id, new_state]
     }
     // Enforce annotation method-specific required arguments
-    | niceView()
     | map { id, state ->
       def new_state = [:]
       // Check scGPT arguments
@@ -48,13 +47,10 @@ workflow run_wf {
           "rna_min_cells_per_gene": state.rna_min_cells_per_gene,
           "rna_min_fraction_mito": state.rna_min_fraction_mito,
           "rna_max_fraction_mito": state.rna_max_fraction_mito,
-          "highly_variable_features_var_output": state.highly_variable_features_var_output,
-          "highly_variable_features_obs_batch_key": state.highly_variable_features_obs_batch_key,
           "var_name_mitochondrial_genes": state.var_name_mitochondrial_genes,
           "var_gene_names": state.input_var_gene_names,
           "mitochondrial_gene_regex": state.mitochondrial_gene_regex,
-          "var_qc_metrics": state.var_qc_metrics,
-          "top_n_vars": state.top_n_vars,
+          "var_qc_metrics": state.var_qc_metrics
         ]  
       },
       args: [
@@ -151,28 +147,61 @@ workflow run_wf {
           "id": id,
           "input": state.query_processed,
           "modality": state.modality,
-          "input_layer": state.input_layer,
           "input_var_gene_names": state.input_var_gene_names,
           "input_reference_gene_overlap": state.input_reference_gene_overlap,
-          "overwrite_existing_key": state.overwrite_existing_key,
           "reference": state.reference,
-          "reference_layer": state.reference_layer_raw_counts,
+          "reference_layer": state.reference_layer_lognormalized_counts,
           "reference_obs_target": state.reference_obs_label,
           "reference_var_gene_names": state.reference_var_gene_names,
           "reference_obs_batch_label": state.reference_obs_batch,
+          "n_hvg": state.n_hvg,
           "harmony_theta": state.harmony_theta,
-          // disable arguments for pca/leiden/knn for now
-          // "pca_num_components": state.pca_num_components,
-          // "leiden_resolution": state.leiden_resolution,
-          // "knn_weights": state.knn_weights,
-          // "knn_n_neighbors": state.knn_n_neighbors
         ]
       },
       args: [
+        "input_layer": "log_normalized",
         "input_obs_batch_label": "sample_id",
         "output_obs_predictions": "harmony_knn_pred",
         "output_obs_probability": "harmony_knn_proba",
         "output_obsm_integrated": "X_integrated_harmony",
+        "overwrite_existing_key": "true"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | scvi_knn_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
+      fromState: { id, state ->
+        [ 
+          "id": id,
+          "input": state.query_processed,
+          "modality": state.modality,
+          "input_layer": state.input_layer,
+          "input_var_gene_names": state.input_var_gene_names,
+          "input_reference_gene_overlap": state.input_reference_gene_overlap,
+          "reference": state.reference,
+          "reference_layer": state.reference_layer_raw_counts,
+          "reference_layer_lognormalized": state.reference_layer_lognormalized_counts,
+          "reference_obs_target": state.reference_obs_label,
+          "reference_var_gene_names": state.reference_var_gene_names,
+          "reference_obs_batch_label": state.reference_obs_batch,
+          "n_hvg": state.n_hvg,
+          "scvi_early_stopping": state.scvi_early_stopping,
+          "scvi_early_stopping_patience": state.scvi_early_stopping_patience,
+          "scvi_early_stopping_min_delta": state.scvi_early_stopping_min_delta,
+          "scvi_max_epochs": state.scvi_max_epochs,
+          "scvi_reduce_lr_on_plateau": state.scvi_reduce_lr_on_plateau,
+          "scvi_lr_factor": state.scvi_lr_factor,
+          "scvi_lr_patience": state.scvi_lr_patience
+        ]
+      },
+      args: [
+        "input_layer_lognormalized": "log_normalized",
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "harmony_knn_pred",
+        "output_obs_probability": "harmony_knn_proba",
+        "output_obsm_integrated": "X_integrated_harmony",
+        "overwrite_existing_key": "true"
       ],
       toState: [ "query_processed": "output" ]
     )
