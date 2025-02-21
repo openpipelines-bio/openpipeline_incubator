@@ -30,7 +30,8 @@ workflow run_wf {
       def newId = "combined"
       def newState = [
         input: states.collect{it.output},
-        _meta: states[0]._meta
+        _meta: states[0]._meta,
+        output_html: states[0].output_html
       ]
       [newId, newState]
     }
@@ -43,8 +44,8 @@ workflow run_wf {
     )
 
     | generate_html.run(
-      fromState: ["output_qc_json"],
-      toState: ["output_html"]
+      fromState: [input: "output_qc_json"],
+      toState: [output_html: "output"]
     )
 
     // emit output

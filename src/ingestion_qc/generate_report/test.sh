@@ -1,10 +1,10 @@
 #!/bin/bash
 
-viash ns build --setup cb --parallel -q generate_report
+viash ns build --setup cb --parallel
 
 nextflow run . \
-  -main-script src/ingestion_qc/generate_report/main.nf \
+  -main-script target/nextflow/ingestion_qc/generate_report/main.nf \
   -params-file src/ingestion_qc/generate_report/example.yaml \
-  -entry run_wf \
+  -profile docker \
   --publish_dir test_results \
   --resume 
