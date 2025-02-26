@@ -45,11 +45,11 @@ workflow run_wf {
 
     | generate_html.run(
       fromState: [input: "output_qc_json"],
-      toState: [output_html: "output"]
+      toState: [output: "output"]
     )
 
     // emit output
-    | setState(["output_qc_json", "output_html", "_meta"])
+    | setState(["output", "_meta"])
 
   emit: output_ch
 }
