@@ -358,10 +358,10 @@ dependencies:
   - name: workflows/annotation/scgpt_annotation
     repository: op
   - name: annotate/celltypist
-    repository: op-celltypist
+    repository: op-main
     alias: celltypist_annotation
   - name: workflows/annotation/harmony_knn
-    repository: op-harmony
+    repository: op-main
     alias: harmony_knn_annotation
   - name: workflows/annotation/scvi_knn
     repository: op-scvi
@@ -372,14 +372,10 @@ repositories:
     type: github
     repo: openpipelines-bio/openpipeline
     tag: 2.0.0
-  - name: op-celltypist
+  - name: op-main
     type: github
     repo: openpipelines-bio/openpipeline
-    tag: celltypist-layer-passing_build
-  - name: op-harmony
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: harmony-knn-annoation-workflow_build
+    tag: main_build
   - name: op-scvi
     type: github
     repo: openpipelines-bio/openpipeline
