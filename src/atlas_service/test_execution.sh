@@ -7,21 +7,22 @@ reference_layer_lognormalized_counts: log_normalized
 reference_var_gene_names: ensemblid
 reference_obs_batch: donor_assay
 reference_obs_label: cell_type
-celltypist_model: /home/dorienroosen/openpipeline/resources_test/annotation_test_data/celltypist_model_Immune_All_Low.pkl
-annotation_methods: harmony_knn;scvi_knn
+annotation_methods: harmony_knn;scvi_knn;celltypist
+publish_dir: aaas_test
 HERE
 
 nextflow run . \
 -main-script target/nextflow/atlas_service/main.nf \
 -params-file params.yaml \
 -resume \
--profile docker,no_publish \
+-profile docker \
 -c target/nextflow/atlas_service/nextflow.config \
 -c /home/dorienroosen/openpipeline/src/workflows/utils/labels_ci.config
 
 # cat > params.yaml << HERE
 # id: celltypist
 # input: /Users/dorienroosen/code/openpipeline/resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
+# celltypist_model: /home/dorienroosen/openpipeline/resources_test/annotation_test_data/celltypist_model_Immune_All_Low.pkl
 # modality: rna
 # input_var_gene_names: gene_symbol
 # annotation_methods: celltypist

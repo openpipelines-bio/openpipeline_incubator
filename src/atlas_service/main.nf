@@ -28,8 +28,8 @@ workflow run_wf {
           )
         }
       // Check Harmony KNN arguments
-            if (state.annotation_methods.contains("harmony_knn") && !state.reference ) {
-        throw new RuntimeException("Harmony KNN was selected as an annotation method. A --reference dataset must be provided.")
+            if ((state.annotation_methods.contains("harmony_knn") || state.annotation_methods.contains("scvi_knn"))  && !state.reference ) {
+        throw new RuntimeException("When `harmony_knn` or `scvi_knn` are selected as an annotation method, a --reference dataset must be provided.")
         }
 
       [id, state + new_state]
@@ -133,7 +133,6 @@ workflow run_wf {
       args: [
         // log normalized counts are expected for celltypist
         "input_layer": "log_normalized",
-        "check_expression": "true",
         "output_obs_predictions": "celltypist_pred",
         "output_obs_probability": "celltypist_proba"
       ],
