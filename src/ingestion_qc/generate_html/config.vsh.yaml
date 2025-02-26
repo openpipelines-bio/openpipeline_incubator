@@ -40,7 +40,7 @@ engines:
       - type: docker
         run: |
           npm install -g pnpm@latest-10 \
-          && cd /opt && git clone -b add-args-to-compression https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
+          && cd /opt && git clone https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
           && cd incubator_ingestion_qc && pnpm install
 runners:
   - type: executable
