@@ -30,6 +30,11 @@ argument_groups:
 resources:
   - type: bash_script
     path: script.sh
+test_resources:
+  - type: bash_script
+    path: test.sh
+  - type: file
+    path: /resources_test/dataset.json
 engines:
   - type: docker
     image: node:latest
