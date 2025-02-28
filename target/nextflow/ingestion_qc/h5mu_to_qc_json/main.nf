@@ -3228,8 +3228,8 @@ meta = [
           "default" : [
             "total_counts",
             "num_nonzero_vars",
-            "fraction_mitochondrial_genes",
-            "fraction_ribosomal_genes"
+            "fraction_mitochondrial",
+            "fraction_ribosomal"
           ],
           "required" : false,
           "direction" : "input",
@@ -3259,6 +3259,17 @@ meta = [
     }
   ],
   "description" : "Convert QC metrics from h5mu to JSON",
+  "test_resources" : [
+    {
+      "type" : "python_script",
+      "path" : "test.py",
+      "is_executable" : true
+    },
+    {
+      "type" : "file",
+      "path" : "/resources_test"
+    }
+  ],
   "status" : "enabled",
   "scope" : {
     "image" : "public",
@@ -3273,7 +3284,7 @@ meta = [
     }
   ],
   "links" : {
-    "repository" : "https://github.com/openpipelines-bio/incubator",
+    "repository" : "https://github.com/openpipelines-bio/openpipeline_incubator",
     "docker_registry" : "ghcr.io"
   },
   "runners" : [
@@ -3372,6 +3383,26 @@ meta = [
           ],
           "upgrade" : true
         }
+      ],
+      "test_setup" : [
+        {
+          "type" : "apt",
+          "packages" : [
+            "git"
+          ],
+          "interactive" : false
+        },
+        {
+          "type" : "python",
+          "user" : false,
+          "packages" : [
+            "viashpy==0.8.0"
+          ],
+          "github" : [
+            "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
+          ],
+          "upgrade" : true
+        }
       ]
     }
   ],
@@ -3381,12 +3412,21 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
     "viash_version" : "0.9.1",
-    "git_commit" : "c23f8870b8db7ab34cbb477b64ddd9f1c7638a1a",
+    "git_commit" : "df54df02ffb6bfc4ff12064aee09a5baaec293d2",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
     "name" : "openpipeline_incubator",
     "version" : "build_main",
+    "info" : {
+      "test_resources" : [
+        {
+          "type" : "s3",
+          "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
+          "dest" : "resources_test"
+        }
+      ]
+    },
     "repositories" : [
       {
         "type" : "github",
@@ -3400,7 +3440,7 @@ meta = [
     "target" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target",
     "organization" : "openpipelines-bio",
     "links" : {
-      "repository" : "https://github.com/openpipelines-bio/incubator",
+      "repository" : "https://github.com/openpipelines-bio/openpipeline_incubator",
       "docker_registry" : "ghcr.io"
     }
   }

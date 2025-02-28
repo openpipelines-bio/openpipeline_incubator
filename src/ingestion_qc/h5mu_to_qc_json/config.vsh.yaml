@@ -50,7 +50,7 @@ argument_groups:
         type: string
         multiple: true
         description: The keys in the h5mu .obs to include in the output JSON
-        default: ["total_counts", "num_nonzero_vars", "fraction_mitochondrial_genes", "fraction_ribosomal_genes"]
+        default: ["total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal"]
       - name: --cellranger_metrics_uns_key
         type: string
         description: The key in the h5mu file .uns that contains the cellranger metrics
@@ -58,6 +58,11 @@ argument_groups:
 resources:
   - type: python_script
     path: script.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - type: file
+    path: /resources_test
 engines:
   - type: docker
     image: python:3.12-slim
@@ -68,6 +73,15 @@ engines:
       - type: python
         packages:
           - mudata~=0.3.1
+    test_setup:
+    - type: apt
+      packages:
+        - git
+    - type: python
+      packages:
+        - viashpy==0.8.0
+      github: openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils
+
 runners:
   - type: executable
   - type: nextflow

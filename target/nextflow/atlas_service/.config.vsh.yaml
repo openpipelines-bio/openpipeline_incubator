@@ -539,7 +539,7 @@ repositories:
   repo: "openpipelines-bio/openpipeline"
   tag: "2.0.0"
 links:
-  repository: "https://github.com/openpipelines-bio/incubator"
+  repository: "https://github.com/openpipelines-bio/openpipeline_incubator"
   docker_registry: "ghcr.io"
 runners:
 - type: "nextflow"
@@ -610,7 +610,7 @@ build_info:
   output: "target/nextflow/atlas_service"
   executable: "target/nextflow/atlas_service/main.nf"
   viash_version: "0.9.1"
-  git_commit: "c23f8870b8db7ab34cbb477b64ddd9f1c7638a1a"
+  git_commit: "df54df02ffb6bfc4ff12064aee09a5baaec293d2"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
   dependencies:
   - "target/dependencies/github/openpipelines-bio/openpipeline/2.0.0/nextflow/metadata/add_id"
@@ -620,7 +620,11 @@ build_info:
 package_config:
   name: "openpipeline_incubator"
   version: "build_main"
-  info: null
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_incubator/resources_test"
+      dest: "resources_test"
   repositories:
   - type: "github"
     name: "openpipeline"
@@ -631,5 +635,5 @@ package_config:
   target: "target"
   organization: "openpipelines-bio"
   links:
-    repository: "https://github.com/openpipelines-bio/incubator"
+    repository: "https://github.com/openpipelines-bio/openpipeline_incubator"
     docker_registry: "ghcr.io"

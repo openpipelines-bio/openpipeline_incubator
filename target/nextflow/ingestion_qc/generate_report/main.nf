@@ -3182,10 +3182,10 @@ meta = [
       "arguments" : [
         {
           "type" : "file",
-          "name" : "--output_qc_json",
-          "description" : "The output JSON file containing the QC metrics",
+          "name" : "--output",
+          "description" : "The output HTML report",
           "example" : [
-            "path/to/file.json"
+            "path/to/file.html"
           ],
           "must_exist" : true,
           "create_parent" : true,
@@ -3234,6 +3234,12 @@ meta = [
       "repository" : {
         "type" : "local"
       }
+    },
+    {
+      "name" : "ingestion_qc/generate_html",
+      "repository" : {
+        "type" : "local"
+      }
     }
   ],
   "repositories" : [
@@ -3245,7 +3251,7 @@ meta = [
     }
   ],
   "links" : {
-    "repository" : "https://github.com/openpipelines-bio/incubator",
+    "repository" : "https://github.com/openpipelines-bio/openpipeline_incubator",
     "docker_registry" : "ghcr.io"
   },
   "runners" : [
@@ -3329,12 +3335,21 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "c23f8870b8db7ab34cbb477b64ddd9f1c7638a1a",
+    "git_commit" : "df54df02ffb6bfc4ff12064aee09a5baaec293d2",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
     "name" : "openpipeline_incubator",
     "version" : "build_main",
+    "info" : {
+      "test_resources" : [
+        {
+          "type" : "s3",
+          "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
+          "dest" : "resources_test"
+        }
+      ]
+    },
     "repositories" : [
       {
         "type" : "github",
@@ -3348,7 +3363,7 @@ meta = [
     "target" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target",
     "organization" : "openpipelines-bio",
     "links" : {
-      "repository" : "https://github.com/openpipelines-bio/incubator",
+      "repository" : "https://github.com/openpipelines-bio/openpipeline_incubator",
       "docker_registry" : "ghcr.io"
     }
   }
@@ -3361,6 +3376,7 @@ include { add_id } from "${meta.root_dir}/dependencies/github/openpipelines-bio/
 include { qc as qc_wf_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/main_build/nextflow/workflows/qc/qc/main.nf"
 qc_wf = qc_wf_viashalias.run(key: "qc_wf")
 include { h5mu_to_qc_json } from "${meta.resources_dir}/../../../nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
+include { generate_html } from "${meta.resources_dir}/../../../nextflow/ingestion_qc/generate_html/main.nf"
 
 // inner workflow
 // user-provided Nextflow code
@@ -3396,7 +3412,8 @@ workflow run_wf {
       def newId = "combined"
       def newState = [
         input: states.collect{it.output},
-        _meta: states[0]._meta
+        _meta: states[0]._meta,
+        output_html: states[0].output_html
       ]
       [newId, newState]
     }
@@ -3408,8 +3425,13 @@ workflow run_wf {
       toState: [output_qc_json: "output"]
     )
 
+    | generate_html.run(
+      fromState: [input: "output_qc_json"],
+      toState: [output: "output"]
+    )
+
     // emit output
-    | setState(["output_qc_json", "_meta"])
+    | setState(["output", "_meta"])
 
   emit: output_ch
 }
