@@ -34,4 +34,7 @@ Thumbs.db
 # Nextflow
 work
 .nextflow*
-target
+
+# viash
+/target/
+/resources_test/
