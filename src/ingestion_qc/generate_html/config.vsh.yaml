@@ -34,7 +34,7 @@ test_resources:
   - type: bash_script
     path: test.sh
   - type: file
-    path: /resources_test/dataset.json
+    path: /resources_test/qc_sample_data/dataset.json
 engines:
   - type: docker
     image: node:latest

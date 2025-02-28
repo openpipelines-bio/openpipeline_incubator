@@ -16,8 +16,8 @@ def test_simple_execution(run_component, tmp_path):
     
     run_component(
         [
-            "--input", meta["resources_dir"] + "/resources_test/sample_data/sample_1.qc.output.h5mu",
-            "--input", meta["resources_dir"] + "/resources_test/sample_data/sample_2.qc.output.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_one.qc.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_two.qc.h5mu",
             "--output", output_json_path,
         ]
     )
@@ -30,7 +30,7 @@ def test_simple_execution(run_component, tmp_path):
     assert output_json_dict.keys() == {"cell_rna_stats", "sample_summary_stats", "metrics_cellranger_stats"}
     
     column_names = [col["name"] for col in output_json_dict["cell_rna_stats"]["columns"]]
-    assert column_names == ["sample_id", "total_counts", "num_nonzero_vars", "fraction_mitochondrial_genes", "fraction_ribosomal_genes"]
+    assert column_names == ["sample_id", "total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal"]
         
     for key in output_json_dict.keys():
         assert output_json_dict[key].keys() == {"num_rows", "num_cols", "columns"}
@@ -43,8 +43,8 @@ def test_set_filters(run_component, tmp_path):
     
     run_component(
         [
-            "--input", meta["resources_dir"] + "/resources_test/sample_data/sample_1.qc.output.h5mu",
-            "--input", meta["resources_dir"] + "/resources_test/sample_data/sample_2.qc.output.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_one.qc.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_two.qc.h5mu",
             "--output", output_json_path,
             "--min_total_counts", "100",
             "--min_num_nonzero_vars", "100",

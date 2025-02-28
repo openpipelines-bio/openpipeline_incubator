@@ -27,6 +27,12 @@ nextflow run openpipelines-bio/openpipeline \
   -params-file /tmp/params.yaml \
   -resume
 
+# generate json for testing
+viash run src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
+  --input "$OUT_DIR"//sample_one.qc.h5mu \
+  --input "$OUT_DIR"/sample_two.qc.h5mu \
+  --output "$OUT_DIR"/dataset.json
+
 # copy to s3
 aws s3 sync \
   --profile di \
