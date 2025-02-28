@@ -76,13 +76,13 @@ engines:
         packages:
           - mudata~=0.3.1
     test_setup:
-    - type: docker
-      copy: ["openpipelinetestutils /opt/openpipelinetestutils"]
-    - type: python
-      packages: /opt/openpipelinetestutils
+    - type: apt
+      packages:
+        - git
     - type: python
       packages:
         - viashpy==0.8.0
+      github: openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils
 
 runners:
   - type: executable
