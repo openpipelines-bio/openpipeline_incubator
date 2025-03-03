@@ -7,8 +7,8 @@ import h5py
 ## VIASH START
 # inputs = list(Path("data/sample_data/sample_data").glob("*.h5mu"))
 # output = "data/sample-data.json"
-inputs = list(Path("data/sample_data/various_cart").glob("*.h5mu"))
-output = "data/various_cart.json"
+inputs = list(Path("resources_test/qc_sample_data").glob("*.h5mu"))
+output = "tmp.json"
 par = {
     "input": sorted([str(x) for x in inputs]),
     "output": output,
@@ -19,8 +19,8 @@ par = {
     "obs_keys": [
         "total_counts",
         "num_nonzero_vars",
-        "fraction_mitochondrial_genes",
-        "fraction_ribosomal_genes",
+        "fraction_mitochondrial",
+        "fraction_ribosomal",
         "pct_of_counts_in_top_50_vars",
     ],
     "cellranger_metrics_uns_key": "metrics_cellranger",
