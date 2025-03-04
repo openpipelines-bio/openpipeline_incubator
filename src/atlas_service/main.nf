@@ -30,6 +30,7 @@ workflow run_wf {
       // Check Harmony KNN arguments
       if ((state.annotation_methods.contains("harmony_knn") || state.annotation_methods.contains("scvi_knn"))  && !state.reference ) {
         throw new RuntimeException("When `harmony_knn` or `scvi_knn` are selected as an annotation method, a --reference dataset must be provided.")
+      }
 
       [id, state + new_state]
     }
