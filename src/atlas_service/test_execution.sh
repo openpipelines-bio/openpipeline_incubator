@@ -1,8 +1,8 @@
 cat > params.yaml << HERE
 id: harmony
-input: /home/dorienroosen/openpipeline/resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
+input: resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
 modality: rna
-reference: /home/dorienroosen/openpipeline/resources_test/annotation_test_data/TS_Blood_filtered.h5mu
+reference: resources_test/annotation_test_data/TS_Blood_filtered.h5mu
 reference_layer_lognormalized_counts: log_normalized
 reference_var_gene_names: ensemblid
 reference_obs_batch: donor_assay
@@ -17,7 +17,7 @@ nextflow run . \
 -resume \
 -profile docker \
 -c target/nextflow/atlas_service/nextflow.config \
--c /home/dorienroosen/openpipeline/src/workflows/utils/labels_ci.config
+-c src/utils/labels_ci.config
 
 # cat > params.yaml << HERE
 # id: celltypist
