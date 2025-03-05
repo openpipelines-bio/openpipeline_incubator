@@ -3178,6 +3178,50 @@ meta = [
       ]
     },
     {
+      "name" : "Options",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--var_gene_names",
+          "description" : "The column name in the .var h5mu files that contains the gene names.\n",
+          "example" : [
+            "gene_symbol"
+          ],
+          "default" : [
+            "gene_symbol"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--var_name_mitochondrial_genes",
+          "description" : "In which .var slot to store a boolean array corresponding the mitochondrial genes.\n",
+          "default" : [
+            "mitochondrial"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--var_name_ribosomal_genes",
+          "description" : "In which .var slot to store a boolean array corresponding the ribosomal genes.\n",
+          "default" : [
+            "ribosomal"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Outputs",
       "arguments" : [
         {
@@ -3335,7 +3379,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "df54df02ffb6bfc4ff12064aee09a5baaec293d2",
+    "git_commit" : "21df874fc481bb538079be5b78e553d30ca78ad2",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3392,11 +3436,12 @@ workflow run_wf {
 
     // run qc on each sample
     | qc_wf.run(
-      fromState: ["id", "input"],
-      args: [
-        var_gene_names: "gene_symbol",
-        var_name_mitochondrial_genes: "mitochondrial_genes",
-        var_name_ribosomal_genes: "ribosomal_genes"
+      fromState: [
+        "id",
+        "input",
+        "var_gene_names",
+        "var_name_mitochondrial_genes",
+        "var_name_ribosomal_genes"
       ],
       toState: ["output"]
     )

@@ -3310,7 +3310,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_html",
     "viash_version" : "0.9.1",
-    "git_commit" : "df54df02ffb6bfc4ff12064aee09a5baaec293d2",
+    "git_commit" : "21df874fc481bb538079be5b78e553d30ca78ad2",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {

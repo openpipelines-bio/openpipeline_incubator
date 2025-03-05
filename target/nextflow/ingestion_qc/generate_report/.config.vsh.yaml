@@ -92,6 +92,42 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+- name: "Options"
+  arguments:
+  - type: "string"
+    name: "--var_gene_names"
+    description: "The column name in the .var h5mu files that contains the gene names.\n"
+    info: null
+    example:
+    - "gene_symbol"
+    default:
+    - "gene_symbol"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--var_name_mitochondrial_genes"
+    description: "In which .var slot to store a boolean array corresponding the mitochondrial\
+      \ genes.\n"
+    info: null
+    default:
+    - "mitochondrial"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--var_name_ribosomal_genes"
+    description: "In which .var slot to store a boolean array corresponding the ribosomal\
+      \ genes.\n"
+    info: null
+    default:
+    - "ribosomal"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 - name: "Outputs"
   arguments:
   - type: "file"
@@ -212,7 +248,7 @@ build_info:
   output: "target/nextflow/ingestion_qc/generate_report"
   executable: "target/nextflow/ingestion_qc/generate_report/main.nf"
   viash_version: "0.9.1"
-  git_commit: "df54df02ffb6bfc4ff12064aee09a5baaec293d2"
+  git_commit: "21df874fc481bb538079be5b78e553d30ca78ad2"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
   dependencies:
   - "target/dependencies/github/openpipelines-bio/openpipeline/main_build/nextflow/metadata/add_id"
