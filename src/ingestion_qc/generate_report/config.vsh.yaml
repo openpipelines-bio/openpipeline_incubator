@@ -50,13 +50,13 @@ argument_groups:
       - name: "--var_name_mitochondrial_genes"
         type: string
         required: false
-        default: "mitochondrial_genes"
+        default: "mitochondrial"
         description: |
           In which .var slot to store a boolean array corresponding the mitochondrial genes.
       - name: "--var_name_ribosomal_genes"
         type: string
         required: false
-        default: "ribosomal_genes"
+        default: "ribosomal"
         description: |
           In which .var slot to store a boolean array corresponding the ribosomal genes.
 
