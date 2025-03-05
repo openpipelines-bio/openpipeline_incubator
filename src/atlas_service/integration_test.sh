@@ -20,7 +20,7 @@ nextflow \
 nextflow \
   run . \
   -main-script src/atlas_service/test.nf \
-  -profile docker, no_publish \
+  -profile docker,no_publish \
   -resume \
   -entry test_wf_2 \
   -c src/utils/labels_ci.config \

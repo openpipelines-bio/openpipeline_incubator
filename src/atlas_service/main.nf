@@ -197,9 +197,9 @@ workflow run_wf {
       args: [
         "input_layer_lognormalized": "log_normalized",
         "input_obs_batch_label": "sample_id",
-        "output_obs_predictions": "harmony_knn_pred",
-        "output_obs_probability": "harmony_knn_proba",
-        "output_obsm_integrated": "X_integrated_harmony",
+        "output_obs_predictions": "scvi_knn_pred",
+        "output_obs_probability": "scvi_knn_proba",
+        "output_obsm_integrated": "X_integrated_scvi",
         "overwrite_existing_key": "true"
       ],
       toState: [ "query_processed": "output" ]

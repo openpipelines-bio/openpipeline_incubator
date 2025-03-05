@@ -17,7 +17,7 @@ workflow test_wf {
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
-        annotation_methods: "celltypist"
+        annotation_methods: "celltypist;scvi_knn;harmony_knn"
       ]
     ])
     | view {"State at start: $it"}
