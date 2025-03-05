@@ -15,3 +15,9 @@ repositories:
     repo: openpipelines-bio/openpipeline
     type: github
     tag: main_build
+
+info:
+  test_resources:
+    - type: s3
+      path: s3://openpipelines-data
+      dest: resources_test
