@@ -43,6 +43,7 @@ workflow test_wf {
 }
 
 workflow test_wf_2 {
+
   // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
@@ -113,3 +114,78 @@ workflow test_wf_2 {
       "Output: $output"
     }
   }
+
+workflow test_wf_3 {
+  // allow changing the resources_test dir
+  resources_test = file(params.resources_test)
+
+  output_ch = Channel.fromList(
+    [
+      [
+        id: "celltypist_model",
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
+        celltypist_model: resources_test.resolve("annotation_test_data/celltypist_model_Immune_All_Low.pkl"),
+        annotation_methods: "celltypist",
+        input_var_gene_names: "gene_symbol"
+      ]
+    ])
+    | view {"State at start: $it"}
+    | map{ state -> [state.id, state] }
+    | atlas_service 
+    | view {"After AaaS: $it"}
+    | view { output ->
+      assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
+
+      // check id
+      def id = output[0]
+      assert id == "merged" : "Output ID should be `merged`"
+
+      // check output
+      def state = output[1]
+      assert state instanceof Map : "State should be a map. Found: ${state}"
+      assert state.containsKey("output") : "Output should contain key 'output'."
+      assert state.output.isFile() : "'output' should be a file."
+      assert state.output.toString().endsWith(".h5mu") : "Output file should end with '.h5mu'. Found: ${state.output}"
+    
+    "Output: $output"
+  }
+}
+
+workflow test_wf_4 {
+  // allow changing the resources_test dir
+  resources_test = file(params.resources_test)
+
+  output_ch = Channel.fromList(
+    [
+      [
+        id: "scgpt",
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
+        annotation_methods: "scgpt_annotation",
+        input_var_gene_names: "gene_symbol",
+        scgpt_model: resources_test.resolve("scgpt/finetuned_model/best_model.pt"),
+        scgpt_model_config: resources_test.resolve("scgpt/source/args.json"),
+        scgpt_model_vocab: resources_test.resolve("scgpt/source/vocab.json"),
+        annotation_methods: "scgpt_annotation"
+      ]
+    ])
+    | view {"State at start: $it"}
+    | map{ state -> [state.id, state] }
+    | atlas_service 
+    | view {"After AaaS: $it"}
+    | view { output ->
+      assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
+
+      // check id
+      def id = output[0]
+      assert id == "merged" : "Output ID should be `merged`"
+
+      // check output
+      def state = output[1]
+      assert state instanceof Map : "State should be a map. Found: ${state}"
+      assert state.containsKey("output") : "Output should contain key 'output'."
+      assert state.output.isFile() : "'output' should be a file."
+      assert state.output.toString().endsWith(".h5mu") : "Output file should end with '.h5mu'. Found: ${state.output}"
+    
+    "Output: $output"
+  }
+}
