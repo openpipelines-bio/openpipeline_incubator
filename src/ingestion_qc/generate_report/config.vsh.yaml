@@ -95,4 +95,5 @@ dependencies:
   - name: ingestion_qc/h5mu_to_qc_json
   - name: ingestion_qc/generate_html
 runners:
+  - type: executable
   - type: nextflow
