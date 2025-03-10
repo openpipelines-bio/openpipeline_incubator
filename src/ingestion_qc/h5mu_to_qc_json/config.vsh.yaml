@@ -50,7 +50,9 @@ argument_groups:
         type: string
         multiple: true
         description: The keys in the h5mu .obs to include in the output JSON
-        default: ["total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal"]
+        default: ["total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal",
+                  "cellbender_background_fraction", "cellbender_cell_probability", "cellbender_cell_size",
+                  "cellbender_droplet_efficiency"]
       - name: --cellranger_metrics_uns_key
         type: string
         description: The key in the h5mu file .uns that contains the cellranger metrics

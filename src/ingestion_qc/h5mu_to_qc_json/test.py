@@ -16,8 +16,8 @@ def test_simple_execution(run_component, tmp_path):
     
     run_component(
         [
-            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_one.qc.h5mu",
-            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_two.qc.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_one.qc.cellbender.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_two.qc.cellbender.h5mu",
             "--output", output_json_path,
         ]
     )

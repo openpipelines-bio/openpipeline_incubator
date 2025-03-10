@@ -59,6 +59,17 @@ argument_groups:
         default: "ribosomal"
         description: |
           In which .var slot to store a boolean array corresponding the ribosomal genes.
+      - mame: "--obs_cell_probability"
+        type: string
+        required: false
+        default: "cellbender_cell_probability"
+        description: |
+          In which .obs slot to store the cell probability.
+      - name: "--cellbender_epochs"
+        type: integer
+        required: false
+        description: Number of epochs to train cellbender. 
+        default: 150
 
   - name: Outputs
     arguments:
@@ -77,6 +88,9 @@ dependencies:
     repository: openpipeline
   - name: workflows/qc/qc
     alias: qc_wf
+    repository: openpipeline
+  - name: correction/cellbender_remove_background
+    alias: cellbender
     repository: openpipeline
   - name: ingestion_qc/h5mu_to_qc_json
   - name: ingestion_qc/generate_html
