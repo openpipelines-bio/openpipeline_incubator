@@ -30,7 +30,9 @@ def test_simple_execution(run_component, tmp_path):
     assert output_json_dict.keys() == {"cell_rna_stats", "sample_summary_stats", "metrics_cellranger_stats"}
     
     column_names = [col["name"] for col in output_json_dict["cell_rna_stats"]["columns"]]
-    assert column_names == ["sample_id", "total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal"]
+    assert column_names == ["sample_id", "total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal",
+                            "cellbender_background_fraction", "cellbender_cell_probability", "cellbender_cell_size",
+                            "cellbender_droplet_efficiency"]
         
     for key in output_json_dict.keys():
         assert output_json_dict[key].keys() == {"num_rows", "num_cols", "columns"}
@@ -43,8 +45,8 @@ def test_set_filters(run_component, tmp_path):
     
     run_component(
         [
-            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_one.qc.h5mu",
-            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_two.qc.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_one.qc.cellbender.h5mu",
+            "--input", meta["resources_dir"] + "/resources_test/qc_sample_data/sample_two.qc.cellbender.h5mu",
             "--output", output_json_path,
             "--sample_id_key", "sample_id",
             "--min_total_counts", "10",
