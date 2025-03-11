@@ -356,7 +356,7 @@ dependencies:
     alias: process_samples_workflow
     repository: op
   - name: workflows/annotation/scgpt_annotation
-    repository: op
+    repository: op-main
   - name: annotate/celltypist
     repository: op-main
     alias: celltypist_annotation
