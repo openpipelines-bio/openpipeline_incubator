@@ -30,6 +30,7 @@ workflow run_wf {
       // Check Harmony KNN arguments
       if ((state.annotation_methods.contains("harmony_knn") || state.annotation_methods.contains("scvi_knn"))  && !state.reference ) {
         throw new RuntimeException("When `harmony_knn` or `scvi_knn` are selected as an annotation method, a --reference dataset must be provided.")
+      }
 
       [id, state + new_state]
     }
@@ -196,9 +197,9 @@ workflow run_wf {
       args: [
         "input_layer_lognormalized": "log_normalized",
         "input_obs_batch_label": "sample_id",
-        "output_obs_predictions": "harmony_knn_pred",
-        "output_obs_probability": "harmony_knn_proba",
-        "output_obsm_integrated": "X_integrated_harmony",
+        "output_obs_predictions": "scvi_knn_pred",
+        "output_obs_probability": "scvi_knn_proba",
+        "output_obsm_integrated": "X_integrated_scvi",
         "overwrite_existing_key": "true"
       ],
       toState: [ "query_processed": "output" ]
