@@ -27,12 +27,13 @@ def test_simple_execution(run_component, tmp_path):
     with open(output_json_path, "r") as f:
         output_json_dict = json.load(f)
     
-    assert output_json_dict.keys() == {"cell_rna_stats", "sample_summary_stats", "metrics_cellranger_stats"}
+    assert output_json_dict.keys() == {"cell_rna_stats", "sample_summary_stats", "cellbender_rna_stats", "metrics_cellranger_stats"}
     
-    column_names = [col["name"] for col in output_json_dict["cell_rna_stats"]["columns"]]
-    assert column_names == ["sample_id", "total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal",
-                            "cellbender_background_fraction", "cellbender_cell_probability", "cellbender_cell_size",
-                            "cellbender_droplet_efficiency"]
+    column_names_cell = [col["name"] for col in output_json_dict["cell_rna_stats"]["columns"]]
+    assert column_names_cell == ["sample_id", "total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal"]
+    
+    column_names_cellbender = [col["name"] for col in output_json_dict["cellbender_rna_stats"]["columns"]]
+    assert column_names_cellbender == ["sample_id", "cellbender_background_fraction", "cellbender_cell_probability", "cellbender_cell_size", "cellbender_droplet_efficiency"]
         
     for key in output_json_dict.keys():
         assert output_json_dict[key].keys() == {"num_rows", "num_cols", "columns"}
@@ -61,7 +62,7 @@ def test_set_filters(run_component, tmp_path):
     with open(output_json_path, "r") as f:
         output_json_dict = json.load(f)
     
-    assert output_json_dict.keys() == {"cell_rna_stats", "sample_summary_stats", "metrics_cellranger_stats"}
+    assert output_json_dict.keys() == {"cell_rna_stats", "sample_summary_stats", "cellbender_rna_stats", "metrics_cellranger_stats"}
     
     column_names = [col["name"] for col in output_json_dict["cell_rna_stats"]["columns"]]
     assert column_names == ["sample_id", "total_counts", "num_nonzero_vars"]
