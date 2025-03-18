@@ -157,7 +157,7 @@ def main(par):
         if par["cellbender_obs_keys"]:
             missing_cellbender_keys = [key for key in par["cellbender_obs_keys"] if key not in mod_obs.columns]
             if missing_cellbender_keys:
-                raise ValueError(f"Missing keys in obs: {', '.join(missing_cellbender_keys)}. Run cellbenbder first.")
+                raise ValueError(f"Missing keys in obs: {', '.join(missing_cellbender_keys)}. Run cellbender first.")
             
             cellbender_rna_stats = pd.DataFrame(
                 {

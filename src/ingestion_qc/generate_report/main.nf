@@ -10,6 +10,7 @@ workflow run_wf {
 
     // run cellbender
     | cellbender.run(
+      runIf: {id, state -> state.run_cellbender},
       fromState: [
         id: "id",
         input: "input",
