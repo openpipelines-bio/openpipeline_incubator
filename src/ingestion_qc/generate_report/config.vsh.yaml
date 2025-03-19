@@ -59,22 +59,18 @@ argument_groups:
         default: "ribosomal"
         description: |
           In which .var slot to store a boolean array corresponding the ribosomal genes.
-      - name: "--obs_cell_probability"
-        type: string
-        required: false
-        default: "cellbender_cell_probability"
-        description: |
-          In which .obs slot to store the cell probability.
-      - name: "--cellbender_epochs"
-        type: integer
-        required: false
-        description: Number of epochs to train cellbender. 
-        default: 150
+  - name: Cellbender options
+    arguments:
       - name: "--run_cellbender"
         type: boolean
         required: false
         description: Whether to run cellbender or not.
         default: false
+      - name: "--cellbender_epochs"
+        type: integer
+        required: false
+        description: Number of epochs to train cellbender. 
+        default: 150
   - name: Outputs
     arguments:
       - name: --output

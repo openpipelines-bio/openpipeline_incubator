@@ -14,7 +14,6 @@ workflow run_wf {
       fromState: [
         id: "id",
         input: "input",
-        obs_cell_probability: "obs_cell_probability",
         epochs: "cellbender_epochs",
       ],
       toState: ["output"]
