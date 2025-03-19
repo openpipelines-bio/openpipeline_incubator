@@ -80,4 +80,4 @@ aws s3 sync \
   --profile di \
   resources_test/qc_sample_data \
   s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data \
-  --delete --dryrun
+  --delete
