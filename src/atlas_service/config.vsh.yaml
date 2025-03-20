@@ -348,13 +348,9 @@ argument_groups:
       example: output.h5mu
 
 dependencies:
-  - name: metadata/add_id
-    repository: op
-  - name: dataflow/split_h5mu
-    repository: op
   - name: workflows/multiomics/process_samples
     alias: process_samples_workflow
-    repository: op
+    repository: openpipeline
   - name: workflows/annotation/scgpt_annotation
     repository: op-main
   - name: annotate/celltypist
@@ -368,10 +364,6 @@ dependencies:
     alias: scvi_knn_annotation
 
 repositories:
-  - name: op
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: 2.0.0
   - name: op-main
     type: github
     repo: openpipelines-bio/openpipeline
