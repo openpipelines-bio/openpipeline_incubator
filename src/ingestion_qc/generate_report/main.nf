@@ -8,6 +8,12 @@ workflow run_wf {
       [id, state + [_meta: [join_id: id]]]
     }
 
+    // add sample ids to each state
+    | add_id.run(
+      fromState: [input_id: "id", input: "output"],
+      toState: ["output"]
+    )
+    
     // run cellbender
     | cellbender.run(
       runIf: {id, state -> state.run_cellbender},
@@ -28,12 +34,6 @@ workflow run_wf {
         var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
         var_name_ribosomal_genes: "var_name_ribosomal_genes"
       ],
-      toState: ["output"]
-    )
-
-    // add sample ids to each state
-    | add_id.run(
-      fromState: [input_id: "id", input: "output"],
       toState: ["output"]
     )
 
