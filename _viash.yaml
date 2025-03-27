@@ -7,17 +7,22 @@ name: openpipeline_incubator
 organization: openpipelines-bio
 
 links:
-  repository: https://github.com/openpipelines-bio/incubator
+  repository: https://github.com/openpipelines-bio/openpipeline_incubator
   docker_registry: ghcr.io
 
 repositories:
   - name: openpipeline
     repo: openpipelines-bio/openpipeline
     type: github
-    tag: main_build
+    tag: 2.0.0
 
 info:
   test_resources:
     - type: s3
-      path: s3://openpipelines-data
+      path: s3://openpipelines-bio/openpipeline_incubator/resources_test
       dest: resources_test
+
+config_mods: |
+  .resources += {path: '/src/utils/labels.config', dest: 'nextflow_labels.config'}
+  .runners[.type == 'nextflow'].directives.tag := '$id'
+  .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'

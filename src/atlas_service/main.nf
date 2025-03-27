@@ -67,7 +67,6 @@ workflow run_wf {
           "id": id,
           "input": state.query_processed,
           "modality": state.modality,
-          "input_layer": state.input_layer,
           "input_var_gene_names": state.input_var_gene_names,
           "model": state.scgpt_model,
           "model_config": state.scgpt_model_config,
@@ -84,6 +83,7 @@ workflow run_wf {
         ]
       },
       args: [
+        "input_layer": "log_normalized",
         "input_obs_batch_label": "sample_id",
         "output_obs_predictions": "scgpt_pred",
         "output_obs_probability": "scgpt_proba"
