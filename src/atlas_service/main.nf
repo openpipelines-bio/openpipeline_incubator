@@ -185,13 +185,13 @@ workflow run_wf {
           "reference_var_gene_names": state.reference_var_gene_names,
           "reference_obs_batch_label": state.reference_obs_batch,
           "n_hvg": state.n_hvg,
-          "scvi_early_stopping": state.scvi_early_stopping,
-          "scvi_early_stopping_patience": state.scvi_early_stopping_patience,
-          "scvi_early_stopping_min_delta": state.scvi_early_stopping_min_delta,
-          "scvi_max_epochs": state.scvi_max_epochs,
-          "scvi_reduce_lr_on_plateau": state.scvi_reduce_lr_on_plateau,
-          "scvi_lr_factor": state.scvi_lr_factor,
-          "scvi_lr_patience": state.scvi_lr_patience
+          "scvi_early_stopping": state.early_stopping,
+          "scvi_early_stopping_patience": state.early_stopping_patience,
+          "scvi_early_stopping_min_delta": state.early_stopping_min_delta,
+          "scvi_max_epochs": state.max_epochs,
+          "scvi_reduce_lr_on_plateau": state.reduce_lr_on_plateau,
+          "scvi_lr_factor": state.lr_factor,
+          "scvi_lr_patience": state.lr_patience
         ]
       },
       args: [
@@ -200,6 +200,39 @@ workflow run_wf {
         "output_obs_predictions": "scvi_knn_pred",
         "output_obs_probability": "scvi_knn_proba",
         "output_obsm_integrated": "X_integrated_scvi",
+        "overwrite_existing_key": "true"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | scanvi_scarches_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("scanvi_scarches")},
+      fromState: [
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "layer": "input_layer",
+        "input_var_gene_names": "input_var_gene_names",
+        "reference": "reference",
+        "reference_obs_target": "reference_obs_target",
+        "reference_obs_batch_label": "reference_obs_batch",
+        "reference_var_hvg": "reference_var_input",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "unlabeled_category": "reference_obs_label_unlabeled_category",
+        "early_stopping": "early_stopping",
+        "early_stopping_monitor": "early_stopping_monitor",
+        "early_stopping_patience": "early_stopping_patience",
+        "early_stopping_min_delta": "early_stopping_min_delta",
+        "max_epochs": "max_epochs",
+        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
+        "lr_factor": "lr_factor",
+        "lr_patience": "lr_patience"
+      ],
+      args: [
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "scanvi_knn_pred",
+        "output_obs_probability": "scanvi_knn_proba",
+        "output_obsm_integrated": "X_integrated_scanvi",
         "overwrite_existing_key": "true"
       ],
       toState: [ "query_processed": "output" ]

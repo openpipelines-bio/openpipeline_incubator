@@ -71,11 +71,16 @@ argument_groups:
         example: cell_type
         required: false
         description: The `.obs` key of the target labels to tranfer.
+      - name: "--reference_obs_label_unlabeled_category"
+        type: string
+        default: "Unkown"
+        description: "Value in the --reference_obs_label field that indicates unlabeled observations"
       - name: "--reference_var_input"
         type: string
         required: false
         description: |
           .var column containing highly variable genes. By default, do not subset genes.
+
 
   - name: Annotation methods
     description: The available annotation methods to annotate the query dataset(s) with.
@@ -84,8 +89,9 @@ argument_groups:
         type: string
         multiple: true
         required: true
-        choices: [celltypist, harmony_knn, scgpt_annotation, scvi_knn]
-        example: harmony_knn
+        choices: [celltypist, harmony_knn, scgpt_annotation, scvi_knn, scanvi_scarches]
+        example: harmony_knn;scanvi_scarches
+        description: Annotation methods to be executed.
         
   - name: "Pre-processing options: RNA filtering"
     description: Pre-processing options for filtering RNA data
@@ -358,28 +364,35 @@ dependencies:
   - name: workflows/annotation/scgpt_annotation
     repository: op
   - name: annotate/celltypist
-    repository: op-main
+    repository: openpipeline
     alias: celltypist_annotation
   - name: workflows/annotation/harmony_knn
-    repository: op-main
+    repository: op-harmony
     alias: harmony_knn_annotation
   - name: workflows/annotation/scvi_knn
     repository: op-scvi
     alias: scvi_knn_annotation
+  - name: workflows/annotation/scanvi_scarches
+    repository: op-scanvi
+    alias: scanvi_scarches_annotation
 
 repositories:
   - name: op
     type: github
     repo: openpipelines-bio/openpipeline
     tag: 2.0.0
-  - name: op-main
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: main_build
   - name: op-scvi
     type: github
     repo: openpipelines-bio/openpipeline
     tag: scvi-knn-annotation_build
+  - name: op-scanvi
+    type: github
+    repo: openpipelines-bio/openpipeline
+    tag: scanvi-annotation-wf_build
+  - name: op-harmony
+    type: github
+    repo: openpipelines-bio/openpipeline
+    tag: harmony-modality-handling_build
 
 resources:
   - type: nextflow_script
