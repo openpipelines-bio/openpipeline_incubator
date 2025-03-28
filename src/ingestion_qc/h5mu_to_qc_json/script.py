@@ -119,7 +119,7 @@ def main(par):
             {
                 "sample_id": pd.Categorical(sample_id),
                 **{key: mod_obs[key] for key in par["obs_keys"]},
-                **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if par["cellbender_obs_keys"]},
+                **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if key in mod_obs.columns},
             }
         )
         
