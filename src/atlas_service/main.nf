@@ -35,24 +35,22 @@ workflow run_wf {
       [id, state + new_state]
     }
     | process_samples_workflow.run(
-      fromState: {id, state ->
-        def newState = [
-          "input": state.input, 
-          "id": id,
-          "rna_layer": state.input_layer,
-          "rna_min_counts": state.rna_min_counts,
-          "rna_max_counts": state.rna_max_counts,
-          "rna_min_genes_per_cell": state.rna_min_genes_per_cell,
-          "rna_max_genes_per_cell": state.rna_max_genes_per_cell,
-          "rna_min_cells_per_gene": state.rna_min_cells_per_gene,
-          "rna_min_fraction_mito": state.rna_min_fraction_mito,
-          "rna_max_fraction_mito": state.rna_max_fraction_mito,
-          "var_name_mitochondrial_genes": state.var_name_mitochondrial_genes,
-          "var_gene_names": state.input_var_gene_names,
-          "mitochondrial_gene_regex": state.mitochondrial_gene_regex,
-          "var_qc_metrics": state.var_qc_metrics
-        ]  
-      },
+      fromState: [
+        "input": "input", 
+        "id": "id",
+        "rna_layer": "input_layer",
+        "rna_min_counts": "rna_min_counts",
+        "rna_max_counts": "rna_max_counts",
+        "rna_min_genes_per_cell": "rna_min_genes_per_cell",
+        "rna_max_genes_per_cell": "rna_max_genes_per_cell",
+        "rna_min_cells_per_gene": "rna_min_cells_per_gene",
+        "rna_min_fraction_mito": "rna_min_fraction_mito",
+        "rna_max_fraction_mito": "rna_max_fraction_mito",
+        "var_name_mitochondrial_genes": "var_name_mitochondrial_genes",
+        "var_gene_names": "input_var_gene_names",
+        "mitochondrial_gene_regex": "mitochondrial_gene_regex",
+        "var_qc_metrics": "var_qc_metrics"
+      ],
       args: [
         "pca_overwrite": "true",
         "add_id_obs_output": "sample_id"
@@ -62,26 +60,24 @@ workflow run_wf {
 
     | scgpt_annotation.run(
       runIf: { id, state -> state.annotation_methods.contains("scgpt_annotation") },
-      fromState: { id, state ->
-        [ 
-          "id": id,
-          "input": state.query_processed,
-          "modality": state.modality,
-          "input_var_gene_names": state.input_var_gene_names,
-          "model": state.scgpt_model,
-          "model_config": state.scgpt_model_config,
-          "model_vocab": state.scgpt_model_vocab,
-          "finetuned_checkpoints_key": state.scgpt_finetuned_checkpoints_key,
-          "label_mapper_key": state.scgpt_label_mapper_key,
-          "pad_token": state.scgpt_pad_token,
-          "pad_value": state.scgpt_pad_value,
-          "n_hvg": state.scgpt_n_hvg,
-          "dsbn": state.scgpt_dsbn,
-          "batch_size": state.scgpt_batch_size,
-          "n_input_bins": state.scgpt_n_input_bins,
-          "seed": state.scgpt_seed
-        ]
-      },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "model": "scgpt_model",
+        "model_config": "scgpt_model_config",
+        "model_vocab": "scgpt_model_vocab",
+        "finetuned_checkpoints_key": "scgpt_finetuned_checkpoints_key",
+        "label_mapper_key": "scgpt_label_mapper_key",
+        "pad_token": "scgpt_pad_token",
+        "pad_value": "scgpt_pad_value",
+        "n_hvg": "scgpt_n_hvg",
+        "dsbn": "scgpt_dsbn",
+        "batch_size": "scgpt_batch_size",
+        "n_input_bins": "scgpt_n_input_bins",
+        "seed": "scgpt_seed"
+      ],
       args: [
         "input_layer": "log_normalized",
         "input_obs_batch_label": "sample_id",
@@ -141,66 +137,74 @@ workflow run_wf {
 
     | harmony_knn_annotation.run(
       runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
-      fromState: { id, state ->
-        [ 
-          "id": id,
-          "input": state.query_processed,
-          "modality": state.modality,
-          "input_var_gene_names": state.input_var_gene_names,
-          "input_reference_gene_overlap": state.input_reference_gene_overlap,
-          "reference": state.reference,
-          "reference_layer": state.reference_layer_lognormalized_counts,
-          "reference_obs_target": state.reference_obs_label,
-          "reference_var_gene_names": state.reference_var_gene_names,
-          "reference_obs_batch_label": state.reference_obs_batch,
-          "n_hvg": state.n_hvg,
-          "harmony_theta": state.harmony_theta,
-        ]
-      },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "reference": "reference",
+        "reference_layer": "reference_layer_lognormalized_counts",
+        "reference_obs_target": "reference_obs_label",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "reference_obs_batch_label": "reference_obs_batch",
+        "n_hvg": "n_hvg",
+        "harmony_theta": "harmony_theta",
+        "leiden_resolution": "leiden_resolution"
+      ],
       args: [
         "input_layer": "log_normalized",
         "input_obs_batch_label": "sample_id",
         "output_obs_predictions": "harmony_knn_pred",
         "output_obs_probability": "harmony_knn_proba",
         "output_obsm_integrated": "X_integrated_harmony",
-        "overwrite_existing_key": "true"
+        "overwrite_existing_key": "true",
+        "uns_neighbors": "harmony_integration_neighbors",
+        "obsp_neighbor_distances": "harmony_integration_distances",
+        "obsp_neighbor_connectivities": "harmony_integration_connectivities",
+        "obs_cluster": "harmony_integration_leiden",
+        "obsm_umap": "X_harmony_umap"
       ],
       toState: [ "query_processed": "output" ]
     )
 
     | scvi_knn_annotation.run(
       runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
-      fromState: { id, state ->
-        [ 
-          "id": id,
-          "input": state.query_processed,
-          "modality": state.modality,
-          "input_layer": state.input_layer,
-          "input_var_gene_names": state.input_var_gene_names,
-          "input_reference_gene_overlap": state.input_reference_gene_overlap,
-          "reference": state.reference,
-          "reference_layer": state.reference_layer_raw_counts,
-          "reference_layer_lognormalized": state.reference_layer_lognormalized_counts,
-          "reference_obs_target": state.reference_obs_label,
-          "reference_var_gene_names": state.reference_var_gene_names,
-          "reference_obs_batch_label": state.reference_obs_batch,
-          "n_hvg": state.n_hvg,
-          "scvi_early_stopping": state.early_stopping,
-          "scvi_early_stopping_patience": state.early_stopping_patience,
-          "scvi_early_stopping_min_delta": state.early_stopping_min_delta,
-          "scvi_max_epochs": state.max_epochs,
-          "scvi_reduce_lr_on_plateau": state.reduce_lr_on_plateau,
-          "scvi_lr_factor": state.lr_factor,
-          "scvi_lr_patience": state.lr_patience
-        ]
-      },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "input_layer": "input_layer",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "reference": "reference",
+        "reference_layer": "reference_layer_raw_counts",
+        "reference_layer_lognormalized": "reference_layer_lognormalized_counts",
+        "reference_obs_target": "reference_obs_label",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "reference_obs_batch_label": "reference_obs_batch",
+        "n_hvg": "n_hvg",
+        "early_stopping": "early_stopping",
+        "early_stopping_patience": "early_stopping_patience",
+        "early_stopping_min_delta": "early_stopping_min_delta",
+        "max_epochs": "max_epochs",
+        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
+        "lr_factor": "lr_factor",
+        "lr_patience": "lr_patience",
+        "leiden_resolution": "leiden_resolution"
+      ],
       args: [
         "input_layer_lognormalized": "log_normalized",
         "input_obs_batch_label": "sample_id",
         "output_obs_predictions": "scvi_knn_pred",
         "output_obs_probability": "scvi_knn_proba",
         "output_obsm_integrated": "X_integrated_scvi",
-        "overwrite_existing_key": "true"
+        "overwrite_existing_key": "true",
+        "uns_neighbors": "scvi_integration_neighbors",
+        "obsp_neighbor_distances": "scvi_integration_distances",
+        "obsp_neighbor_connectivities": "scvi_integration_connectivities",
+        "obs_cluster": "scvi_integration_leiden",
+        "obsm_umap": "X_scvi_umap"
       ],
       toState: [ "query_processed": "output" ]
     )
@@ -214,7 +218,7 @@ workflow run_wf {
         "layer": "input_layer",
         "input_var_gene_names": "input_var_gene_names",
         "reference": "reference",
-        "reference_obs_target": "reference_obs_target",
+        "reference_obs_target": "reference_obs_label",
         "reference_obs_batch_label": "reference_obs_batch",
         "reference_var_hvg": "reference_var_input",
         "reference_var_gene_names": "reference_var_gene_names",
@@ -226,14 +230,19 @@ workflow run_wf {
         "max_epochs": "max_epochs",
         "reduce_lr_on_plateau": "reduce_lr_on_plateau",
         "lr_factor": "lr_factor",
-        "lr_patience": "lr_patience"
+        "lr_patience": "lr_patience",
+        "leiden_resolution": "leiden_resolution"
       ],
       args: [
         "input_obs_batch_label": "sample_id",
         "output_obs_predictions": "scanvi_knn_pred",
         "output_obs_probability": "scanvi_knn_proba",
         "output_obsm_integrated": "X_integrated_scanvi",
-        "overwrite_existing_key": "true"
+        "uns_neighbors": "scanvi_integration_neighbors",
+        "obsp_neighbor_distances": "scanvi_integration_distances",
+        "obsp_neighbor_connectivities": "scanvi_integration_connectivities",
+        "obs_cluster": "scanvi_integration_leiden",
+        "obsm_umap": "X_scanvi_umap"
       ],
       toState: [ "query_processed": "output" ]
     )
