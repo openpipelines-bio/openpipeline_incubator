@@ -344,14 +344,34 @@ argument_groups:
         default: 0
 
   - name: Clustering options
-    description: Arguments for Leiden clustering.
+    description: Arguments for Leiden clustering. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.
     arguments:
       - name: "--leiden_resolution"
         type: double
         description: Control the coarseness of the clustering. Higher values lead to more clusters.
         default: [1]
         multiple: true
-  
+
+  - name: Neighbor classifier arguments
+    description: Arguments related to calculating the n nearest neighbors. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.
+    arguments:
+      - name: "--knn_weights"
+        type: string
+        default: "uniform"
+        choices: ["uniform", "distance"]
+        description: |
+          Weight function used in prediction. Possible values are:
+          `uniform` (all points in each neighborhood are weighted equally) or 
+          `distance` (weight points by the inverse of their distance)
+      - name: "--knn_n_neighbors"
+        type: integer
+        default: 15
+        min: 5
+        required: false
+        description: |
+          The number of neighbors to use in k-neighbor graph structure used for fast approximate nearest neighbor search with PyNNDescent. 
+          Larger values will result in more accurate search results at the cost of computation time.
+
   - name: Outputs
     description: The output file to write the annotated dataset to.
     arguments:
@@ -368,7 +388,7 @@ dependencies:
     alias: process_samples_workflow
     repository: openpipeline
   - name: workflows/annotation/scgpt_annotation
-    repository: op-main
+    repository: openpipeline
   - name: annotate/celltypist
     repository: openpipeline
     alias: celltypist_annotation
@@ -376,17 +396,13 @@ dependencies:
     repository: op-harmony
     alias: harmony_knn_annotation
   - name: workflows/annotation/scvi_knn
-    repository: op-main
+    repository: openpipeline
     alias: scvi_knn_annotation
   - name: workflows/annotation/scanvi_scarches
     repository: op-scanvi
     alias: scanvi_scarches_annotation
 
 repositories:
-  - name: op-main
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: main_build
   - name: op-scanvi
     type: github
     repo: openpipelines-bio/openpipeline

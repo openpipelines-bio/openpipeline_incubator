@@ -14,7 +14,7 @@ repositories:
   - name: openpipeline
     repo: openpipelines-bio/openpipeline
     type: github
-    tag: 2.0.0
+    tag: main_build
 
 info:
   test_resources:

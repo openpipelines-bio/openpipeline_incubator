@@ -13,9 +13,10 @@ nextflow \
   -main-script src/atlas_service/test.nf \
   -entry test_wf \
   -resume \
-  -profile docker,no_publish \
+  -profile docker \
   -c src/utils/labels_ci.config \
-  -c src/utils/integration_tests.config
+  -c src/utils/integration_tests.config \
+  --publish_dir test
 
 # nextflow \
 #   run . \

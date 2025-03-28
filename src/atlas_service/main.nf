@@ -150,7 +150,9 @@ workflow run_wf {
         "reference_obs_batch_label": "reference_obs_batch",
         "n_hvg": "n_hvg",
         "harmony_theta": "harmony_theta",
-        "leiden_resolution": "leiden_resolution"
+        "leiden_resolution": "leiden_resolution",
+        "knn_weights": "knn_weights",
+        "knn_n_neighbors": "knn_n_neighbors"
       ],
       args: [
         "input_layer": "log_normalized",
@@ -158,12 +160,7 @@ workflow run_wf {
         "output_obs_predictions": "harmony_knn_pred",
         "output_obs_probability": "harmony_knn_proba",
         "output_obsm_integrated": "X_integrated_harmony",
-        "overwrite_existing_key": "true",
-        "uns_neighbors": "harmony_integration_neighbors",
-        "obsp_neighbor_distances": "harmony_integration_distances",
-        "obsp_neighbor_connectivities": "harmony_integration_connectivities",
-        "obs_cluster": "harmony_integration_leiden",
-        "obsm_umap": "X_harmony_umap"
+        "overwrite_existing_key": "true"
       ],
       toState: [ "query_processed": "output" ]
     )
@@ -191,7 +188,9 @@ workflow run_wf {
         "reduce_lr_on_plateau": "reduce_lr_on_plateau",
         "lr_factor": "lr_factor",
         "lr_patience": "lr_patience",
-        "leiden_resolution": "leiden_resolution"
+        "leiden_resolution": "leiden_resolution",
+        "knn_weights": "knn_weights",
+        "knn_n_neighbors": "knn_n_neighbors"
       ],
       args: [
         "input_layer_lognormalized": "log_normalized",
@@ -199,12 +198,7 @@ workflow run_wf {
         "output_obs_predictions": "scvi_knn_pred",
         "output_obs_probability": "scvi_knn_proba",
         "output_obsm_integrated": "X_integrated_scvi",
-        "overwrite_existing_key": "true",
-        "uns_neighbors": "scvi_integration_neighbors",
-        "obsp_neighbor_distances": "scvi_integration_distances",
-        "obsp_neighbor_connectivities": "scvi_integration_connectivities",
-        "obs_cluster": "scvi_integration_leiden",
-        "obsm_umap": "X_scvi_umap"
+        "overwrite_existing_key": "true"
       ],
       toState: [ "query_processed": "output" ]
     )
@@ -231,18 +225,14 @@ workflow run_wf {
         "reduce_lr_on_plateau": "reduce_lr_on_plateau",
         "lr_factor": "lr_factor",
         "lr_patience": "lr_patience",
-        "leiden_resolution": "leiden_resolution"
+        "leiden_resolution": "leiden_resolution",
+        "knn_weights": "knn_weights",
+        "knn_n_neighbors": "knn_n_neighbors"
       ],
       args: [
         "input_obs_batch_label": "sample_id",
         "output_obs_predictions": "scanvi_knn_pred",
-        "output_obs_probability": "scanvi_knn_proba",
-        "output_obsm_integrated": "X_integrated_scanvi",
-        "uns_neighbors": "scanvi_integration_neighbors",
-        "obsp_neighbor_distances": "scanvi_integration_distances",
-        "obsp_neighbor_connectivities": "scanvi_integration_connectivities",
-        "obs_cluster": "scanvi_integration_leiden",
-        "obsm_umap": "X_scanvi_umap"
+        "output_obs_probability": "scanvi_knn_proba"
       ],
       toState: [ "query_processed": "output" ]
     )

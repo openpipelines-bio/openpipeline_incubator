@@ -17,8 +17,8 @@ workflow test_wf {
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
-        annotation_methods: "scanvi_scarches"
-        // annotation_methods: "celltypist;scvi_knn;harmony_knn;scanvi_scarches"
+        max_epochs: "5",
+        annotation_methods: "celltypist;scvi_knn;harmony_knn;scanvi_scarches"
       ]
     ])
     | view {"State at start: $it"}
