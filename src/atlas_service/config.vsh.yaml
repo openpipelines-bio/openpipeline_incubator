@@ -399,14 +399,8 @@ dependencies:
     repository: openpipeline
     alias: scvi_knn_annotation
   - name: workflows/annotation/scanvi_scarches
-    repository: op-scanvi
+    repository: openpipeline
     alias: scanvi_scarches_annotation
-
-repositories:
-  - name: op-scanvi
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: scanvi-annotation-wf_build
 
 resources:
   - type: nextflow_script
