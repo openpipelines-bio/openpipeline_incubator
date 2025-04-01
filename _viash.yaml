@@ -24,5 +24,4 @@ info:
 
 config_mods: |
   .resources += {path: '/src/utils/labels.config', dest: 'nextflow_labels.config'}
-  .runners[.type == 'nextflow'].directives.tag := '$id'
   .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'

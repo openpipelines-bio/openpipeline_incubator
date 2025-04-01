@@ -393,7 +393,7 @@ dependencies:
     repository: openpipeline
     alias: celltypist_annotation
   - name: workflows/annotation/harmony_knn
-    repository: op-harmony
+    repository: openpipeline
     alias: harmony_knn_annotation
   - name: workflows/annotation/scvi_knn
     repository: openpipeline
@@ -407,10 +407,6 @@ repositories:
     type: github
     repo: openpipelines-bio/openpipeline
     tag: scanvi-annotation-wf_build
-  - name: op-harmony
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: harmony-modality-handling_build
 
 resources:
   - type: nextflow_script
