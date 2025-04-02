@@ -21,12 +21,12 @@ info:
     - type: s3
       path: s3://openpipelines-bio/openpipeline_incubator/resources_test
       dest: resources_test
-    # - type: s3
-    #   path: s3://openpipelines-data/annotation_test_data/
-    #   dest: resources_test/annotation_test_data
-    # - type: s3
-    #   path: s3://openpipelines-data/pbmc_1k_protein_v3/
-    #   dest: resources_test/pbmc_1k_protein_v3
+    - type: s3
+      path: s3://openpipelines-data/annotation_test_data/
+      dest: resources_test/annotation_test_data
+    - type: s3
+      path: s3://openpipelines-data/pbmc_1k_protein_v3/
+      dest: resources_test/pbmc_1k_protein_v3
 
 config_mods: |
   .resources += {path: '/src/utils/labels.config', dest: 'nextflow_labels.config'}
