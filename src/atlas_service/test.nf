@@ -4,7 +4,6 @@ include { atlas_service } from params.rootDir + "/target/nextflow/atlas_service/
 params.resources_test = params.rootDir + "/resources_test"
 
 workflow test_wf {
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
@@ -18,7 +17,7 @@ workflow test_wf {
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
         max_epochs: "5",
-        annotation_methods: "celltypist;scvi_knn;harmony_knn"
+        annotation_methods: "celltypist;scvi_knn;harmony_knn;scanvi_scarches"
       ]
     ])
     | view {"State at start: $it"}
@@ -44,8 +43,6 @@ workflow test_wf {
 }
 
 workflow test_wf_2 {
-
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
@@ -117,7 +114,6 @@ workflow test_wf_2 {
   }
 
 workflow test_wf_3 {
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
@@ -153,7 +149,6 @@ workflow test_wf_3 {
 }
 
 workflow test_wf_4 {
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
