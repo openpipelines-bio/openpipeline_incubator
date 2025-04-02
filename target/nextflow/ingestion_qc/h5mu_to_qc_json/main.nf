@@ -3424,7 +3424,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
     "viash_version" : "0.9.1",
-    "git_commit" : "edd5dc9c8687719769b340f75010cbb69d0932ba",
+    "git_commit" : "a9c8388d7c602f1338b5c5448d7a03495581c6a0",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
