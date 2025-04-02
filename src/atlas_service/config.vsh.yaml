@@ -55,6 +55,7 @@ argument_groups:
         required: false
       - name: "--reference_layer_lognormalized_counts"
         type: string
+        default: log_normalized
         description: "The layer in the reference dataset containing the log-normalized counts, if .X is not to be used."
       - name: "--reference_var_gene_names"
         type: string
