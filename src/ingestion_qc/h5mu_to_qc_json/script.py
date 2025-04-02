@@ -3,11 +3,12 @@ import pandas as pd
 from pathlib import Path
 import anndata as ad
 import h5py
+import sys
 
 ## VIASH START
 # inputs = list(Path("data/sample_data/sample_data").glob("*.h5mu"))
 # output = "data/sample-data.json"
-inputs = list(Path("resources_test/qc_sample_data").glob("*.h5mu"))
+inputs = list(Path("resources_test/qc_sample_data").glob("*.qc.cellbender.h5mu"))
 output = "tmp.json"
 par = {
     "input": sorted([str(x) for x in inputs]),
@@ -21,14 +22,23 @@ par = {
         "num_nonzero_vars",
         "fraction_mitochondrial",
         "fraction_ribosomal",
-        "pct_of_counts_in_top_50_vars",
     ],
+    "cellbender_obs_keys": [
+        "cellbender_background_fraction",
+        "cellbender_cell_probability",
+        "cellbender_cell_size",
+        "cellbender_droplet_efficiency",
+    ],        
     "cellranger_metrics_uns_key": "metrics_cellranger",
 }
 i = 0
 mudata_file = par["input"][i]
 ## VIASH END
 
+sys.path.append(meta["resources_dir"])
+from setup_logger import setup_logger
+
+logger = setup_logger()
 
 def transform_df(df):
     """Transform a DataFrame into the annotation object format."""
@@ -93,6 +103,11 @@ def main(par):
         missing_keys = [key for key in par["obs_keys"] if key not in mod_obs.columns]
         if missing_keys:
             raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
+        
+        if par["cellbender_obs_keys"]:
+            missing_cellbender_keys = [key for key in par["cellbender_obs_keys"] if key not in mod_obs.columns]
+            if missing_cellbender_keys:
+                logger.info(f"Missing keys in obs: {', '.join(missing_cellbender_keys)}. Run cellbender first to include these metrics.")
 
         sample_id = (
             mod_obs[par["sample_id_key"]].tolist()
@@ -104,9 +119,10 @@ def main(par):
             {
                 "sample_id": pd.Categorical(sample_id),
                 **{key: mod_obs[key] for key in par["obs_keys"]},
+                **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if key in mod_obs.columns},
             }
         )
-
+        
         sample_summary_stats = pd.DataFrame(
             {
                 "sample_id": pd.Categorical([sample_id[0]]),
@@ -146,7 +162,7 @@ def main(par):
                 metrics[col] = pd.to_numeric(metrics[col], errors="coerce")
             metrics["sample_id"] = [sample_id[0]]
             metrics_cellranger_dfs.append(metrics)
-
+        
         cell_stats_dfs.append(cell_rna_stats)
         sample_stats_dfs.append(sample_summary_stats)
 
