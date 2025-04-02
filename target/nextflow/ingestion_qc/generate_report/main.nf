@@ -3222,6 +3222,35 @@ meta = [
       ]
     },
     {
+      "name" : "Cellbender options",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--run_cellbender",
+          "description" : "Whether to run cellbender or not.",
+          "default" : [
+            false
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--cellbender_epochs",
+          "description" : "Number of epochs to train cellbender.",
+          "default" : [
+            150
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Outputs",
       "arguments" : [
         {
@@ -3267,6 +3296,15 @@ meta = [
     {
       "name" : "workflows/qc/qc",
       "alias" : "qc_wf",
+      "repository" : {
+        "type" : "github",
+        "repo" : "openpipelines-bio/openpipeline",
+        "tag" : "main_build"
+      }
+    },
+    {
+      "name" : "correction/cellbender_remove_background",
+      "alias" : "cellbender",
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
@@ -3379,7 +3417,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "21df874fc481bb538079be5b78e553d30ca78ad2",
+    "git_commit" : "edd5dc9c8687719769b340f75010cbb69d0932ba",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3419,6 +3457,8 @@ meta["root_dir"] = getRootDir()
 include { add_id } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/main_build/nextflow/metadata/add_id/main.nf"
 include { qc as qc_wf_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/main_build/nextflow/workflows/qc/qc/main.nf"
 qc_wf = qc_wf_viashalias.run(key: "qc_wf")
+include { cellbender_remove_background as cellbender_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/main_build/nextflow/correction/cellbender_remove_background/main.nf"
+cellbender = cellbender_viashalias.run(key: "cellbender")
 include { h5mu_to_qc_json } from "${meta.resources_dir}/../../../nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
 include { generate_html } from "${meta.resources_dir}/../../../nextflow/ingestion_qc/generate_html/main.nf"
 
@@ -3434,14 +3474,25 @@ workflow run_wf {
       [id, state + [_meta: [join_id: id]]]
     }
 
+    // run cellbender
+    | cellbender.run(
+      runIf: {id, state -> state.run_cellbender},
+      fromState: [
+        id: "id",
+        input: "input",
+        epochs: "cellbender_epochs",
+      ],
+      toState: ["output"]
+    )
+
     // run qc on each sample
     | qc_wf.run(
       fromState: [
-        "id",
-        "input",
-        "var_gene_names",
-        "var_name_mitochondrial_genes",
-        "var_name_ribosomal_genes"
+        id: "id",
+        input: "output",
+        var_gene_names: "var_gene_names",
+        var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
+        var_name_ribosomal_genes: "var_name_ribosomal_genes"
       ],
       toState: ["output"]
     )

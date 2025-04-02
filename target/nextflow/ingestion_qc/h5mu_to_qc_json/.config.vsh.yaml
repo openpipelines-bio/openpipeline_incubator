@@ -139,6 +139,19 @@ argument_groups:
     multiple: true
     multiple_sep: ";"
   - type: "string"
+    name: "--cellbender_obs_keys"
+    description: "The cellbender keys in the h5mu .obs to include in the output JSON"
+    info: null
+    default:
+    - "cellbender_background_fraction"
+    - "cellbender_cell_probability"
+    - "cellbender_cell_size"
+    - "cellbender_droplet_efficiency"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
     name: "--cellranger_metrics_uns_key"
     description: "The key in the h5mu file .uns that contains the cellranger metrics"
     info: null
@@ -152,13 +165,9 @@ resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
-description: "Convert QC metrics from h5mu to JSON"
-test_resources:
-- type: "python_script"
-  path: "test.py"
-  is_executable: true
 - type: "file"
-  path: "resources_test"
+  path: "setup_logger.py"
+description: "Convert QC metrics from h5mu to JSON"
 info: null
 status: "enabled"
 scope:
@@ -179,6 +188,9 @@ runners:
 - type: "nextflow"
   id: "nextflow"
   directives:
+    label:
+    - "midmem"
+    - "middisk"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -273,7 +285,7 @@ build_info:
   output: "target/nextflow/ingestion_qc/h5mu_to_qc_json"
   executable: "target/nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
   viash_version: "0.9.1"
-  git_commit: "21df874fc481bb538079be5b78e553d30ca78ad2"
+  git_commit: "edd5dc9c8687719769b340f75010cbb69d0932ba"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
 package_config:
   name: "openpipeline_incubator"

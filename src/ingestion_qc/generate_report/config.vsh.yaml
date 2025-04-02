@@ -59,7 +59,18 @@ argument_groups:
         default: "ribosomal"
         description: |
           In which .var slot to store a boolean array corresponding the ribosomal genes.
-
+  - name: Cellbender options
+    arguments:
+      - name: "--run_cellbender"
+        type: boolean
+        required: false
+        description: Whether to run cellbender or not.
+        default: false
+      - name: "--cellbender_epochs"
+        type: integer
+        required: false
+        description: Number of epochs to train cellbender. 
+        default: 150
   - name: Outputs
     arguments:
       - name: --output
@@ -68,17 +79,23 @@ argument_groups:
         direction: output
         description: The output HTML report
         example: path/to/file.html
+
 resources:
   - type: nextflow_script
     entrypoint: run_wf
     path: main.nf
+
 dependencies:
   - name: metadata/add_id
     repository: openpipeline
   - name: workflows/qc/qc
     alias: qc_wf
     repository: openpipeline
+  - name: correction/cellbender_remove_background
+    alias: cellbender
+    repository: openpipeline
   - name: ingestion_qc/h5mu_to_qc_json
   - name: ingestion_qc/generate_html
+
 runners:
   - type: nextflow

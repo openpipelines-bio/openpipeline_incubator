@@ -3217,6 +3217,10 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "lowmem",
+          "lowdisk"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -3298,7 +3302,7 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "npm install -g pnpm@latest-10 \\\\\n&& cd /opt && git clone https://github.com/openpipelines-bio/incubator_ingestion_qc.git \\\\\n&& cd incubator_ingestion_qc && pnpm install\n"
+            "npm install -g pnpm@latest-10 \\\\\n&& cd /opt && git clone -b ambient-rna https://github.com/openpipelines-bio/incubator_ingestion_qc.git \\\\\n&& cd incubator_ingestion_qc && pnpm install\n"
           ]
         }
       ]
@@ -3310,7 +3314,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_html",
     "viash_version" : "0.9.1",
-    "git_commit" : "21df874fc481bb538079be5b78e553d30ca78ad2",
+    "git_commit" : "edd5dc9c8687719769b340f75010cbb69d0932ba",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3757,6 +3761,10 @@ meta["defaults"] = [
     "image" : "openpipelines-bio/openpipeline_incubator/ingestion_qc/generate_html",
     "tag" : "build_main"
   },
+  "label" : [
+    "lowmem",
+    "lowdisk"
+  ],
   "tag" : "$id"
 }'''),
 
