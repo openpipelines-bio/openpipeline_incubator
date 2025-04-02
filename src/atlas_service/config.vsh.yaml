@@ -411,9 +411,9 @@ test_resources:
   - type: nextflow_script
     path: test.nf
     entrypoint: test_wf
-  - path: /resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
-  - path: /resources_test/annotation_test_data/TS_Blood_filtered.h5mu
-  - path: /resources_test/annotation_test_data/celltypist_model_Immune_All_Low.pkl
+  - path: /resources_test_op/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
+  - path: /resources_test_op/annotation_test_data/TS_Blood_filtered.h5mu
+  - path: /resources_test_op/annotation_test_data/celltypist_model_Immune_All_Low.pkl
 
 runners:
   - type: nextflow
