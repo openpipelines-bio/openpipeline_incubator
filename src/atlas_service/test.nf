@@ -4,7 +4,6 @@ include { atlas_service } from params.rootDir + "/target/nextflow/atlas_service/
 params.resources_test = params.rootDir + "/resources_test"
 
 workflow test_wf {
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
@@ -17,7 +16,8 @@ workflow test_wf {
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
-        annotation_methods: "celltypist;scvi_knn;harmony_knn"
+        max_epochs: "5",
+        annotation_methods: "celltypist;scvi_knn;harmony_knn;scanvi_scarches"
       ]
     ])
     | view {"State at start: $it"}
@@ -43,8 +43,6 @@ workflow test_wf {
 }
 
 workflow test_wf_2 {
-
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
@@ -90,7 +88,7 @@ workflow test_wf_2 {
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
-        annotation_methods: "celltypist"
+        annotation_methods: "celltypist;scvi_knn;harmony_knn;scanvi_scarches"
       ]
     ])
     | view {"State at start: $it"}
@@ -116,7 +114,6 @@ workflow test_wf_2 {
   }
 
 workflow test_wf_3 {
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
@@ -152,20 +149,21 @@ workflow test_wf_3 {
 }
 
 workflow test_wf_4 {
-  // allow changing the resources_test dir
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
     [
       [
         id: "scgpt",
-        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
+        input: resources_test.resolve("scgpt/test_resources/Kim2020_Lung_subset.h5mu"),
         annotation_methods: "scgpt_annotation",
-        input_var_gene_names: "gene_symbol",
+        input_obs_batch_label: "sample",
         scgpt_model: resources_test.resolve("scgpt/finetuned_model/best_model.pt"),
         scgpt_model_config: resources_test.resolve("scgpt/source/args.json"),
         scgpt_model_vocab: resources_test.resolve("scgpt/source/vocab.json"),
-        annotation_methods: "scgpt_annotation"
+        annotation_methods: "scgpt_annotation",
+        n_hvg: 400,
+        seed: 1
       ]
     ])
     | view {"State at start: $it"}

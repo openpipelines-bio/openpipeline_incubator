@@ -55,6 +55,7 @@ argument_groups:
         required: false
       - name: "--reference_layer_lognormalized_counts"
         type: string
+        default: log_normalized
         description: "The layer in the reference dataset containing the log-normalized counts, if .X is not to be used."
       - name: "--reference_var_gene_names"
         type: string
@@ -71,11 +72,16 @@ argument_groups:
         example: cell_type
         required: false
         description: The `.obs` key of the target labels to tranfer.
+      - name: "--reference_obs_label_unlabeled_category"
+        type: string
+        default: "Unkown"
+        description: "Value in the --reference_obs_label field that indicates unlabeled observations"
       - name: "--reference_var_input"
         type: string
         required: false
         description: |
           .var column containing highly variable genes. By default, do not subset genes.
+
 
   - name: Annotation methods
     description: The available annotation methods to annotate the query dataset(s) with.
@@ -84,8 +90,9 @@ argument_groups:
         type: string
         multiple: true
         required: true
-        choices: [celltypist, harmony_knn, scgpt_annotation, scvi_knn]
-        example: harmony_knn
+        choices: [celltypist, harmony_knn, scgpt_annotation, scvi_knn, scanvi_scarches]
+        example: harmony_knn;scanvi_scarches
+        description: Annotation methods to be executed.
         
   - name: "Pre-processing options: RNA filtering"
     description: Pre-processing options for filtering RNA data
@@ -181,42 +188,43 @@ argument_groups:
         example: [0, 1, 2]
         multiple: true
 
-  - name: SCVI integration options
-    description: Specifications for SCVI integration.
+  - name: scVI, scANVI and scArches training options
+    # TODO - possibly provide separate training options for scVI, scANVI and scArches
+    description: Training arguments for scVI, scANVI and scArches. Relevant for --annotation_methods 'scvi_knn' and 'scanvi_scarches'.
     arguments:
-      - name: "--scvi_early_stopping"
+      - name: "--early_stopping"
         required: false
         type: boolean
         description: "Whether to perform early stopping with respect to the validation set."
-      - name: "--scvi_early_stopping_monitor"
+      - name: "--early_stopping_monitor"
         choices: ["elbo_validation", "reconstruction_loss_validation", "kl_local_validation"]
         default: "elbo_validation"
         type: string
         description: "Metric logged during validation set epoch."
-      - name: "--scvi_early_stopping_patience"
+      - name: "--early_stopping_patience"
         type: integer
         min: 1
         default: 45
         description: "Number of validation epochs with no improvement after which training will be stopped."
-      - name: "--scvi_early_stopping_min_delta"
+      - name: "--early_stopping_min_delta"
         min: 0
         type: double
         default: 0.0
         description: "Minimum change in the monitored quantity to qualify as an improvement, i.e. an absolute change of less than min_delta, will count as no improvement."
-      - name: "--scvi_max_epochs"
+      - name: "--max_epochs"
         type: integer
         description: "Number of passes through the dataset, defaults to (20000 / number of cells) * 400 or 400; whichever is smallest."
         required: false
-      - name: "--scvi_reduce_lr_on_plateau"
+      - name: "--reduce_lr_on_plateau"
         description: "Whether to monitor validation loss and reduce learning rate when validation set `lr_scheduler_metric` plateaus."
         type: boolean
         default: True
-      - name: "--scvi_lr_factor"
+      - name: "--lr_factor"
         description: "Factor to reduce learning rate."
         type: double
         default: 0.6
         min: 0
-      - name: "--scvi_lr_patience"
+      - name: "--lr_patience"
         description: "Number of epochs with no improvement after which learning rate will be reduced."
         type: double
         default: 30
@@ -336,6 +344,35 @@ argument_groups:
           Subcluster that fails to pass this proportion threshold will be assigned 'Heterogeneous'."
         default: 0
 
+  - name: Clustering options
+    description: Arguments for Leiden clustering. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.
+    arguments:
+      - name: "--leiden_resolution"
+        type: double
+        description: Control the coarseness of the clustering. Higher values lead to more clusters.
+        default: [1]
+        multiple: true
+
+  - name: Neighbor classifier arguments
+    description: Arguments related to calculating the n nearest neighbors. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.
+    arguments:
+      - name: "--knn_weights"
+        type: string
+        default: "uniform"
+        choices: ["uniform", "distance"]
+        description: |
+          Weight function used in prediction. Possible values are:
+          `uniform` (all points in each neighborhood are weighted equally) or 
+          `distance` (weight points by the inverse of their distance)
+      - name: "--knn_n_neighbors"
+        type: integer
+        default: 15
+        min: 5
+        required: false
+        description: |
+          The number of neighbors to use in k-neighbor graph structure used for fast approximate nearest neighbor search with PyNNDescent. 
+          Larger values will result in more accurate search results at the cost of computation time.
+
   - name: Outputs
     description: The output file to write the annotated dataset to.
     arguments:
@@ -352,26 +389,19 @@ dependencies:
     alias: process_samples_workflow
     repository: openpipeline
   - name: workflows/annotation/scgpt_annotation
-    repository: op-main
+    repository: openpipeline
   - name: annotate/celltypist
-    repository: op-main
+    repository: openpipeline
     alias: celltypist_annotation
   - name: workflows/annotation/harmony_knn
-    repository: op-main
+    repository: openpipeline
     alias: harmony_knn_annotation
   - name: workflows/annotation/scvi_knn
-    repository: op-scvi
+    repository: openpipeline
     alias: scvi_knn_annotation
-
-repositories:
-  - name: op-main
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: main_build
-  - name: op-scvi
-    type: github
-    repo: openpipelines-bio/openpipeline
-    tag: scvi-knn-annotation_build
+  - name: workflows/annotation/scanvi_scarches
+    repository: openpipeline
+    alias: scanvi_scarches_annotation
 
 resources:
   - type: nextflow_script
@@ -382,6 +412,7 @@ test_resources:
   - type: nextflow_script
     path: test.nf
     entrypoint: test_wf
+  - path: /resources_test/scgpt/
   - path: /resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
   - path: /resources_test/annotation_test_data/TS_Blood_filtered.h5mu
   - path: /resources_test/annotation_test_data/celltypist_model_Immune_All_Low.pkl
