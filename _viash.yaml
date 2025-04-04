@@ -21,3 +21,7 @@ info:
     - type: s3
       path: s3://openpipelines-bio/openpipeline_incubator/resources_test
       dest: resources_test
+
+config_mods: |
+  .resources += {path: '/src/utils/labels.config', dest: 'nextflow_labels.config'}
+  .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'
