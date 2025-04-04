@@ -8,13 +8,25 @@ workflow run_wf {
       [id, state + [_meta: [join_id: id]]]
     }
 
+    // run cellbender
+    | cellbender.run(
+      runIf: {id, state -> state.run_cellbender},
+      fromState: [
+        id: "id",
+        input: "input",
+        epochs: "cellbender_epochs",
+      ],
+      toState: ["output"]
+    )
+
     // run qc on each sample
     | qc_wf.run(
-      fromState: ["id", "input"],
-      args: [
-        var_gene_names: "gene_symbol",
-        var_name_mitochondrial_genes: "mitochondrial_genes",
-        var_name_ribosomal_genes: "ribosomal_genes"
+      fromState: [
+        id: "id",
+        input: "output",
+        var_gene_names: "var_gene_names",
+        var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
+        var_name_ribosomal_genes: "var_name_ribosomal_genes"
       ],
       toState: ["output"]
     )
