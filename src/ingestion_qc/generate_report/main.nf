@@ -16,14 +16,16 @@ workflow run_wf {
         input: "input",
         epochs: "cellbender_epochs",
       ],
-      toState: ["output"]
+      toState: { id, output, state -> 
+        state + ["input": output.output]
+      }
     )
 
     // run qc on each sample
     | qc_wf.run(
       fromState: [
         id: "id",
-        input: "output",
+        input: "input",
         var_gene_names: "var_gene_names",
         var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
         var_name_ribosomal_genes: "var_name_ribosomal_genes"

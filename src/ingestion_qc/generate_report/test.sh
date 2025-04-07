@@ -8,9 +8,7 @@ param_list:
     id: sample_one
   - input: resources_test/qc_sample_data/sample_two.qc.h5mu
     id: sample_two
-cellbender_epochs: 5
-run_cellbender: true
-output_qc_json: output_qc.json
+run_cellbender: false
 output_html: output_report.html
 EOF
 

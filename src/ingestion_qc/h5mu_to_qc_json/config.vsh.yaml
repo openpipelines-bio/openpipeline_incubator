@@ -65,11 +65,11 @@ resources:
   - type: python_script
     path: script.py
   - path: /src/utils/setup_logger.py
-# test_resources:
-#   - type: python_script
-#     path: test.py
-#   - type: file
-#     path: /resources_test
+test_resources:
+  - type: python_script
+    path: test.py
+  - type: file
+    path: /resources_test
 engines:
   - type: docker
     image: python:3.12-slim

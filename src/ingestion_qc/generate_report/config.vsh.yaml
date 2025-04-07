@@ -85,6 +85,14 @@ resources:
     entrypoint: run_wf
     path: main.nf
 
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_no_cellbender
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_with_cellbender
+
 dependencies:
   - name: metadata/add_id
     repository: openpipeline
