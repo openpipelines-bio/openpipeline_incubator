@@ -3276,6 +3276,11 @@ meta = [
       "path" : "main.nf",
       "is_executable" : true,
       "entrypoint" : "run_wf"
+    },
+    {
+      "type" : "file",
+      "path" : "/src/labels.config",
+      "dest" : "nextflow_labels.config"
     }
   ],
   "description" : "Run the ingestion QC report generation",
@@ -3399,7 +3404,10 @@ meta = [
           "cpu200" : "cpus = 200",
           "cpu500" : "cpus = 500",
           "cpu1000" : "cpus = 1000"
-        }
+        },
+        "script" : [
+          "includeConfig(\\"nextflow_labels.config\\")"
+        ]
       },
       "debug" : false,
       "container" : "docker"
@@ -3417,7 +3425,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "a9c8388d7c602f1338b5c5448d7a03495581c6a0",
+    "git_commit" : "8738dd811800bd873454c944c5bc6cf223b457a7",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3443,6 +3451,9 @@ meta = [
     "viash_version" : "0.9.1",
     "source" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/src",
     "target" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target",
+    "config_mods" : [
+      ".resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
+    ],
     "organization" : "openpipelines-bio",
     "links" : {
       "repository" : "https://github.com/openpipelines-bio/openpipeline_incubator",

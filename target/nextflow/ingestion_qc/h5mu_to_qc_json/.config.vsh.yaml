@@ -167,6 +167,9 @@ resources:
   is_executable: true
 - type: "file"
   path: "setup_logger.py"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
 description: "Convert QC metrics from h5mu to JSON"
 info: null
 status: "enabled"
@@ -247,6 +250,8 @@ runners:
       cpu200: "cpus = 200"
       cpu500: "cpus = 500"
       cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
   debug: false
   container: "docker"
 engines:
@@ -285,7 +290,7 @@ build_info:
   output: "target/nextflow/ingestion_qc/h5mu_to_qc_json"
   executable: "target/nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
   viash_version: "0.9.1"
-  git_commit: "a9c8388d7c602f1338b5c5448d7a03495581c6a0"
+  git_commit: "8738dd811800bd873454c944c5bc6cf223b457a7"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
 package_config:
   name: "openpipeline_incubator"
@@ -303,6 +308,10 @@ package_config:
   viash_version: "0.9.1"
   source: "src"
   target: "target"
+  config_mods:
+  - ".resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'\n"
   organization: "openpipelines-bio"
   links:
     repository: "https://github.com/openpipelines-bio/openpipeline_incubator"
