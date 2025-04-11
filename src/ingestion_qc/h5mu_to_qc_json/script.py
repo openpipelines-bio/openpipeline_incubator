@@ -30,6 +30,7 @@ par = {
         "cellbender_droplet_efficiency",
     ],        
     "cellranger_metrics_uns_key": "metrics_cellranger",
+    "metadata_obs_keys": []
 }
 i = 0
 mudata_file = par["input"][i]
@@ -71,6 +72,8 @@ def transform_df(df):
 
 
 def main(par):
+    logger.info("Metadata obs keys: %s", par["metadata_obs_keys"])
+    
     cell_stats_dfs = []
     sample_stats_dfs = []
     metrics_cellranger_dfs = []
@@ -120,6 +123,7 @@ def main(par):
                 "sample_id": pd.Categorical(sample_id),
                 **{key: mod_obs[key] for key in par["obs_keys"]},
                 **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if key in mod_obs.columns},
+                **{key: mod_obs[key] for key in par["metadata_obs_keys"] if key in mod_obs.columns},
             }
         )
         
