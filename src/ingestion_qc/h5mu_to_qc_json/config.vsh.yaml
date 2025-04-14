@@ -65,6 +65,7 @@ argument_groups:
         type: string
         multiple: true
         description: The metadata keys in the h5mu .obs to include in the output JSON.
+        example: "donor_id;cell_type;batch;condition"
 resources:
   - type: python_script
     path: script.py

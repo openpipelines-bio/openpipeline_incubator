@@ -70,10 +70,12 @@ def transform_df(df):
 
     return {"num_rows": len(df), "num_cols": len(df.columns), "columns": columns}
 
+def check_optional_obs_keys(obs, keys, message):
+    missing_keys = [key for key in keys if key not in obs.columns]
+    if missing_keys:
+        logger.info(f"Missing keys in obs: {', '.join(missing_keys)}. {message}")
 
-def main(par):
-    logger.info("Metadata obs keys: %s", par["metadata_obs_keys"])
-    
+def main(par):    
     cell_stats_dfs = []
     sample_stats_dfs = []
     metrics_cellranger_dfs = []
@@ -108,9 +110,9 @@ def main(par):
             raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
         
         if par["cellbender_obs_keys"]:
-            missing_cellbender_keys = [key for key in par["cellbender_obs_keys"] if key not in mod_obs.columns]
-            if missing_cellbender_keys:
-                logger.info(f"Missing keys in obs: {', '.join(missing_cellbender_keys)}. Run cellbender first to include these metrics.")
+            check_optional_obs_keys(mod_obs, par["cellbender_obs_keys"], "Run cellbender first to include these metrics.")
+        if par["metadata_obs_keys"]:
+            check_optional_obs_keys(mod_obs, par["metadata_obs_keys"], "Make sure requested metadata colmuns are present in obs.")
 
         sample_id = (
             mod_obs[par["sample_id_key"]].tolist()

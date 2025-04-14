@@ -59,6 +59,11 @@ argument_groups:
         default: "ribosomal"
         description: |
           In which .var slot to store a boolean array corresponding the ribosomal genes.
+      - name: --metadata_obs_keys
+        type: string
+        multiple: true
+        description: The metadata keys in the h5mu .obs to include in the report.
+        example: "donor_id;cell_type;batch;condition"
   - name: Cellbender options
     arguments:
       - name: "--run_cellbender"

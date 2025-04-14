@@ -53,7 +53,10 @@ workflow run_wf {
     // generate qc json
     | h5mu_to_qc_json.run(
       fromState: ["input"],
-      args: [sample_id_key: "sample_id"],
+      args: [
+        sample_id_key: "sample_id",
+        metadata_obs_keys: "metadata_obs_keys",
+      ],
       toState: [output_qc_json: "output"]
     )
 
