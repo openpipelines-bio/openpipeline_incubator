@@ -12,7 +12,7 @@ nextflow run . \
   -main-script src/ingestion_qc/generate_report/test.nf \
   -profile docker,no_publish,local \
   -entry test_no_cellbender \
-  -c src/config/labels.config \
+  -c src/configs/labels_ci.config \
   --resources_test s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data/ \
   -resume
 
@@ -20,6 +20,6 @@ nextflow run . \
   -main-script src/ingestion_qc/generate_report/test.nf \
   -profile docker,no_publish,local \
   -entry test_with_cellbender \
-  -c src/config/labels.config \
+  -c src/configs/labels_ci.config \
   --resources_test s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data/ \
   -resume
