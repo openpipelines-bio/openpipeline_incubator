@@ -17,7 +17,8 @@ workflow run_wf {
         epochs: "cellbender_epochs",
       ],
       toState: { id, output, state -> 
-        state + ["input": output.output]
+        state + ["input": output.output,
+                 "metadata_obs_keys": state.metadata_obs_keys]
       }
     )
 
@@ -30,7 +31,7 @@ workflow run_wf {
         var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
         var_name_ribosomal_genes: "var_name_ribosomal_genes"
       ],
-      toState: ["output"]
+      toState: ["output", "metadata_obs_keys"]
     )
 
     // add sample ids to each state
@@ -45,10 +46,13 @@ workflow run_wf {
       def newState = [
         input: states.collect{it.output},
         _meta: states[0]._meta,
-        output_html: states[0].output_html
+        output_html: states[0].output_html,
+        metadata_obs_keys: states[0].metadata_obs_keys
       ]
       [newId, newState]
     }
+
+    | view
 
     // generate qc json
     | h5mu_to_qc_json.run(

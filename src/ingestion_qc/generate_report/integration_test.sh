@@ -13,7 +13,6 @@ nextflow run . \
   -profile docker,no_publish,local \
   -entry test_no_cellbender \
   -c src/configs/labels_ci.config \
-  --resources_test s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data/ \
   -resume
 
 nextflow run . \
@@ -21,5 +20,4 @@ nextflow run . \
   -profile docker,no_publish,local \
   -entry test_with_cellbender \
   -c src/configs/labels_ci.config \
-  --resources_test s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data/ \
   -resume

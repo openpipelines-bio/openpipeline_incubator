@@ -14,6 +14,7 @@ workflow test_no_cellbender {
         id: "sample_one",
         input: resources_test_file.resolve("sample_one.qc.h5mu"),
         run_cellbender: false,
+        metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
         publish_dir: "test_out"
       ],
@@ -21,6 +22,7 @@ workflow test_no_cellbender {
         id: "sample_two",
         input: resources_test_file.resolve("sample_two.qc.h5mu"),
         run_cellbender: false,
+        metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
         publish_dir: "test_out"
       ]
