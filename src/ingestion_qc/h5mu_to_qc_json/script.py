@@ -41,6 +41,10 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+par["cellbender_obs_keys"] = {} if not par["cellbender_obs_keys"] else par["cellbender_obs_keys"]
+par["metadata_obs_keys"] = {} if not par["metadata_obs_keys"] else par["metadata_obs_keys"]
+par["obs_keys"] = {} if not par["obs_keys"] else par["obs_keys"]
+
 def transform_df(df):
     """Transform a DataFrame into the annotation object format."""
     columns = []
