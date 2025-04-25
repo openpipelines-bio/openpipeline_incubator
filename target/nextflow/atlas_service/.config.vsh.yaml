@@ -509,6 +509,9 @@ status: "enabled"
 scope:
   image: "public"
   target: "public"
+requirements:
+  commands:
+  - "ps"
 dependencies:
 - name: "metadata/add_id"
   repository:
@@ -615,7 +618,7 @@ build_info:
   output: "target/nextflow/atlas_service"
   executable: "target/nextflow/atlas_service/main.nf"
   viash_version: "0.9.1"
-  git_commit: "8738dd811800bd873454c944c5bc6cf223b457a7"
+  git_commit: "c6e534f80fcc91fe4fbc1f53e30e55b417779681"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
   dependencies:
   - "target/dependencies/github/openpipelines-bio/openpipeline/2.0.0/nextflow/metadata/add_id"
@@ -639,7 +642,8 @@ package_config:
   source: "src"
   target: "target"
   config_mods:
-  - ".resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}\n\
+  - ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag\
+    \ := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n\
     .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
     )'\n"
   organization: "openpipelines-bio"

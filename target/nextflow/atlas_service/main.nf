@@ -3644,7 +3644,7 @@ meta = [
     },
     {
       "type" : "file",
-      "path" : "/src/labels.config",
+      "path" : "/src/configs/labels.config",
       "dest" : "nextflow_labels.config"
     }
   ],
@@ -3653,6 +3653,11 @@ meta = [
   "scope" : {
     "image" : "public",
     "target" : "public"
+  },
+  "requirements" : {
+    "commands" : [
+      "ps"
+    ]
   },
   "dependencies" : [
     {
@@ -3792,7 +3797,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/atlas_service",
     "viash_version" : "0.9.1",
-    "git_commit" : "8738dd811800bd873454c944c5bc6cf223b457a7",
+    "git_commit" : "c6e534f80fcc91fe4fbc1f53e30e55b417779681",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3819,7 +3824,7 @@ meta = [
     "source" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/src",
     "target" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target",
     "config_mods" : [
-      ".resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
+      ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
     ],
     "organization" : "openpipelines-bio",
     "links" : {

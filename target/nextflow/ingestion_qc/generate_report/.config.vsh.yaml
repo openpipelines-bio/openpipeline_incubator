@@ -128,6 +128,16 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+  - type: "string"
+    name: "--metadata_obs_keys"
+    description: "The metadata keys in the h5mu .obs to include in the report."
+    info: null
+    example:
+    - "donor_id;cell_type;batch;condition"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
 - name: "Cellbender options"
   arguments:
   - type: "boolean"
@@ -153,11 +163,23 @@ argument_groups:
 - name: "Outputs"
   arguments:
   - type: "file"
-    name: "--output"
+    name: "--output_qc_report"
     description: "The output HTML report"
     info: null
     example:
     - "path/to/file.html"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_processed_h5mu"
+    description: "The processed h5mu files."
+    info: null
+    default:
+    - "$id.qc.h5mu"
     must_exist: true
     create_parent: true
     required: true
@@ -173,11 +195,23 @@ resources:
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
 description: "Run the ingestion QC report generation"
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_no_cellbender"
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_with_cellbender"
 info: null
 status: "enabled"
 scope:
   image: "public"
   target: "public"
+requirements:
+  commands:
+  - "ps"
 dependencies:
 - name: "metadata/add_id"
   repository:
@@ -281,7 +315,7 @@ build_info:
   output: "target/nextflow/ingestion_qc/generate_report"
   executable: "target/nextflow/ingestion_qc/generate_report/main.nf"
   viash_version: "0.9.1"
-  git_commit: "8738dd811800bd873454c944c5bc6cf223b457a7"
+  git_commit: "c6e534f80fcc91fe4fbc1f53e30e55b417779681"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
   dependencies:
   - "target/dependencies/github/openpipelines-bio/openpipeline/main_build/nextflow/metadata/add_id"
@@ -306,7 +340,8 @@ package_config:
   source: "src"
   target: "target"
   config_mods:
-  - ".resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}\n\
+  - ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag\
+    \ := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n\
     .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
     )'\n"
   organization: "openpipelines-bio"

@@ -1,5 +1,5 @@
 ABSOLUTE_INPUT=$(realpath $par_input)
-ABSOLUTE_OUTPUT=$(realpath $par_output)
+ABSOLUTE_OUTPUT=$(realpath $par_output_qc_report)
 
 cd /opt/incubator_ingestion_qc
 mkdir src/data

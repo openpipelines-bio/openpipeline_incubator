@@ -460,9 +460,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik, Dorien Roosen, Robrecht Cannoodt, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc h5mu_to_qc_json"
-LABEL org.opencontainers.image.created="2025-04-08T12:16:25Z"
+LABEL org.opencontainers.image.created="2025-04-25T18:12:13Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_incubator"
-LABEL org.opencontainers.image.revision="8738dd811800bd873454c944c5bc6cf223b457a7"
+LABEL org.opencontainers.image.revision="c6e534f80fcc91fe4fbc1f53e30e55b417779681"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -634,6 +634,11 @@ function ViashHelp {
   echo "        default: metrics_cellranger"
   echo "        The key in the h5mu file .uns that contains the cellranger metrics"
   echo ""
+  echo "    --metadata_obs_keys"
+  echo "        type: string, multiple values allowed"
+  echo "        example: donor_id;cell_type;batch;condition"
+  echo "        The metadata keys in the h5mu .obs to include in the output JSON."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -801,6 +806,23 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_CELLRANGER_METRICS_UNS_KEY=$(ViashRemoveFlags "$1")
             shift 1
             ;;
+        --metadata_obs_keys)
+            if [ -z "$VIASH_PAR_METADATA_OBS_KEYS" ]; then
+              VIASH_PAR_METADATA_OBS_KEYS="$2"
+            else
+              VIASH_PAR_METADATA_OBS_KEYS="$VIASH_PAR_METADATA_OBS_KEYS;""$2"
+            fi
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --metadata_obs_keys. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --metadata_obs_keys=*)
+            if [ -z "$VIASH_PAR_METADATA_OBS_KEYS" ]; then
+              VIASH_PAR_METADATA_OBS_KEYS=$(ViashRemoveFlags "$1")
+            else
+              VIASH_PAR_METADATA_OBS_KEYS="$VIASH_PAR_METADATA_OBS_KEYS;"$(ViashRemoveFlags "$1")
+            fi
+            shift 1
+            ;;
         ---engine)
             VIASH_ENGINE_ID="$2"
             shift 2
@@ -909,13 +931,13 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # build docker image
   elif [ "$VIASH_MODE" == "setup" ]; then
     ViashDockerSetup "$VIASH_DOCKER_IMAGE_ID" "$VIASH_SETUP_STRATEGY"
-    ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'bash'
+    ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'ps' 'bash'
     exit 0
   fi
 
   # check if docker image exists
   ViashDockerSetup "$VIASH_DOCKER_IMAGE_ID" ifneedbepullelsecachedbuild
-  ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'bash'
+  ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'ps' 'bash'
 fi
 
 # setting computational defaults
@@ -1236,7 +1258,8 @@ par = {
   'sample_id_key': $( if [ ! -z ${VIASH_PAR_SAMPLE_ID_KEY+x} ]; then echo "r'${VIASH_PAR_SAMPLE_ID_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'obs_keys': $( if [ ! -z ${VIASH_PAR_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_OBS_KEYS//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
   'cellbender_obs_keys': $( if [ ! -z ${VIASH_PAR_CELLBENDER_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_CELLBENDER_OBS_KEYS//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
-  'cellranger_metrics_uns_key': $( if [ ! -z ${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY+x} ]; then echo "r'${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'cellranger_metrics_uns_key': $( if [ ! -z ${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY+x} ]; then echo "r'${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'metadata_obs_keys': $( if [ ! -z ${VIASH_PAR_METADATA_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_METADATA_OBS_KEYS//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1269,6 +1292,10 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+par["cellbender_obs_keys"] = {} if not par["cellbender_obs_keys"] else par["cellbender_obs_keys"]
+par["metadata_obs_keys"] = {} if not par["metadata_obs_keys"] else par["metadata_obs_keys"]
+par["obs_keys"] = {} if not par["obs_keys"] else par["obs_keys"]
+
 def transform_df(df):
     """Transform a DataFrame into the annotation object format."""
     columns = []
@@ -1298,8 +1325,12 @@ def transform_df(df):
 
     return {"num_rows": len(df), "num_cols": len(df.columns), "columns": columns}
 
+def check_optional_obs_keys(obs, keys, message):
+    missing_keys = [key for key in keys if key not in obs.columns]
+    if missing_keys:
+        logger.info(f"Missing keys in obs: {', '.join(missing_keys)}. {message}")
 
-def main(par):
+def main(par):    
     cell_stats_dfs = []
     sample_stats_dfs = []
     metrics_cellranger_dfs = []
@@ -1334,9 +1365,9 @@ def main(par):
             raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
         
         if par["cellbender_obs_keys"]:
-            missing_cellbender_keys = [key for key in par["cellbender_obs_keys"] if key not in mod_obs.columns]
-            if missing_cellbender_keys:
-                logger.info(f"Missing keys in obs: {', '.join(missing_cellbender_keys)}. Run cellbender first to include these metrics.")
+            check_optional_obs_keys(mod_obs, par["cellbender_obs_keys"], "Run cellbender first to include these metrics.")
+        if par["metadata_obs_keys"]:
+            check_optional_obs_keys(mod_obs, par["metadata_obs_keys"], "Make sure requested metadata colmuns are present in obs.")
 
         sample_id = (
             mod_obs[par["sample_id_key"]].tolist()
@@ -1349,6 +1380,7 @@ def main(par):
                 "sample_id": pd.Categorical(sample_id),
                 **{key: mod_obs[key] for key in par["obs_keys"]},
                 **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if key in mod_obs.columns},
+                **{key: mod_obs[key] for key in par["metadata_obs_keys"] if key in mod_obs.columns},
             }
         )
         

@@ -456,14 +456,14 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g pnpm@latest-10 \
-&& cd /opt && git clone -b ambient-rna https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
+&& cd /opt && git clone https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
 && cd incubator_ingestion_qc && pnpm install
 
 LABEL org.opencontainers.image.authors="Jakub Majercik, Dorien Roosen, Robrecht Cannoodt, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc generate_html"
-LABEL org.opencontainers.image.created="2025-04-08T12:16:25Z"
+LABEL org.opencontainers.image.created="2025-04-25T18:12:13Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_incubator"
-LABEL org.opencontainers.image.revision="8738dd811800bd873454c944c5bc6cf223b457a7"
+LABEL org.opencontainers.image.revision="c6e534f80fcc91fe4fbc1f53e30e55b417779681"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -592,7 +592,7 @@ function ViashHelp {
   echo "        The input JSON file containing the QC metrics"
   echo ""
   echo "Outputs:"
-  echo "    --output"
+  echo "    --output_qc_report"
   echo "        type: file, required parameter, output, file must exist"
   echo "        example: path/to/file.html"
   echo "        The output HTML report"
@@ -658,15 +658,15 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_INPUT=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --output)
-            [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_OUTPUT="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output. Use "--help" to get more information on the parameters. && exit 1
+        --output_qc_report)
+            [ -n "$VIASH_PAR_OUTPUT_QC_REPORT" ] && ViashError Bad arguments for option \'--output_qc_report\': \'$VIASH_PAR_OUTPUT_QC_REPORT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_QC_REPORT="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output_qc_report. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
-        --output=*)
-            [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output=*\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_OUTPUT=$(ViashRemoveFlags "$1")
+        --output_qc_report=*)
+            [ -n "$VIASH_PAR_OUTPUT_QC_REPORT" ] && ViashError Bad arguments for option \'--output_qc_report=*\': \'$VIASH_PAR_OUTPUT_QC_REPORT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_QC_REPORT=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -777,13 +777,13 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # build docker image
   elif [ "$VIASH_MODE" == "setup" ]; then
     ViashDockerSetup "$VIASH_DOCKER_IMAGE_ID" "$VIASH_SETUP_STRATEGY"
-    ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'bash'
+    ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'ps' 'bash'
     exit 0
   fi
 
   # check if docker image exists
   ViashDockerSetup "$VIASH_DOCKER_IMAGE_ID" ifneedbepullelsecachedbuild
-  ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'bash'
+  ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'ps' 'bash'
 fi
 
 # setting computational defaults
@@ -843,8 +843,8 @@ if [ -z ${VIASH_PAR_INPUT+x} ]; then
   ViashError '--input' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
-  ViashError '--output' is a required argument. Use "--help" to get more information on the parameters.
+if [ -z ${VIASH_PAR_OUTPUT_QC_REPORT+x} ]; then
+  ViashError '--output_qc_report' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
 if [ -z ${VIASH_META_NAME+x} ]; then
@@ -953,8 +953,8 @@ if [[ -n "$VIASH_META_MEMORY_PIB" ]]; then
 fi
 
 # create parent directories of output files, if so desired
-if [ ! -z "$VIASH_PAR_OUTPUT" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT")" ]; then
-  mkdir -p "$(dirname "$VIASH_PAR_OUTPUT")"
+if [ ! -z "$VIASH_PAR_OUTPUT_QC_REPORT" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT_QC_REPORT")" ]; then
+  mkdir -p "$(dirname "$VIASH_PAR_OUTPUT_QC_REPORT")"
 fi
 
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
@@ -964,10 +964,10 @@ if [ ! -z "$VIASH_PAR_INPUT" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT")" )
   VIASH_PAR_INPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT")
 fi
-if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT")" )
-  VIASH_PAR_OUTPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT")
-  VIASH_CHOWN_VARS+=( "$VIASH_PAR_OUTPUT" )
+if [ ! -z "$VIASH_PAR_OUTPUT_QC_REPORT" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT_QC_REPORT")" )
+  VIASH_PAR_OUTPUT_QC_REPORT=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT_QC_REPORT")
+  VIASH_CHOWN_VARS+=( "$VIASH_PAR_OUTPUT_QC_REPORT" )
 fi
 if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_META_RESOURCES_DIR")" )
@@ -1039,7 +1039,7 @@ cat > "\$tempscript" << 'VIASHMAIN'
 ## VIASH START
 # The following code has been auto-generated by Viash.
 $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "${VIASH_PAR_INPUT}" | sed "s#'#'\"'\"'#g;s#.*#par_input='&'#" ; else echo "# par_input="; fi )
-$( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "${VIASH_PAR_OUTPUT}" | sed "s#'#'\"'\"'#g;s#.*#par_output='&'#" ; else echo "# par_output="; fi )
+$( if [ ! -z ${VIASH_PAR_OUTPUT_QC_REPORT+x} ]; then echo "${VIASH_PAR_OUTPUT_QC_REPORT}" | sed "s#'#'\"'\"'#g;s#.*#par_output_qc_report='&'#" ; else echo "# par_output_qc_report="; fi )
 $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "${VIASH_META_NAME}" | sed "s#'#'\"'\"'#g;s#.*#meta_name='&'#" ; else echo "# meta_name="; fi )
 $( if [ ! -z ${VIASH_META_FUNCTIONALITY_NAME+x} ]; then echo "${VIASH_META_FUNCTIONALITY_NAME}" | sed "s#'#'\"'\"'#g;s#.*#meta_functionality_name='&'#" ; else echo "# meta_functionality_name="; fi )
 $( if [ ! -z ${VIASH_META_RESOURCES_DIR+x} ]; then echo "${VIASH_META_RESOURCES_DIR}" | sed "s#'#'\"'\"'#g;s#.*#meta_resources_dir='&'#" ; else echo "# meta_resources_dir="; fi )
@@ -1061,7 +1061,7 @@ $( if [ ! -z ${VIASH_META_MEMORY_PIB+x} ]; then echo "${VIASH_META_MEMORY_PIB}" 
 
 ## VIASH END
 ABSOLUTE_INPUT=\$(realpath \$par_input)
-ABSOLUTE_OUTPUT=\$(realpath \$par_output)
+ABSOLUTE_OUTPUT=\$(realpath \$par_output_qc_report)
 
 cd /opt/incubator_ingestion_qc
 mkdir src/data
@@ -1089,8 +1089,8 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   if [ ! -z "$VIASH_PAR_INPUT" ]; then
     VIASH_PAR_INPUT=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT")
   fi
-  if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
-    VIASH_PAR_OUTPUT=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT")
+  if [ ! -z "$VIASH_PAR_OUTPUT_QC_REPORT" ]; then
+    VIASH_PAR_OUTPUT_QC_REPORT=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT_QC_REPORT")
   fi
   if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
     VIASH_META_RESOURCES_DIR=$(ViashDockerStripAutomount "$VIASH_META_RESOURCES_DIR")
@@ -1108,8 +1108,8 @@ fi
 
 
 # check whether required files exist
-if [ ! -z "$VIASH_PAR_OUTPUT" ] && [ ! -e "$VIASH_PAR_OUTPUT" ]; then
-  ViashError "Output file '$VIASH_PAR_OUTPUT' does not exist."
+if [ ! -z "$VIASH_PAR_OUTPUT_QC_REPORT" ] && [ ! -e "$VIASH_PAR_OUTPUT_QC_REPORT" ]; then
+  ViashError "Output file '$VIASH_PAR_OUTPUT_QC_REPORT' does not exist."
   exit 1
 fi
 

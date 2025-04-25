@@ -3388,7 +3388,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline/openpipeline/target/nextflow/metadata/grep_annotation_column",
     "viash_version" : "0.9.3",
-    "git_commit" : "6e79760ebdbec20050a5ff3948a7745c6d307f7e",
+    "git_commit" : "194afe660f7971f965848d67a1b45e1305b0254d",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline"
   },
   "package_config" : {

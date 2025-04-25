@@ -3262,6 +3262,18 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--metadata_obs_keys",
+          "description" : "The metadata keys in the h5mu .obs to include in the output JSON.",
+          "example" : [
+            "donor_id;cell_type;batch;condition"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3278,15 +3290,31 @@ meta = [
     },
     {
       "type" : "file",
-      "path" : "/src/labels.config",
+      "path" : "/src/configs/labels.config",
       "dest" : "nextflow_labels.config"
     }
   ],
   "description" : "Convert QC metrics from h5mu to JSON",
+  "test_resources" : [
+    {
+      "type" : "python_script",
+      "path" : "test.py",
+      "is_executable" : true
+    },
+    {
+      "type" : "file",
+      "path" : "/resources_test"
+    }
+  ],
   "status" : "enabled",
   "scope" : {
     "image" : "public",
     "target" : "public"
+  },
+  "requirements" : {
+    "commands" : [
+      "ps"
+    ]
   },
   "repositories" : [
     {
@@ -3432,7 +3460,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
     "viash_version" : "0.9.1",
-    "git_commit" : "8738dd811800bd873454c944c5bc6cf223b457a7",
+    "git_commit" : "c6e534f80fcc91fe4fbc1f53e30e55b417779681",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3459,7 +3487,7 @@ meta = [
     "source" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/src",
     "target" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target",
     "config_mods" : [
-      ".resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
+      ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
     ],
     "organization" : "openpipelines-bio",
     "links" : {
@@ -3497,7 +3525,8 @@ par = {
   'sample_id_key': $( if [ ! -z ${VIASH_PAR_SAMPLE_ID_KEY+x} ]; then echo "r'${VIASH_PAR_SAMPLE_ID_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'obs_keys': $( if [ ! -z ${VIASH_PAR_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_OBS_KEYS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
   'cellbender_obs_keys': $( if [ ! -z ${VIASH_PAR_CELLBENDER_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_CELLBENDER_OBS_KEYS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
-  'cellranger_metrics_uns_key': $( if [ ! -z ${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY+x} ]; then echo "r'${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'cellranger_metrics_uns_key': $( if [ ! -z ${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY+x} ]; then echo "r'${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'metadata_obs_keys': $( if [ ! -z ${VIASH_PAR_METADATA_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_METADATA_OBS_KEYS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3530,6 +3559,10 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+par["cellbender_obs_keys"] = {} if not par["cellbender_obs_keys"] else par["cellbender_obs_keys"]
+par["metadata_obs_keys"] = {} if not par["metadata_obs_keys"] else par["metadata_obs_keys"]
+par["obs_keys"] = {} if not par["obs_keys"] else par["obs_keys"]
+
 def transform_df(df):
     """Transform a DataFrame into the annotation object format."""
     columns = []
@@ -3559,8 +3592,12 @@ def transform_df(df):
 
     return {"num_rows": len(df), "num_cols": len(df.columns), "columns": columns}
 
+def check_optional_obs_keys(obs, keys, message):
+    missing_keys = [key for key in keys if key not in obs.columns]
+    if missing_keys:
+        logger.info(f"Missing keys in obs: {', '.join(missing_keys)}. {message}")
 
-def main(par):
+def main(par):    
     cell_stats_dfs = []
     sample_stats_dfs = []
     metrics_cellranger_dfs = []
@@ -3595,9 +3632,9 @@ def main(par):
             raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
         
         if par["cellbender_obs_keys"]:
-            missing_cellbender_keys = [key for key in par["cellbender_obs_keys"] if key not in mod_obs.columns]
-            if missing_cellbender_keys:
-                logger.info(f"Missing keys in obs: {', '.join(missing_cellbender_keys)}. Run cellbender first to include these metrics.")
+            check_optional_obs_keys(mod_obs, par["cellbender_obs_keys"], "Run cellbender first to include these metrics.")
+        if par["metadata_obs_keys"]:
+            check_optional_obs_keys(mod_obs, par["metadata_obs_keys"], "Make sure requested metadata colmuns are present in obs.")
 
         sample_id = (
             mod_obs[par["sample_id_key"]].tolist()
@@ -3610,6 +3647,7 @@ def main(par):
                 "sample_id": pd.Categorical(sample_id),
                 **{key: mod_obs[key] for key in par["obs_keys"]},
                 **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if key in mod_obs.columns},
+                **{key: mod_obs[key] for key in par["metadata_obs_keys"] if key in mod_obs.columns},
             }
         )
         

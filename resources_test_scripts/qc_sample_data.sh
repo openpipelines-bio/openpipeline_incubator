@@ -48,6 +48,56 @@ nextflow run openpipelines-bio/openpipeline \
   -params-file /tmp/params_subset.yaml \
   -resume
 
+cat > /tmp/add_metadata_obs.py <<EOF
+import mudata as mu
+import glob
+import numpy as np
+import pandas as pd
+import os
+
+# Directory containing the h5mu files
+out_dir = "$(pwd)/resources_test/qc_sample_data"
+
+# List of h5mu files
+h5mu_files = glob.glob(os.path.join(out_dir, "*.h5mu"))
+print(f"Found {len(h5mu_files)} h5mu files: {h5mu_files}")
+
+# Metadata values to randomly assign
+donor_ids = ["donor_1", "donor_2", "donor_3"]
+cell_types = ["CD4+ T cell", "CD8+ T cell", "B cell", "NK cell", "Monocyte"]
+batches = ["batch_A", "batch_B"]
+conditions = ["treated", "control"]
+
+for h5mu_file in h5mu_files:
+    print(f"Processing {h5mu_file}...")
+    
+    # Load MuData object
+    mdata = mu.read_h5mu(h5mu_file)
+    rna = mdata.mod["rna"]
+    n_obs = rna.n_obs
+    
+    # Generate random metadata
+    np.random.seed(42 + hash(h5mu_file) % 100)  # Different seed for each file but reproducible
+    
+    # Create metadata
+    rna.obs["donor_id"] = np.random.choice(donor_ids, size=n_obs)
+    rna.obs["cell_type"] = np.random.choice(cell_types, size=n_obs)
+    rna.obs["batch"] = np.random.choice(batches, size=n_obs)
+    rna.obs["condition"] = np.random.choice(conditions, size=n_obs)
+    
+    # Add a continuous variable too
+    rna.obs["quality_score"] = np.random.uniform(0, 1, size=n_obs)
+    
+    # Save the modified MuData object
+    mu.write_h5mu(h5mu_file, mdata)
+    print(f"Added metadata to {h5mu_file}")
+
+print("All files processed successfully!")
+EOF
+
+# Execute the Python script
+python /tmp/add_metadata_obs.py
+
 # generate cellbender out for testing
 cat > /tmp/params_cellbender.yaml <<EOF
 param_list:
@@ -73,6 +123,7 @@ nextflow run openpipelines-bio/openpipeline \
 viash run src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
   --input "$OUT_DIR"/sample_one.qc.cellbender.h5mu \
   --input "$OUT_DIR"/sample_two.qc.cellbender.h5mu \
+  --metadata_obs_keys "donor_id;cell_type;batch;condition" \
   --output "$OUT_DIR"/dataset.json
 
 # copy to s3
@@ -80,4 +131,4 @@ aws s3 sync \
   --profile di \
   resources_test/qc_sample_data \
   s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data \
-  --delete
+  --delete --dryrun

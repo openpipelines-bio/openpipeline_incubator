@@ -3218,6 +3218,18 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--metadata_obs_keys",
+          "description" : "The metadata keys in the h5mu .obs to include in the report.",
+          "example" : [
+            "donor_id;cell_type;batch;condition"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3255,10 +3267,24 @@ meta = [
       "arguments" : [
         {
           "type" : "file",
-          "name" : "--output",
+          "name" : "--output_qc_report",
           "description" : "The output HTML report",
           "example" : [
             "path/to/file.html"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : true,
+          "direction" : "output",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--output_processed_h5mu",
+          "description" : "The processed h5mu files.",
+          "default" : [
+            "$id.qc.h5mu"
           ],
           "must_exist" : true,
           "create_parent" : true,
@@ -3279,15 +3305,34 @@ meta = [
     },
     {
       "type" : "file",
-      "path" : "/src/labels.config",
+      "path" : "/src/configs/labels.config",
       "dest" : "nextflow_labels.config"
     }
   ],
   "description" : "Run the ingestion QC report generation",
+  "test_resources" : [
+    {
+      "type" : "nextflow_script",
+      "path" : "test.nf",
+      "is_executable" : true,
+      "entrypoint" : "test_no_cellbender"
+    },
+    {
+      "type" : "nextflow_script",
+      "path" : "test.nf",
+      "is_executable" : true,
+      "entrypoint" : "test_with_cellbender"
+    }
+  ],
   "status" : "enabled",
   "scope" : {
     "image" : "public",
     "target" : "public"
+  },
+  "requirements" : {
+    "commands" : [
+      "ps"
+    ]
   },
   "dependencies" : [
     {
@@ -3425,7 +3470,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "8738dd811800bd873454c944c5bc6cf223b457a7",
+    "git_commit" : "c6e534f80fcc91fe4fbc1f53e30e55b417779681",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3452,7 +3497,7 @@ meta = [
     "source" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/src",
     "target" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target",
     "config_mods" : [
-      ".resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
+      ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
     ],
     "organization" : "openpipelines-bio",
     "links" : {
@@ -3478,12 +3523,7 @@ include { generate_html } from "${meta.resources_dir}/../../../nextflow/ingestio
 workflow run_wf {
   take: input_ch
   main:
-  output_ch = input_ch
-
-    // store join id
-    | map { id, state ->
-      [id, state + [_meta: [join_id: id]]]
-    }
+  h5mu_ch = input_ch
 
     // run cellbender
     | cellbender.run(
@@ -3493,25 +3533,32 @@ workflow run_wf {
         input: "input",
         epochs: "cellbender_epochs",
       ],
-      toState: ["output"]
+      toState: { id, output, state -> 
+        state + ["input": output.output,
+                 "metadata_obs_keys": state.metadata_obs_keys]
+      }
     )
 
     // run qc on each sample
     | qc_wf.run(
       fromState: [
         id: "id",
-        input: "output",
+        input: "input",
         var_gene_names: "var_gene_names",
         var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
         var_name_ribosomal_genes: "var_name_ribosomal_genes"
       ],
-      toState: ["output"]
+      toState: ["output_processed_h5mu": "output", 
+                "metadata_obs_keys": "metadata_obs_keys"]
     )
+
+    qc_ch = h5mu_ch
 
     // add sample ids to each state
     | add_id.run(
-      fromState: [input_id: "id", input: "output"],
-      toState: ["output"]
+      fromState: [input_id: "id", input: "output_processed_h5mu"],
+      toState: ["output": "output",
+                "output_processed_h5mu": "output_processed_h5mu"]
     )
 
     // combine files into one state
@@ -3520,25 +3567,45 @@ workflow run_wf {
       def newState = [
         input: states.collect{it.output},
         _meta: states[0]._meta,
-        output_html: states[0].output_html
+        output_html: states[0].output_html,
+        metadata_obs_keys: states[0].metadata_obs_keys,
+        output_processed_h5mu: states.collect{it.output_processed_h5mu}
       ]
       [newId, newState]
     }
 
+    // | view
+
     // generate qc json
     | h5mu_to_qc_json.run(
       fromState: ["input"],
-      args: [sample_id_key: "sample_id"],
-      toState: [output_qc_json: "output"]
+      args: [
+        sample_id_key: "sample_id",
+        metadata_obs_keys: "metadata_obs_keys",
+      ],
+      toState: [output_qc_json: "output",
+                output_processed_h5mu: "output_processed_h5mu"]
     )
 
     | generate_html.run(
       fromState: [input: "output_qc_json"],
-      toState: [output: "output"]
+      toState: [output_qc_report: "output_qc_report",
+                output_processed_h5mu: "output_processed_h5mu"]
     )
 
-    // emit output
-    | setState(["output", "_meta"])
+    | view
+
+    output_ch = h5mu_ch.combine(qc_ch)
+      | map {sample_id, sample_state, combined_id, combined_state ->
+          // Create new state by adding the QC report to the sample state
+          def new_state = sample_state + ["output_qc_report": combined_state.output_qc_report]
+          // Return the tuple with sample_id and the new state
+          return [sample_id, new_state]
+      }
+      // view for debugging
+      | view
+      // emit output
+      | setState(["output_qc_report", "output_processed_h5mu"])
 
   emit: output_ch
 }
