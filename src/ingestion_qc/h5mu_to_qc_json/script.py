@@ -30,6 +30,7 @@ par = {
         "cellbender_droplet_efficiency",
     ],        
     "cellranger_metrics_uns_key": "metrics_cellranger",
+    "metadata_obs_keys": []
 }
 i = 0
 mudata_file = par["input"][i]
@@ -39,6 +40,10 @@ sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
 
 logger = setup_logger()
+
+par["cellbender_obs_keys"] = {} if not par["cellbender_obs_keys"] else par["cellbender_obs_keys"]
+par["metadata_obs_keys"] = {} if not par["metadata_obs_keys"] else par["metadata_obs_keys"]
+par["obs_keys"] = {} if not par["obs_keys"] else par["obs_keys"]
 
 def transform_df(df):
     """Transform a DataFrame into the annotation object format."""
@@ -69,8 +74,12 @@ def transform_df(df):
 
     return {"num_rows": len(df), "num_cols": len(df.columns), "columns": columns}
 
+def check_optional_obs_keys(obs, keys, message):
+    missing_keys = [key for key in keys if key not in obs.columns]
+    if missing_keys:
+        logger.info(f"Missing keys in obs: {', '.join(missing_keys)}. {message}")
 
-def main(par):
+def main(par):    
     cell_stats_dfs = []
     sample_stats_dfs = []
     metrics_cellranger_dfs = []
@@ -105,9 +114,9 @@ def main(par):
             raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
         
         if par["cellbender_obs_keys"]:
-            missing_cellbender_keys = [key for key in par["cellbender_obs_keys"] if key not in mod_obs.columns]
-            if missing_cellbender_keys:
-                logger.info(f"Missing keys in obs: {', '.join(missing_cellbender_keys)}. Run cellbender first to include these metrics.")
+            check_optional_obs_keys(mod_obs, par["cellbender_obs_keys"], "Run cellbender first to include these metrics.")
+        if par["metadata_obs_keys"]:
+            check_optional_obs_keys(mod_obs, par["metadata_obs_keys"], "Make sure requested metadata colmuns are present in obs.")
 
         sample_id = (
             mod_obs[par["sample_id_key"]].tolist()
@@ -120,6 +129,7 @@ def main(par):
                 "sample_id": pd.Categorical(sample_id),
                 **{key: mod_obs[key] for key in par["obs_keys"]},
                 **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if key in mod_obs.columns},
+                **{key: mod_obs[key] for key in par["metadata_obs_keys"] if key in mod_obs.columns},
             }
         )
         

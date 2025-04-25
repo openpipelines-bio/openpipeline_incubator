@@ -61,15 +61,20 @@ argument_groups:
         type: string
         description: The key in the h5mu file .uns that contains the cellranger metrics
         default: metrics_cellranger
+      - name: --metadata_obs_keys
+        type: string
+        multiple: true
+        description: The metadata keys in the h5mu .obs to include in the output JSON.
+        example: "donor_id;cell_type;batch;condition"
 resources:
   - type: python_script
     path: script.py
   - path: /src/utils/setup_logger.py
-# test_resources:
-#   - type: python_script
-#     path: test.py
-#   - type: file
-#     path: /resources_test
+test_resources:
+  - type: python_script
+    path: test.py
+  - type: file
+    path: /resources_test
 engines:
   - type: docker
     image: python:3.12-slim

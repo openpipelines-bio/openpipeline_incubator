@@ -23,5 +23,7 @@ info:
       dest: resources_test
 
 config_mods: |
-  .resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}
+  .requirements.commands := ['ps']
+  .runners[.type == 'nextflow'].directives.tag := '$id'
+  .resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}
   .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'
