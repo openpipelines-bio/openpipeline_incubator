@@ -1,7 +1,7 @@
 echo ">> Generating report"
 "$meta_executable" \
     --input "$meta_resources_dir/dataset.json" \
-    --output "index.html" \
+    --output_qc_report "index.html" \
 
 echo ">> Checking output"
 [ ! -f "index.html" ] && echo "Error: Output report does not exist." && exit 1
