@@ -195,15 +195,6 @@ resources:
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
 description: "Run the ingestion QC report generation"
-test_resources:
-- type: "nextflow_script"
-  path: "test.nf"
-  is_executable: true
-  entrypoint: "test_no_cellbender"
-- type: "nextflow_script"
-  path: "test.nf"
-  is_executable: true
-  entrypoint: "test_with_cellbender"
 info: null
 status: "enabled"
 scope:
@@ -315,7 +306,7 @@ build_info:
   output: "target/nextflow/ingestion_qc/generate_report"
   executable: "target/nextflow/ingestion_qc/generate_report/main.nf"
   viash_version: "0.9.1"
-  git_commit: "c6e534f80fcc91fe4fbc1f53e30e55b417779681"
+  git_commit: "0394926b69a5d2e6fb3a94853a680d4a63213ebc"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
   dependencies:
   - "target/dependencies/github/openpipelines-bio/openpipeline/main_build/nextflow/metadata/add_id"

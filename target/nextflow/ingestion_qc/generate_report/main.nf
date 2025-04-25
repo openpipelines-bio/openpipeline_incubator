@@ -3310,20 +3310,6 @@ meta = [
     }
   ],
   "description" : "Run the ingestion QC report generation",
-  "test_resources" : [
-    {
-      "type" : "nextflow_script",
-      "path" : "test.nf",
-      "is_executable" : true,
-      "entrypoint" : "test_no_cellbender"
-    },
-    {
-      "type" : "nextflow_script",
-      "path" : "test.nf",
-      "is_executable" : true,
-      "entrypoint" : "test_with_cellbender"
-    }
-  ],
   "status" : "enabled",
   "scope" : {
     "image" : "public",
@@ -3470,7 +3456,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.1",
-    "git_commit" : "c6e534f80fcc91fe4fbc1f53e30e55b417779681",
+    "git_commit" : "0394926b69a5d2e6fb3a94853a680d4a63213ebc",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
