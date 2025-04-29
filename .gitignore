@@ -10,6 +10,9 @@
 gitignore
 test_results
 
+# python
+*__pycache__*
+
 # System Files
 .DS_Store
 Thumbs.db

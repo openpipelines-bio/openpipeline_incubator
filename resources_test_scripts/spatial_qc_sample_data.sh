@@ -28,5 +28,7 @@ nextflow run openpipelines-bio/openpipeline \
 # generate json for testing
 viash run src/spatial_ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
   --input "$OUT_DIR"/xenium/xenium_tiny_qc.h5mu \
+  --min_total_counts "1" \
+  --min_num_nonzero_vars "1" \
   --input "$OUT_DIR"/xenium/xenium_tiny_qc.h5mu \
   --output "$OUT_DIR"/xenium/xenium_tiny.json
