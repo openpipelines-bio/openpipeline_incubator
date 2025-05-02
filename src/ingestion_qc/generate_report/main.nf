@@ -68,16 +68,14 @@ workflow run_wf {
         metadata_obs_keys: "metadata_obs_keys",
       ],
       toState: [
-        output_qc_json: "output",
-        output_processed_h5mu: "output_processed_h5mu"
+        output_qc_json: "output"
       ]
     )
 
     | generate_html.run(
       fromState: [ input: "output_qc_json" ],
       toState: [
-        output_qc_report: "output_qc_report",
-        output_processed_h5mu: "output_processed_h5mu"
+        output_qc_report: "output_qc_report"
       ]
     )
 
