@@ -33,11 +33,19 @@ workflow test_no_cellbender {
 
     | view { output ->
         assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
-        assert output[1].output.isFile() : "Output HTML report file should exist"
+        def id = output[0]
+        def state = output [1]
+        assert id == "combined": "Output ID should be `combined`"
+        assert state instanceof Map : "State should be a map. Found: ${state}"
+        assert state.containsKey("output_qc_report"): "Output should contain key `output_qc_report`"
+        assert state.containsKey("output_processed_h5mu"): "Output should contain key `output_processed_h5mu`"
+        assert state.output_qc_report.isFile() : "Output HTML report file should exist"
+        assert state.output_processed_h5mu.isDirectory() : "Output directory should exist"
+        def files = state.output_processed_h5mu.listFiles().findAll { it.isFile() }
+        assert files.size() == 2 : "Output directory should contain exactly 2 files, but found ${files.size()} files"
         "Output: $output"
     }
 }
-
 
 workflow test_with_cellbender {
 
@@ -67,7 +75,16 @@ workflow test_with_cellbender {
 
     | view { output ->
         assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
-        assert output[1].output.isFile() : "Output HTML report file should exist"
+        def id = output[0]
+        def state = output [1]
+        assert id == "combined": "Output ID should be `combined`"
+        assert state instanceof Map : "State should be a map. Found: ${state}"
+        assert state.containsKey("output_qc_report"): "Output should contain key `output_qc_report`"
+        assert state.containsKey("output_processed_h5mu"): "Output should contain key `output_processed_h5mu`"
+        assert state.output_qc_report.isFile() : "Output HTML report file should exist"
+        assert state.output_processed_h5mu.isDirectory() : "Output directory should exist"
+        def files = state.output_processed_h5mu.listFiles().findAll { it.isFile() }
+        assert files.size() == 2 : "Output directory should contain exactly 2 files, but found ${files.size()} files"
         "Output: $output"
     }
 }

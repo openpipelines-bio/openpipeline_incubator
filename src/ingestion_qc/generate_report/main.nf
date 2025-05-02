@@ -1,7 +1,12 @@
 workflow run_wf {
   take: input_ch
   main:
-  h5mu_ch = input_ch
+  output_ch = input_ch
+
+    // store join id
+    | map { id, state ->
+      [id, state + [_meta: [join_id: id]]]
+    }
 
     // run cellbender
     | cellbender.run(
@@ -11,10 +16,7 @@ workflow run_wf {
         input: "input",
         epochs: "cellbender_epochs",
       ],
-      toState: { id, output, state -> 
-        state + ["input": output.output,
-                 "metadata_obs_keys": state.metadata_obs_keys]
-      }
+      toState: ["input": "output"]
     )
 
     // run qc on each sample
@@ -26,17 +28,16 @@ workflow run_wf {
         var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
         var_name_ribosomal_genes: "var_name_ribosomal_genes"
       ],
-      toState: ["output_processed_h5mu": "output", 
-                "metadata_obs_keys": "metadata_obs_keys"]
+      toState: [ "input": "output" ]
     )
-
-    qc_ch = h5mu_ch
 
     // add sample ids to each state
     | add_id.run(
-      fromState: [input_id: "id", input: "output_processed_h5mu"],
-      toState: ["output": "output",
-                "output_processed_h5mu": "output_processed_h5mu"]
+      fromState: [
+        input_id: "id", 
+        input: "input"
+      ],
+      toState: [ "output": "output" ]
     )
 
     // combine files into one state
@@ -46,13 +47,18 @@ workflow run_wf {
         input: states.collect{it.output},
         _meta: states[0]._meta,
         output_html: states[0].output_html,
-        metadata_obs_keys: states[0].metadata_obs_keys,
-        output_processed_h5mu: states.collect{it.output_processed_h5mu}
       ]
       [newId, newState]
     }
 
-    // | view
+    // move all processed h5mu files to the same folder
+    | publish.run(
+      fromState: [
+        input: "input",
+        output: "output_processed_h5mu"
+      ],
+      toState: ["output_processed_h5mu": "output"]
+    )
 
     // generate qc json
     | h5mu_to_qc_json.run(
@@ -71,19 +77,7 @@ workflow run_wf {
                 output_processed_h5mu: "output_processed_h5mu"]
     )
 
-    | view
-
-    output_ch = h5mu_ch.combine(qc_ch)
-      | map {sample_id, sample_state, combined_id, combined_state ->
-          // Create new state by adding the QC report to the sample state
-          def new_state = sample_state + ["output_qc_report": combined_state.output_qc_report]
-          // Return the tuple with sample_id and the new state
-          return [sample_id, new_state]
-      }
-      // view for debugging
-      | view
-      // emit output
-      | setState(["output_qc_report", "output_processed_h5mu"])
+    | setState(["_meta", "output_qc_report", "output_processed_h5mu"])
 
   emit: output_ch
 }
