@@ -15,6 +15,10 @@ repositories:
     repo: openpipelines-bio/openpipeline
     type: github
     tag: main_build
+  - name: craftbox
+    repo: craftbox
+    type: vsh
+    tag: main 
 
 info:
   test_resources:

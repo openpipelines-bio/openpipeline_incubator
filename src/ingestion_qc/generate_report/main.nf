@@ -52,7 +52,7 @@ workflow run_wf {
     }
 
     // move all processed h5mu files to the same folder
-    | publish.run(
+    | move_files_to_directory.run(
       fromState: [
         input: "input",
         output: "output_processed_h5mu"

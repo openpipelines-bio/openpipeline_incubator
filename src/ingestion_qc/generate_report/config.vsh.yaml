@@ -115,7 +115,8 @@ dependencies:
     repository: openpipeline
   - name: ingestion_qc/h5mu_to_qc_json
   - name: ingestion_qc/generate_html
-  - name: utils/publish
+  - name: move_files_to_directory
+    repository: craftbox
 
 runners:
   - type: nextflow
