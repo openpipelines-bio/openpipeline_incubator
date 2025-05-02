@@ -3316,6 +3316,12 @@ meta = [
       "name" : "openpipeline",
       "repo" : "openpipelines-bio/openpipeline",
       "tag" : "main_build"
+    },
+    {
+      "type" : "vsh",
+      "name" : "craftbox",
+      "repo" : "craftbox",
+      "tag" : "main"
     }
   ],
   "links" : {
@@ -3454,7 +3460,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
     "viash_version" : "0.9.4",
-    "git_commit" : "bf29790c56158f60a18a6302dc0aae30ea38cbb8",
+    "git_commit" : "678cd0e72b3085629310f46f6824eff3af41fe33",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3475,6 +3481,12 @@ meta = [
         "name" : "openpipeline",
         "repo" : "openpipelines-bio/openpipeline",
         "tag" : "main_build"
+      },
+      {
+        "type" : "vsh",
+        "name" : "craftbox",
+        "repo" : "craftbox",
+        "tag" : "main"
       }
     ],
     "viash_version" : "0.9.4",
