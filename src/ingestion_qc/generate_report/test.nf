@@ -3,7 +3,7 @@ targetDir = params.rootDir + "/target/nextflow/ingestion_qc"
 
 include { generate_report } from targetDir + "/generate_report/main.nf"
 
-params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data/"
+params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_no_cellbender {
 
@@ -12,7 +12,7 @@ workflow test_no_cellbender {
   output_ch = Channel.fromList([
       [
         id: "sample_one",
-        input: resources_test_file.resolve("sample_one.qc.h5mu"),
+        input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
@@ -20,7 +20,7 @@ workflow test_no_cellbender {
       ],
       [
         id: "sample_two",
-        input: resources_test_file.resolve("sample_two.qc.h5mu"),
+        input: resources_test_file.resolve("qc_sample_data/sample_two.qc.h5mu"),
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
@@ -54,7 +54,7 @@ workflow test_with_cellbender {
   output_ch = Channel.fromList([
       [
         id: "sample_one",
-        input: resources_test_file.resolve("sample_one.qc.h5mu"),
+        input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
         run_cellbender: true,
         cellbender_epochs: 1,
         output_html: "report.html",
@@ -62,7 +62,7 @@ workflow test_with_cellbender {
       ],
       [
         id: "sample_two",
-        input: resources_test_file.resolve("sample_two.qc.h5mu"),
+        input: resources_test_file.resolve("qc_sample_data/sample_two.qc.h5mu"),
         run_cellbender: true,
         cellbender_epochs: 1,
         output_html: "report.html",
