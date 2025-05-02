@@ -108,7 +108,6 @@ dependencies:
   - name: metadata/add_id
     repository: openpipeline
   - name: workflows/qc/qc
-    alias: qc_wf
     repository: openpipeline
   - name: correction/cellbender_remove_background
     alias: cellbender

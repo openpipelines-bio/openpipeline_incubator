@@ -8,6 +8,15 @@ workflow run_wf {
       [id, state + [_meta: [join_id: id]]]
     }
 
+    // add sample ids to each state
+    | add_id.run(
+      fromState: [
+        input_id: "id", 
+        input: "input"
+      ],
+      toState: [ "input": "output" ]
+    )
+
     // run cellbender
     | cellbender.run(
       runIf: {id, state -> state.run_cellbender},
@@ -20,22 +29,13 @@ workflow run_wf {
     )
 
     // run qc on each sample
-    | qc_wf.run(
+    | qc.run(
       fromState: [
         id: "id",
         input: "input",
         var_gene_names: "var_gene_names",
         var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
         var_name_ribosomal_genes: "var_name_ribosomal_genes"
-      ],
-      toState: [ "input": "output" ]
-    )
-
-    // add sample ids to each state
-    | add_id.run(
-      fromState: [
-        input_id: "id", 
-        input: "input"
       ],
       toState: [ "output": "output" ]
     )
@@ -73,8 +73,10 @@ workflow run_wf {
 
     | generate_html.run(
       fromState: [input: "output_qc_json"],
-      toState: [output_qc_report: "output_qc_report",
-                output_processed_h5mu: "output_processed_h5mu"]
+      toState: [
+        output_qc_report: "output_qc_report",
+        output_processed_h5mu: "output_processed_h5mu"
+      ]
     )
 
     | setState(["_meta", "output_qc_report", "output_processed_h5mu"])
