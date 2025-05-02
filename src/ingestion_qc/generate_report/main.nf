@@ -48,7 +48,7 @@ workflow run_wf {
         _meta: states[0]._meta,
         output_html: states[0].output_html,
       ]
-      [newId, newState]
+      [ newId, newState ]
     }
 
     // move all processed h5mu files to the same folder
@@ -57,7 +57,7 @@ workflow run_wf {
         input: "input",
         output: "output_processed_h5mu"
       ],
-      toState: ["output_processed_h5mu": "output"]
+      toState: [ "output_processed_h5mu": "output" ]
     )
 
     // generate qc json
@@ -67,19 +67,21 @@ workflow run_wf {
         sample_id_key: "sample_id",
         metadata_obs_keys: "metadata_obs_keys",
       ],
-      toState: [output_qc_json: "output",
-                output_processed_h5mu: "output_processed_h5mu"]
+      toState: [
+        output_qc_json: "output",
+        output_processed_h5mu: "output_processed_h5mu"
+      ]
     )
 
     | generate_html.run(
-      fromState: [input: "output_qc_json"],
+      fromState: [ input: "output_qc_json" ],
       toState: [
         output_qc_report: "output_qc_report",
         output_processed_h5mu: "output_processed_h5mu"
       ]
     )
 
-    | setState(["_meta", "output_qc_report", "output_processed_h5mu"])
+    | setState([ "_meta", "output_qc_report", "output_processed_h5mu" ])
 
   emit: output_ch
 }
