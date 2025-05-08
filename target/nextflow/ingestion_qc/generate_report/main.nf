@@ -3477,7 +3477,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.4",
-    "git_commit" : "678cd0e72b3085629310f46f6824eff3af41fe33",
+    "git_commit" : "069260a53b4ec571dbf1e403df46d30f01836076",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {

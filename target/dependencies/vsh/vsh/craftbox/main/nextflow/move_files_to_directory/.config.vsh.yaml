@@ -145,16 +145,29 @@ build_info:
   engine: "docker|native"
   output: "target/nextflow/move_files_to_directory"
   executable: "target/nextflow/move_files_to_directory/main.nf"
-  viash_version: "0.9.3"
-  git_commit: "9ca16ea58d5f010e31714265802c016280594624"
+  viash_version: "0.9.4"
+  git_commit: "1c2d4e90541ed3c2e04a2633db86413b2548ab10"
   git_remote: "https://github.com/viash-hub/craftbox"
-  git_tag: "v0.1.0-5-g9ca16ea"
+  git_tag: "v0.1.0-6-g1c2d4e9"
 package_config:
   name: "craftbox"
   version: "main"
-  description: "A collection of custom-tailored scripts and applied tools.\n"
+  summary: "A collection of custom-tailored scripts and applied utilities built with\
+    \ Viash.\n"
+  description: "`craftbox` is a curated collection of custom scripts and utilities\
+    \ designed to tackle context-specific tasks.\n\nEmphasizing the Viash principles,\
+    \ `craftbox` components aim for **reusability**, **reproducibility**, and adherence\
+    \ to **best practices**. Key features generally include:\n\n* **Standalone & Nextflow\
+    \ Ready:** Components are built to run directly via the command line or be smoothly\
+    \ integrated into Nextflow workflows.\n* **Custom Implementations:** Contains\
+    \ scripts and tools developed for particular tasks that may not be found in broader\
+    \ collections.\n* **High Quality Standards (promoted by Viash):**\n    * Clear\
+    \ documentation for components and their parameters.\n    * Full exposure of underlying\
+    \ script/tool arguments for fine-grained control.\n    * Containerized (Docker)\
+    \ to ensure dependency management and a consistent, reproducible runtime environment.\n\
+    \    * Unit tested where applicable to ensure components function as expected.\n"
   info: null
-  viash_version: "0.9.3"
+  viash_version: "0.9.4"
   source: "src"
   target: "target"
   config_mods:
@@ -166,6 +179,7 @@ package_config:
   - "scripts"
   - "custom"
   - "implementations"
+  - "utilities"
   license: "MIT"
   organization: "vsh"
   links:
