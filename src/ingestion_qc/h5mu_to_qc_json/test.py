@@ -12,7 +12,7 @@ meta = {
 ## VIASH END
 
 
-def test_simple_execution(run_component, tmp_path):
+def test_cellranger_execution(run_component, tmp_path):
     output_json_path = tmp_path / "output.json"
     output_reporting_json_path = tmp_path / "output_reporting.json"
 
@@ -59,11 +59,11 @@ def test_set_filters(run_component, tmp_path):
             "--ingestion_method", "cellranger_multi",
             "--output", output_json_path,
             "--output_reporting_json", output_reporting_json_path,
-            "--input_obs_sample_id_key", "sample_id",
-            "--input_obs_total_counts_key", "total_counts",
-            "--input_obs_num_nonzero_vars_key", "num_nonzero_vars",
-            "--input_obs_fraction_mitochondrial_key", "fraction_mitochondrial",
-            "--input_obs_fraction_ribosomal_key", "fraction_ribosomal",
+            "--obs_sample_id", "sample_id",
+            "--obs_total_counts", "total_counts",
+            "--obs_num_nonzero_vars", "num_nonzero_vars",
+            "--obs_fraction_mitochondrial", "fraction_mitochondrial",
+            "--obs_fraction_ribosomal", "fraction_ribosomal",
             "--min_total_counts", "20",
             "--min_num_nonzero_vars", "20"
         ]

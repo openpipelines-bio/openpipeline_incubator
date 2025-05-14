@@ -35,23 +35,23 @@ argument_groups:
           - cellranger_multi
           - xenium
         description: Method that was used to ingest the data - this will define the structure of the report that is generated.
-      - name: --input_obs_sample_id_key
+      - name: --obs_sample_id
         type: string
         description: The key in the h5mu file that contains the sample ID. If not provided, each H5MU file will be considered as a separate sample.
         default: sample_id
-      - name: --input_obs_total_counts_key
+      - name: --obs_total_counts
         type: string
         description: The key in the h5mu .obs field that contains the total counts.
         default: total_counts
-      - name: --input_obs_num_nonzero_vars_key
+      - name: --obs_num_nonzero_vars
         type: string
         description: The key in the h5mu .obs field that contains the number of nonzero vars.
         default: num_nonzero_vars
-      - name: --input_obs_fraction_mitochondrial_key
+      - name: --obs_fraction_mitochondrial
         type: string
         description: The key in the h5mu .obs field that contains the fraction mitochondrial genes.
         default: fraction_mitochondrial
-      - name: --input_obs_fraction_ribosomal_key
+      - name: --obs_fraction_ribosomal
         type: string
         description: The key in the h5mu .obs field that contains the fraction ribosomal genes.
         default: fraction_ribosomal
@@ -71,7 +71,7 @@ argument_groups:
         direction: output
         example: path/to/file.json
 
-  - name: Filtering options
+  - name: Filtering & grouping options
     arguments:
       - name: --min_total_counts
         type: integer
@@ -81,7 +81,7 @@ argument_groups:
         type: integer
         description: Minimum number of nonzero vars for a cell to be included in the output
         default: 10
-      - name: --metadata_obs_keys
+      - name: --obs_metadata
         type: string
         multiple: true
         description: The metadata keys in the h5mu .obs to include in the output JSON.
@@ -89,7 +89,7 @@ argument_groups:
 
   - name: Options for CellRanger reports
     arguments:
-      - name: --cellbender_obs_keys
+      - name: --obs_cellbender
         type: string
         multiple: true
         description: The cellbender keys in the h5mu .obs to include in the output JSON
@@ -99,13 +99,23 @@ argument_groups:
           "cellbender_cell_size",
           "cellbender_droplet_efficiency"
           ]
-      - name: --cellranger_metrics_uns_key
+      - name: --uns_cellranger_metrics
         type: string
         description: The key in the h5mu file .uns that contains the cellranger metrics
         default: metrics_cellranger
 
 
   - name: Options for Xenium reports
+    arguments:
+      - name: --obs_nucleus_area
+        type: string
+        description: The key in the h5mu .obs field that contains the nucleus area.
+        default: nucleus_area
+      - name: --obs_cell_area
+        type: string
+        description: The key in the h5mu .obs field that contains the cell area.
+        default: cell_area
+
   # - name: Options for CosMx reports
 
 resources:
