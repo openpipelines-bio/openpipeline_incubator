@@ -15,18 +15,18 @@ workflow run_wf {
       if (state.annotation_methods.contains("scgpt_annotation") && 
         (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
         throw new RuntimeException("Using scgpt_annotation requires --scgpt_model, --scgpt_model_config and --scgp_model_vocab parameters.")
-        }
+      }
       // Check CellTypist arguments
       if (state.annotation_methods.contains("celltypist") && 
         (!state.celltypist_model && !state.reference)) {
         throw new RuntimeException("Celltypist was selected as an annotation method. Either --celltypist_model or --reference must be provided.")
-        }
+      }
       if (state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
         System.err.println(
           "Warning: --celltypist_model is set and a --reference was provided. \
           The pre-trained Celltypist model will be used for annotation, the reference will be ignored."
-          )
-        }
+        )
+      }
       // Check Harmony KNN arguments
       if ((state.annotation_methods.contains("harmony_knn") || state.annotation_methods.contains("scvi_knn"))  && !state.reference ) {
         throw new RuntimeException("When `harmony_knn` or `scvi_knn` are selected as an annotation method, a --reference dataset must be provided.")
@@ -241,9 +241,8 @@ workflow run_wf {
       def new_state = state + ["output": state.query_processed]
       [id, new_state]
     }
-    | view {"After mapping: $it"}
+
     | setState(["output", "_meta"])
-    | view {"After setstate: $it"}
 
   emit:
     output_ch
