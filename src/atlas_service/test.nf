@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 include { atlas_service } from params.rootDir + "/target/nextflow/atlas_service/main.nf"
-params.resources_test = params.rootDir + "/resources_test"
+params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
   resources_test = file(params.resources_test)
