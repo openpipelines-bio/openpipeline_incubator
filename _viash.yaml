@@ -1,4 +1,4 @@
-viash_version: 0.9.1
+viash_version: 0.9.4
 
 source: src
 target: target
@@ -15,6 +15,10 @@ repositories:
     repo: openpipelines-bio/openpipeline
     type: github
     tag: main_build
+  - name: craftbox
+    repo: craftbox
+    type: vsh
+    tag: main 
 
 info:
   test_resources:
@@ -23,5 +27,7 @@ info:
       dest: resources_test
 
 config_mods: |
+  .requirements.commands := ['ps']
+  .runners[.type == 'nextflow'].directives.tag := '$id'
   .resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}
   .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'

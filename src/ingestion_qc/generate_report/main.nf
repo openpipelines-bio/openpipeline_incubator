@@ -8,6 +8,15 @@ workflow run_wf {
       [id, state + [_meta: [join_id: id]]]
     }
 
+    // add sample ids to each state
+    | add_id.run(
+      fromState: [
+        input_id: "id", 
+        input: "input"
+      ],
+      toState: [ "input": "output" ]
+    )
+
     // run cellbender
     | cellbender.run(
       runIf: {id, state -> state.run_cellbender},
@@ -16,25 +25,19 @@ workflow run_wf {
         input: "input",
         epochs: "cellbender_epochs",
       ],
-      toState: ["output"]
+      toState: ["input": "output"]
     )
 
     // run qc on each sample
-    | qc_wf.run(
+    | qc.run(
       fromState: [
         id: "id",
-        input: "output",
+        input: "input",
         var_gene_names: "var_gene_names",
         var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
         var_name_ribosomal_genes: "var_name_ribosomal_genes"
       ],
-      toState: ["output"]
-    )
-
-    // add sample ids to each state
-    | add_id.run(
-      fromState: [input_id: "id", input: "output"],
-      toState: ["output"]
+      toState: [ "output": "output" ]
     )
 
     // combine files into one state
@@ -43,25 +46,40 @@ workflow run_wf {
       def newState = [
         input: states.collect{it.output},
         _meta: states[0]._meta,
-        output_html: states[0].output_html
+        output_html: states[0].output_html,
       ]
-      [newId, newState]
+      [ newId, newState ]
     }
+
+    // move all processed h5mu files to the same folder
+    | move_files_to_directory.run(
+      fromState: [
+        input: "input",
+        output: "output_processed_h5mu"
+      ],
+      toState: [ "output_processed_h5mu": "output" ]
+    )
 
     // generate qc json
     | h5mu_to_qc_json.run(
       fromState: ["input"],
-      args: [sample_id_key: "sample_id"],
-      toState: [output_qc_json: "output"]
+      args: [
+        sample_id_key: "sample_id",
+        metadata_obs_keys: "metadata_obs_keys",
+      ],
+      toState: [
+        output_qc_json: "output"
+      ]
     )
 
     | generate_html.run(
-      fromState: [input: "output_qc_json"],
-      toState: [output: "output"]
+      fromState: [ input: "output_qc_json" ],
+      toState: [
+        output_qc_report: "output_qc_report"
+      ]
     )
 
-    // emit output
-    | setState(["output", "_meta"])
+    | setState([ "_meta", "output_qc_report", "output_processed_h5mu" ])
 
   emit: output_ch
 }
