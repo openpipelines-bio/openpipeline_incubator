@@ -115,6 +115,22 @@ argument_groups:
         type: string
         description: The key in the h5mu .obs field that contains the cell area.
         default: cell_area
+      - name: --obs_x_coord
+        type: string
+        description: The key in the h5mu .obs field that contains the x coordinate.
+        default: x_coord
+      - name: --obs_y_coord
+        type: string
+        description: The key in the h5mu .obs field that contains the y coordinate.
+        default: y_coord
+      - name: --obs_control_probe_counts
+        type: string
+        description: The key in the h5mu .obs field that contains the number of control probes.
+        default: control_probe_counts
+      - name: --obs_control_codeword_counts
+        type: string
+        description: The key in the h5mu .obs field that contains the number of control codewords.
+        default: control_codeword_counts  
 
   # - name: Options for CosMx reports
 
