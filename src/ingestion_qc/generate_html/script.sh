@@ -1,16 +1,18 @@
-ABSOLUTE_INPUT=$(realpath $par_input)
+ABSOLUTE_INPUT_DATA=$(realpath $par_input)
+ABSOLUTE_INPUT_STRUCTURE=$(realpath $par_input_structure)
 ABSOLUTE_OUTPUT=$(realpath $par_output_qc_report)
 
 cd /opt/incubator_ingestion_qc
 mkdir src/data
 
-echo "Absolute input path: $ABSOLUTE_INPUT"
-echo "Absolute output path: $ABSOLUTE_OUTPUT"
-
 echo "Compressing input data..."
 pnpm run compress_data "$ABSOLUTE_INPUT" "src/data/dataset.ts"
+
+echo "Compressing report structure..."
+pnpm run compress_data "$ABSOLUTE_OUTPUT" "src/data/report_structure.ts"
 
 echo "Generating HTML..."
 pnpm run build
 
+echo "Copying HTML to output directory..."
 cp dist/index.html "$ABSOLUTE_OUTPUT"

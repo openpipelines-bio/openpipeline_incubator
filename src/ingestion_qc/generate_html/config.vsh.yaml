@@ -13,11 +13,17 @@ authors:
 argument_groups:
   - name: Inputs
     arguments:
-      - name: --input
+      - name: --input_data
         type: file
         required: true
         direction: input
         description: The input JSON file containing the QC metrics
+        example: path/to/file.json
+      - name: input_structure
+        type: file
+        required: true
+        direction: input
+        description: The input JSON file containing the structure of the data
         example: path/to/file.json
   - name: Outputs
     arguments:
