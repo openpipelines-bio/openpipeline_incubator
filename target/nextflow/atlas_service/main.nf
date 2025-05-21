@@ -3135,6 +3135,19 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--input_reference_gene_overlap",
+          "description" : "The minimum number of genes present in both the reference and query datasets.\n",
+          "default" : [
+            100
+          ],
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3145,7 +3158,10 @@ meta = [
         {
           "type" : "file",
           "name" : "--reference",
-          "description" : "The reference dataset to be used as a reference mapper and to train annotation algorithms on.\n",
+          "description" : "The reference dataset in .h5mu format to be used as a reference mapper and to train annotation algorithms on.\n",
+          "example" : [
+            "reference.h5mu"
+          ],
           "must_exist" : true,
           "create_parent" : true,
           "required" : false,
@@ -3165,7 +3181,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--reference_layer_lognormalized_counts",
-          "description" : "The layer in the reference dataset containing the log-normalized counts.",
+          "description" : "The layer in the reference dataset containing the log-normalized counts, if .X is not to be used.",
           "default" : [
             "log_normalized"
           ],
@@ -3203,6 +3219,27 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--reference_obs_label_unlabeled_category",
+          "description" : "Value in the --reference_obs_label field that indicates unlabeled observations",
+          "default" : [
+            "Unkown"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--reference_var_input",
+          "description" : ".var column containing highly variable genes. By default, do not subset genes.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3213,16 +3250,17 @@ meta = [
         {
           "type" : "string",
           "name" : "--annotation_methods",
+          "description" : "Annotation methods to be executed.",
           "example" : [
-            "harmony_knn"
+            "harmony_knn;scanvi_scarches"
           ],
-          "default" : [
-            "scgpt_annotation"
-          ],
-          "required" : false,
+          "required" : true,
           "choices" : [
+            "celltypist",
             "harmony_knn",
-            "scgpt_annotation"
+            "scgpt_annotation",
+            "scvi_knn",
+            "scanvi_scarches"
           ],
           "direction" : "input",
           "multiple" : true,
@@ -3326,43 +3364,10 @@ meta = [
       "arguments" : [
         {
           "type" : "integer",
-          "name" : "--top_n_vars",
-          "description" : "Number of top vars to be used to calculate cumulative proportions.\nIf not specified, proportions are not calculated. `--top_n_vars 20,50` finds\ncumulative proportion to the 20th and 50th most expressed vars.\n",
+          "name" : "--n_hvg",
+          "description" : "Number of highly-variable features to keep. \nOnly relevant if HVG need to be calculated across query and reference datasets (e.g. for --annotation_methods scvi_knn and harmony_knn). \nFor reference mapping-based methods, the HVG's specified in --reference_var_input will be used.\n",
           "default" : [
-            50,
-            100,
-            200,
-            500
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : true,
-          "multiple_sep" : ","
-        },
-        {
-          "type" : "string",
-          "name" : "--highly_variable_features_var_output",
-          "alternatives" : [
-            "--filter_with_hvg_var_output"
-          ],
-          "description" : "In which .var slot to store a boolean array corresponding to the highly variable genes.",
-          "default" : [
-            "filter_with_hvg"
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--highly_variable_features_obs_batch_key",
-          "alternatives" : [
-            "--filter_with_hvg_obs_batch_key"
-          ],
-          "description" : "If specified, highly-variable genes are selected within each batch separately and merged. This simple \nprocess avoids the selection of batch-specific genes and acts as a lightweight batch correction method.\n",
-          "default" : [
-            "sample_id"
+            2000
           ],
           "required" : false,
           "direction" : "input",
@@ -3372,13 +3377,22 @@ meta = [
       ]
     },
     {
-      "name" : "Pre-processing options: Mitochondrial Gene Detection",
+      "name" : "Pre-processing options: Mitochondrial & Ribosomal Gene Detection",
       "description" : "Pre-processing options for detecting mitochondrial genes",
       "arguments" : [
         {
           "type" : "string",
           "name" : "--var_name_mitochondrial_genes",
           "description" : "In which .var slot to store a boolean array corresponding the mitochondrial genes.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--var_name_ribosomal_genes",
+          "description" : "In which .var slot to store a boolean array corresponding the ribosomal genes.\n",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3395,10 +3409,31 @@ meta = [
         },
         {
           "type" : "string",
+          "name" : "--obs_name_ribosomal_fraction",
+          "description" : "When specified, write the fraction of counts originating from ribosomal genes \n(based on --ribosomal_gene_regex) to an .obs column with the specified name.\nRequires --var_name_ribosomal_genes.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
           "name" : "--mitochondrial_gene_regex",
           "description" : "Regex string that identifies mitochondrial genes from --var_gene_names.\nBy default will detect human and mouse mitochondrial genes from a gene symbol.\n",
           "default" : [
             "^[mM][tT]-"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--ribosomal_gene_regex",
+          "description" : "Regex string that identifies ribosomal genes from --var_gene_names.\nBy default will detect human and mouse ribosomal genes from a gene symbol.\n",
+          "default" : [
+            "^[Mm]?[Rr][Pp][LlSs]"
           ],
           "required" : false,
           "direction" : "input",
@@ -3427,7 +3462,7 @@ meta = [
     },
     {
       "name" : "Harmony integration options",
-      "description" : "Specifications for harmony integration. Only relevant for annotation method 'harmony_knn'.",
+      "description" : "Specifications for harmony integration.",
       "arguments" : [
         {
           "type" : "double",
@@ -3444,6 +3479,111 @@ meta = [
           "required" : false,
           "direction" : "input",
           "multiple" : true,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "scVI, scANVI and scArches training options",
+      "description" : "Training arguments for scVI, scANVI and scArches. Relevant for --annotation_methods 'scvi_knn' and 'scanvi_scarches'.",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--early_stopping",
+          "description" : "Whether to perform early stopping with respect to the validation set.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--early_stopping_monitor",
+          "description" : "Metric logged during validation set epoch.",
+          "default" : [
+            "elbo_validation"
+          ],
+          "required" : false,
+          "choices" : [
+            "elbo_validation",
+            "reconstruction_loss_validation",
+            "kl_local_validation"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--early_stopping_patience",
+          "description" : "Number of validation epochs with no improvement after which training will be stopped.",
+          "default" : [
+            45
+          ],
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--early_stopping_min_delta",
+          "description" : "Minimum change in the monitored quantity to qualify as an improvement, i.e. an absolute change of less than min_delta, will count as no improvement.",
+          "default" : [
+            0.0
+          ],
+          "required" : false,
+          "min" : 0.0,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--max_epochs",
+          "description" : "Number of passes through the dataset, defaults to (20000 / number of cells) * 400 or 400; whichever is smallest.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--reduce_lr_on_plateau",
+          "description" : "Whether to monitor validation loss and reduce learning rate when validation set `lr_scheduler_metric` plateaus.",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--lr_factor",
+          "description" : "Factor to reduce learning rate.",
+          "default" : [
+            0.6
+          ],
+          "required" : false,
+          "min" : 0.0,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--lr_patience",
+          "description" : "Number of epochs with no improvement after which learning rate will be reduced.",
+          "default" : [
+            30.0
+          ],
+          "required" : false,
+          "min" : 0.0,
+          "direction" : "input",
+          "multiple" : false,
           "multiple_sep" : ";"
         }
       ]
@@ -3561,6 +3701,22 @@ meta = [
           "multiple_sep" : ";"
         },
         {
+          "type" : "string",
+          "name" : "--scgpt_hvg_flavor",
+          "description" : "Method to be used for identifying highly variable genes. \nNote that the default for this workflow (`cell_ranger`) is not the default method for scanpy hvg detection (`seurat`).\n",
+          "default" : [
+            "cell_ranger"
+          ],
+          "required" : false,
+          "choices" : [
+            "cell_ranger",
+            "seurat"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
           "type" : "boolean",
           "name" : "--scgpt_dsbn",
           "description" : "Apply domain-specific batch normalization\n",
@@ -3609,6 +3765,151 @@ meta = [
       ]
     },
     {
+      "name" : "CellTypist reference model",
+      "description" : "The CellTypist reference model to use for annotation. If not provided, the reference dataset will be used for model training.",
+      "arguments" : [
+        {
+          "type" : "file",
+          "name" : "--celltypist_model",
+          "description" : "Pretrained model in pkl format. If not provided, the model will be trained on the reference data and --reference should be provided.",
+          "example" : [
+            "pretrained_model.pkl"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "CellTypist annotation options",
+      "description" : "Specifications for CellTypist annotation.",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--celltypist_feature_selection",
+          "description" : "Whether to perform feature selection.",
+          "default" : [
+            false
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--celltypist_majority_voting",
+          "description" : "Whether to refine the predicted labels by running the majority voting classifier after over-clustering.",
+          "default" : [
+            false
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--celltypist_C",
+          "description" : "Inverse of regularization strength in logistic regression.",
+          "default" : [
+            1.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--celltypist_max_iter",
+          "description" : "Maximum number of iterations before reaching the minimum of the cost function.",
+          "default" : [
+            1000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean_true",
+          "name" : "--celltypist_use_SGD",
+          "description" : "Whether to use the stochastic gradient descent algorithm.",
+          "direction" : "input"
+        },
+        {
+          "type" : "double",
+          "name" : "--celltypist_min_prop",
+          "description" : "\\"For the dominant cell type within a subcluster, the minimum proportion of cells required to \nsupport naming of the subcluster by this cell type. Ignored if majority_voting is set to False. \nSubcluster that fails to pass this proportion threshold will be assigned 'Heterogeneous'.\\"\n",
+          "default" : [
+            0.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Clustering options",
+      "description" : "Arguments for Leiden clustering. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.",
+      "arguments" : [
+        {
+          "type" : "double",
+          "name" : "--leiden_resolution",
+          "description" : "Control the coarseness of the clustering. Higher values lead to more clusters.",
+          "default" : [
+            1.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Neighbor classifier arguments",
+      "description" : "Arguments related to calculating the n nearest neighbors. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--knn_weights",
+          "description" : "Weight function used in prediction. Possible values are:\n`uniform` (all points in each neighborhood are weighted equally) or \n`distance` (weight points by the inverse of their distance)\n",
+          "default" : [
+            "uniform"
+          ],
+          "required" : false,
+          "choices" : [
+            "uniform",
+            "distance"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--knn_n_neighbors",
+          "description" : "The number of neighbors to use in k-neighbor graph structure used for fast approximate nearest neighbor search with PyNNDescent. \nLarger values will result in more accurate search results at the cost of computation time.\n",
+          "default" : [
+            15
+          ],
+          "required" : false,
+          "min" : 5,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Outputs",
       "description" : "The output file to write the annotated dataset to.",
       "arguments" : [
@@ -3643,6 +3944,30 @@ meta = [
     }
   ],
   "description" : "A pipeline to process and annotate gene expression data.",
+  "test_resources" : [
+    {
+      "type" : "nextflow_script",
+      "path" : "test.nf",
+      "is_executable" : true,
+      "entrypoint" : "test_wf"
+    },
+    {
+      "type" : "file",
+      "path" : "/resources_test/scgpt/"
+    },
+    {
+      "type" : "file",
+      "path" : "/resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"
+    },
+    {
+      "type" : "file",
+      "path" : "/resources_test/annotation_test_data/TS_Blood_filtered.h5mu"
+    },
+    {
+      "type" : "file",
+      "path" : "/resources_test/annotation_test_data/celltypist_model_Immune_All_Low.pkl"
+    }
+  ],
   "status" : "enabled",
   "scope" : {
     "image" : "public",
@@ -3655,37 +3980,56 @@ meta = [
   },
   "dependencies" : [
     {
-      "name" : "metadata/add_id",
-      "repository" : {
-        "type" : "github",
-        "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.0.0"
-      }
-    },
-    {
-      "name" : "dataflow/split_h5mu",
-      "repository" : {
-        "type" : "github",
-        "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.0.0"
-      }
-    },
-    {
       "name" : "workflows/multiomics/process_samples",
       "alias" : "process_samples_workflow",
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.0.0"
+        "tag" : "2.1.2"
       }
     },
     {
       "name" : "workflows/annotation/scgpt_annotation",
-      "alias" : "scgpt_annotation_workflow",
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.0.0"
+        "tag" : "2.1.2"
+      }
+    },
+    {
+      "name" : "annotate/celltypist",
+      "alias" : "celltypist_annotation",
+      "repository" : {
+        "type" : "github",
+        "repo" : "openpipelines-bio/openpipeline",
+        "tag" : "2.1.2"
+      }
+    },
+    {
+      "name" : "workflows/annotation/harmony_knn",
+      "alias" : "harmony_knn_annotation",
+      "repository" : {
+        "type" : "github",
+        "repo" : "openpipelines-bio/openpipeline",
+        "tag" : "2.1.2"
+      }
+    },
+    {
+      "name" : "workflows/annotation/scvi_knn",
+      "alias" : "scvi_knn_annotation",
+      "repository" : {
+        "type" : "github",
+        "repo" : "openpipelines-bio/openpipeline",
+        "tag" : "2.1.2"
+      }
+    },
+    {
+      "name" : "workflows/annotation/scanvi_scarches",
+      "alias" : "scanvi_scarches_annotation",
+      "repository" : {
+        "type" : "github",
+        "repo" : "openpipelines-bio/openpipeline",
+        "tag" : "2.1.2"
       }
     }
   ],
@@ -3694,19 +4038,13 @@ meta = [
       "type" : "github",
       "name" : "openpipeline",
       "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "main_build"
+      "tag" : "2.1.2"
     },
     {
       "type" : "vsh",
       "name" : "craftbox",
       "repo" : "craftbox",
       "tag" : "main"
-    },
-    {
-      "type" : "github",
-      "name" : "op",
-      "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "2.0.0"
     }
   ],
   "links" : {
@@ -3797,7 +4135,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/atlas_service",
     "viash_version" : "0.9.4",
-    "git_commit" : "069260a53b4ec571dbf1e403df46d30f01836076",
+    "git_commit" : "585a1479a75f95904312c26f8a103d07e4da0638",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3817,7 +4155,7 @@ meta = [
         "type" : "github",
         "name" : "openpipeline",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "main_build"
+        "tag" : "2.1.2"
       },
       {
         "type" : "vsh",
@@ -3843,12 +4181,17 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { add_id } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.0.0/nextflow/metadata/add_id/main.nf"
-include { split_h5mu } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.0.0/nextflow/dataflow/split_h5mu/main.nf"
-include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.0.0/nextflow/workflows/multiomics/process_samples/main.nf"
+include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/multiomics/process_samples/main.nf"
 process_samples_workflow = process_samples_workflow_viashalias.run(key: "process_samples_workflow")
-include { scgpt_annotation as scgpt_annotation_workflow_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.0.0/nextflow/workflows/annotation/scgpt_annotation/main.nf"
-scgpt_annotation_workflow = scgpt_annotation_workflow_viashalias.run(key: "scgpt_annotation_workflow")
+include { scgpt_annotation } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scgpt_annotation/main.nf"
+include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/annotate/celltypist/main.nf"
+celltypist_annotation = celltypist_annotation_viashalias.run(key: "celltypist_annotation")
+include { harmony_knn as harmony_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/harmony_knn/main.nf"
+harmony_knn_annotation = harmony_knn_annotation_viashalias.run(key: "harmony_knn_annotation")
+include { scvi_knn as scvi_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scvi_knn/main.nf"
+scvi_knn_annotation = scvi_knn_annotation_viashalias.run(key: "scvi_knn_annotation")
+include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scanvi_scarches/main.nf"
+scanvi_scarches_annotation = scanvi_scarches_annotation_viashalias.run(key: "scanvi_scarches_annotation")
 
 // inner workflow
 // user-provided Nextflow code
@@ -3858,74 +4201,250 @@ workflow run_wf {
 
   main:
     output_ch = input_ch
-    | map {id, state ->
-      def new_state = state + ["query_processed": state.output]
+    | map { id, state ->
+      def new_state = state + [ "query_processed": state.output, "_meta": ["join_id": id] ]
       [id, new_state]
+    }
+    // Enforce annotation method-specific required arguments
+    | map { id, state ->
+      def new_state = [:]
+      // Check scGPT arguments
+      if (state.annotation_methods.contains("scgpt_annotation") && 
+        (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
+        throw new RuntimeException("Using scgpt_annotation requires --scgpt_model, --scgpt_model_config and --scgp_model_vocab parameters.")
       }
-    // | map{ id, state -> 
-    //     def new_state = state + ["_meta": ["join_id": id]]
-    //     [id, new_state]
-    //   }
+      // Check CellTypist arguments
+      if (state.annotation_methods.contains("celltypist") && 
+        (!state.celltypist_model && !state.reference)) {
+        throw new RuntimeException("Celltypist was selected as an annotation method. Either --celltypist_model or --reference must be provided.")
+      }
+      if (state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
+        System.err.println(
+          "Warning: --celltypist_model is set and a --reference was provided. \
+          The pre-trained Celltypist model will be used for annotation, the reference will be ignored."
+        )
+      }
+      // Check Harmony KNN arguments
+      if ((state.annotation_methods.contains("harmony_knn") || state.annotation_methods.contains("scvi_knn"))  && !state.reference ) {
+        throw new RuntimeException("When `harmony_knn` or `scvi_knn` are selected as an annotation method, a --reference dataset must be provided.")
+      }
+
+      [id, state + new_state]
+    }
     | process_samples_workflow.run(
-      fromState: {id, state ->
-        def newState = [
-          "input": state.input, 
-          "id": id,
-          "rna_layer": state.input_layer,
-          "rna_min_counts": state.rna_min_counts,
-          "rna_max_counts": state.rna_max_counts,
-          "rna_min_genes_per_cell": state.rna_min_genes_per_cell,
-          "rna_max_genes_per_cell": state.rna_max_genes_per_cell,
-          "rna_min_cells_per_gene": state.rna_min_cells_per_gene,
-          "rna_min_fraction_mito": state.rna_min_fraction_mito,
-          "rna_max_fraction_mito": state.rna_max_fraction_mito,
-          "highly_variable_features_var_output": state.highly_variable_features_var_output,
-          "highly_variable_features_obs_batch_key": state.highly_variable_features_obs_batch_key,
-          "var_name_mitochondrial_genes": state.var_name_mitochondrial_genes,
-          "var_gene_names": state.input_var_gene_names,
-          "mitochondrial_gene_regex": state.mitochondrial_gene_regex,
-          "var_qc_metrics": state.var_qc_metrics,
-          "top_n_vars": state.top_n_vars,
-          ]
-      },
+      fromState: [
+        "input": "input", 
+        "id": "id",
+        "rna_layer": "input_layer",
+        "rna_min_counts": "rna_min_counts",
+        "rna_max_counts": "rna_max_counts",
+        "rna_min_genes_per_cell": "rna_min_genes_per_cell",
+        "rna_max_genes_per_cell": "rna_max_genes_per_cell",
+        "rna_min_cells_per_gene": "rna_min_cells_per_gene",
+        "rna_min_fraction_mito": "rna_min_fraction_mito",
+        "rna_max_fraction_mito": "rna_max_fraction_mito",
+        "rna_min_fraction_ribo": "rna_min_fraction_ribo",
+        "rna_max_fraction_ribo": "rna_max_fraction_ribo",
+        "var_name_mitochondrial_genes": "var_name_mitochondrial_genes",
+        "var_name_ribosomal_genes": "var_name_ribosomal_genes",
+        "var_gene_names": "input_var_gene_names",
+        "mitochondrial_gene_regex": "mitochondrial_gene_regex",
+        "ribosomal_gene_regex": "ribosomal_gene_regex",
+        "var_qc_metrics": "var_qc_metrics"
+      ],
       args: [
         "pca_overwrite": "true",
         "add_id_obs_output": "sample_id"
       ],
       toState: ["query_processed": "output"], 
-      )
-      | view {"After processing query: $it"}
-      | scgpt_annotation_workflow.run(
-        runIf: { id, state -> state.annotation_methods.contains("scgpt_annotation") },
-        fromState: { id, state ->
-          [ 
-            "id": id,
-            "input": state.query_processed,
-            "modality": state.modality,
-            "input_layer": state.input_layer,
-            "input_var_gene_names": state.input_var_gene_names,
-            "model": state.scgpt_model,
-            "model_config": state.scgpt_model_config,
-            "model_vocab": state.scgpt_model_vocab,
-            "finetuned_checkpoints_key": state.scgpt_finetuned_checkpoints_key,
-            "label_mapper_key": state.scgpt_label_mapper_key,
-            "pad_token": state.scgpt_pad_token,
-            "pad_value": state.scgpt_pad_value,
-            "n_hvg": state.scgpt_n_hvg,
-            "dsbn": state.scgpt_dsbn,
-            "batch_size": state.scgpt_batch_size,
-            "n_input_bins": state.scgpt_n_input_bins,
-            "seed": state.scgpt_seed
-          ]
-        },
-        args: [
-          "input_obs_batch_label": "sample_id",
-          "output_obs_predictions": "scgpt_pred",
-          "output_obs_probability": "scgpt_proba"
-        ],
-        toState: [ "query_processed": "output" ]
-        )
-      | setState(["output": "query_processed", "_meta": "_meta"])
+    )
+
+    | scgpt_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("scgpt_annotation") },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "model": "scgpt_model",
+        "model_config": "scgpt_model_config",
+        "model_vocab": "scgpt_model_vocab",
+        "finetuned_checkpoints_key": "scgpt_finetuned_checkpoints_key",
+        "label_mapper_key": "scgpt_label_mapper_key",
+        "pad_token": "scgpt_pad_token",
+        "pad_value": "scgpt_pad_value",
+        "n_hvg": "scgpt_n_hvg",
+        "dsbn": "scgpt_dsbn",
+        "batch_size": "scgpt_batch_size",
+        "n_input_bins": "scgpt_n_input_bins",
+        "seed": "scgpt_seed",
+        "hvg_flavor": "scgpt_hvg_flavor"
+      ],
+      args: [
+        "input_layer": "log_normalized",
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "scgpt_pred",
+        "output_obs_probability": "scgpt_proba"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | celltypist_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("celltypist") && state.celltypist_model },
+      fromState: [ 
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "model": "celltypist_model",
+        "majority_voting": "celltypist_majority_voting"
+      ],
+      args: [
+        // log normalized counts are expected for celltypist
+        "input_layer": "log_normalized",
+        "output_obs_predictions": "celltypist_pred",
+        "output_obs_probability": "celltypist_proba"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | celltypist_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("celltypist") && !state.celltypist_model },
+      fromState: [
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "reference": "reference",
+        "reference_layer": "reference_layer_lognormalized_counts",
+        "reference_obs_target": "reference_obs_label",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "reference_obs_batch": "reference_obs_batch",
+        "reference_var_input": "reference_var_input",
+        "feature_selection": "celltypist_feature_selection",
+        "C": "celltypist_C",
+        "max_iter": "celltypist_max_iter",
+        "use_SGD": "celltypist_use_SGD",
+        "min_prop": "celltypist_min_prop",
+        "majority_voting": "celltypist_majority_voting"
+      ],
+      args: [
+        // log normalized counts are expected for celltypist
+        "input_layer": "log_normalized",
+        "output_obs_predictions": "celltypist_pred",
+        "output_obs_probability": "celltypist_proba"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | harmony_knn_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "reference": "reference",
+        "reference_layer": "reference_layer_lognormalized_counts",
+        "reference_obs_target": "reference_obs_label",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "reference_obs_batch_label": "reference_obs_batch",
+        "n_hvg": "n_hvg",
+        "harmony_theta": "harmony_theta",
+        "leiden_resolution": "leiden_resolution",
+        "knn_weights": "knn_weights",
+        "knn_n_neighbors": "knn_n_neighbors"
+      ],
+      args: [
+        "input_layer": "log_normalized",
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "harmony_knn_pred",
+        "output_obs_probability": "harmony_knn_proba",
+        "output_obsm_integrated": "X_integrated_harmony",
+        "overwrite_existing_key": "true"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | scvi_knn_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "input_layer": "input_layer",
+        "input_var_gene_names": "input_var_gene_names",
+        "input_reference_gene_overlap": "input_reference_gene_overlap",
+        "reference": "reference",
+        "reference_layer": "reference_layer_raw_counts",
+        "reference_layer_lognormalized": "reference_layer_lognormalized_counts",
+        "reference_obs_target": "reference_obs_label",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "reference_obs_batch_label": "reference_obs_batch",
+        "n_hvg": "n_hvg",
+        "early_stopping": "early_stopping",
+        "early_stopping_patience": "early_stopping_patience",
+        "early_stopping_min_delta": "early_stopping_min_delta",
+        "max_epochs": "max_epochs",
+        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
+        "lr_factor": "lr_factor",
+        "lr_patience": "lr_patience",
+        "leiden_resolution": "leiden_resolution",
+        "knn_weights": "knn_weights",
+        "knn_n_neighbors": "knn_n_neighbors"
+      ],
+      args: [
+        "input_layer_lognormalized": "log_normalized",
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "scvi_knn_pred",
+        "output_obs_probability": "scvi_knn_proba",
+        "output_obsm_integrated": "X_integrated_scvi",
+        "overwrite_existing_key": "true"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | scanvi_scarches_annotation.run(
+      runIf: { id, state -> state.annotation_methods.contains("scanvi_scarches")},
+      fromState: [
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "layer": "input_layer",
+        "input_var_gene_names": "input_var_gene_names",
+        "reference": "reference",
+        "reference_obs_target": "reference_obs_label",
+        "reference_obs_batch_label": "reference_obs_batch",
+        "reference_var_hvg": "reference_var_input",
+        "reference_var_gene_names": "reference_var_gene_names",
+        "unlabeled_category": "reference_obs_label_unlabeled_category",
+        "early_stopping": "early_stopping",
+        "early_stopping_monitor": "early_stopping_monitor",
+        "early_stopping_patience": "early_stopping_patience",
+        "early_stopping_min_delta": "early_stopping_min_delta",
+        "max_epochs": "max_epochs",
+        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
+        "lr_factor": "lr_factor",
+        "lr_patience": "lr_patience",
+        "leiden_resolution": "leiden_resolution",
+        "knn_weights": "knn_weights",
+        "knn_n_neighbors": "knn_n_neighbors"
+      ],
+      args: [
+        "input_obs_batch_label": "sample_id",
+        "output_obs_predictions": "scanvi_knn_pred",
+        "output_obs_probability": "scanvi_knn_proba"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | map {id, state ->
+      def new_state = state + ["output": state.query_processed]
+      [id, new_state]
+    }
+
+    | setState(["output", "_meta"])
 
   emit:
     output_ch
