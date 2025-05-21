@@ -80,7 +80,8 @@ workflow run_wf {
         "dsbn": "scgpt_dsbn",
         "batch_size": "scgpt_batch_size",
         "n_input_bins": "scgpt_n_input_bins",
-        "seed": "scgpt_seed"
+        "seed": "scgpt_seed",
+        "hvg_flavor": "scgpt_hvg_flavor"
       ],
       args: [
         "input_layer": "log_normalized",
