@@ -46,9 +46,13 @@ workflow run_wf {
         "rna_min_cells_per_gene": "rna_min_cells_per_gene",
         "rna_min_fraction_mito": "rna_min_fraction_mito",
         "rna_max_fraction_mito": "rna_max_fraction_mito",
+        "rna_min_fraction_ribo": "rna_min_fraction_ribo",
+        "rna_max_fraction_ribo": "rna_max_fraction_ribo",
         "var_name_mitochondrial_genes": "var_name_mitochondrial_genes",
+        "var_name_ribosomal_genes": "var_name_ribosomal_genes",
         "var_gene_names": "input_var_gene_names",
         "mitochondrial_gene_regex": "mitochondrial_gene_regex",
+        "ribosomal_gene_regex": "ribosomal_gene_regex",
         "var_qc_metrics": "var_qc_metrics"
       ],
       args: [
