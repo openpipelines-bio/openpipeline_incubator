@@ -26,11 +26,11 @@ logger = setup_logger()
 def main(par):
 
     # read h5mu file
-    file = h5py.File(par["input"], "r")
-    mod = file["mod"][par["modality"]]
-    uns = ad.experimental.read_elem(file["uns"])
-    mod_obs = ad.experimental.read_elem(mod["obs"])
-    mod_uns = ad.experimental.read_elem(mod["uns"])
+    with h5py.File(par["input"], "r") as file:
+        mod = file["mod"][par["modality"]]
+        uns = ad.experimental.read_elem(file["uns"])
+        mod_obs = ad.experimental.read_elem(mod["obs"])
+        mod_uns = ad.experimental.read_elem(mod["uns"])
 
     # detect ingestion method
     ingestion_methods = {
@@ -53,12 +53,16 @@ def main(par):
     else:
         raise ValueError(f"Multiple ingestion methods detected: {', '.join(detected_methods)}")
 
-    file.close()
+    # write ingestion method to .uns if not already present and save updated h5mu
+    if par["output_uns_ingestion_method"] in mod_uns:
+        if mod_uns[par["output_uns_ingestion_method"]] != detected_method:
+            raise ValueError(f"Output uns key {par['output_uns_ingestion_method']} already exists and contains different value `{mod_uns[par['output_uns_ingestion_method']]}` then detected method `{detected_method}`.")
+        shutil.copy(par["input"], par["output"])
 
-    # write ingestion method to .uns and store h5mu
-    shutil.copy(par["input"], par["output"])
-    with h5py.File (par["output"], "r+") as out_file:
-        out_file["uns"][par["output_uns_ingestion_method"]] = detected_method
+    else:
+        shutil.copy(par["input"], par["output"])
+        with h5py.File (par["output"], "r+") as out_file:
+            out_file["uns"][par["output_uns_ingestion_method"]] = detected_method
 
 
 if __name__ == "__main__":
