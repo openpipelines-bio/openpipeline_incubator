@@ -19,7 +19,7 @@ argument_groups:
         direction: input
         description: The input JSON file containing the QC metrics
         example: path/to/file.json
-      - name: input_structure
+      - name: --input_structure
         type: file
         required: true
         direction: input
@@ -53,7 +53,6 @@ engines:
           npm install -g pnpm@latest-10 \
           && cd /opt && git clone https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
           && cd incubator_ingestion_qc && pnpm install \
-          && true
 runners:
   - type: executable
   - type: nextflow
