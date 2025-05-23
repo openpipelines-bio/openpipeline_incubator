@@ -129,6 +129,13 @@ viash run src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
   --output "$OUT_DIR"/sc_dataset.json \
   --output_reporting_json "$OUT_DIR"/sc_report_structure.json
 
+aws s3 sync \
+  --profile di \
+  s3://openpipelines-bio/openpipeline_incubator/resources_test/spatial_qc_sample_data \
+    resources_test/spatial_qc_sample_data \
+  --delete --dryrun \
+  --exclude "*.yaml" --include "*.h5mu"  --include "*.json"
+
 
 viash run src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
   --input "$OUT_DIR_SPATIAL"/xenium_tiny.qc.h5mu \
