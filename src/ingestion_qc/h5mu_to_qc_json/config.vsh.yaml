@@ -1,6 +1,10 @@
 name: h5mu_to_qc_json
 namespace: ingestion_qc
-description: Convert QC metrics from h5mu to JSON
+scope: private
+description: |
+  Takes H5MU files that have been ingested by CellRanger, Xenium or CosMx and processed by the QC workflow, and generates:
+  - A JSON file that contains the combined data for the QC report
+  - A JSON file that defines the layout and structure of the QC report
 authors: 
   - __merge__: /src/authors/jakub_majercik.yaml
     roles: [author]
@@ -24,6 +28,34 @@ argument_groups:
         type: string
         description: The modality to use
         default: rna
+      - name: --ingestion_method
+        type: string
+        required: true
+        choices:
+          - cellranger_multi
+          - xenium
+        description: Method that was used to ingest the data - this will define the structure of the report that is generated.
+      - name: --obs_sample_id
+        type: string
+        description: The key in the h5mu file that contains the sample ID. If not provided, each H5MU file will be considered as a separate sample.
+        default: sample_id
+      - name: --obs_total_counts
+        type: string
+        description: The key in the h5mu .obs field that contains the total counts.
+        default: total_counts
+      - name: --obs_num_nonzero_vars
+        type: string
+        description: The key in the h5mu .obs field that contains the number of nonzero vars.
+        default: num_nonzero_vars
+      - name: --obs_fraction_mitochondrial
+        type: string
+        description: The key in the h5mu .obs field that contains the fraction mitochondrial genes.
+        default: fraction_mitochondrial
+      - name: --obs_fraction_ribosomal
+        type: string
+        description: The key in the h5mu .obs field that contains the fraction ribosomal genes.
+        default: fraction_ribosomal
+
   - name: Outputs
     arguments:
       - name: --output
@@ -32,7 +64,14 @@ argument_groups:
         direction: output
         description: The output JSON file
         example: path/to/file.json
-  - name: Options
+      - name: --output_reporting_json
+        type: file
+        required: true
+        description: The output JSON file that defines the QC report
+        direction: output
+        example: path/to/file.json
+
+  - name: Filtering & grouping options
     arguments:
       - name: --min_total_counts
         type: integer
@@ -42,34 +81,64 @@ argument_groups:
         type: integer
         description: Minimum number of nonzero vars for a cell to be included in the output
         default: 10
-      - name: --sample_id_key
-        type: string
-        description: The key in the h5mu file that contains the sample ID
-        default: sample_id
-      - name: --obs_keys
-        type: string
-        multiple: true
-        description: The keys in the h5mu .obs to include in the output JSON
-        default: ["total_counts", "num_nonzero_vars", "fraction_mitochondrial", "fraction_ribosomal"]
-      - name: --cellbender_obs_keys
-        type: string
-        multiple: true
-        description: The cellbender keys in the h5mu .obs to include in the output JSON
-        default: ["cellbender_background_fraction", "cellbender_cell_probability", "cellbender_cell_size",
-                  "cellbender_droplet_efficiency"]
-      - name: --cellranger_metrics_uns_key
-        type: string
-        description: The key in the h5mu file .uns that contains the cellranger metrics
-        default: metrics_cellranger
-      - name: --metadata_obs_keys
+      - name: --obs_metadata
         type: string
         multiple: true
         description: The metadata keys in the h5mu .obs to include in the output JSON.
         example: "donor_id;cell_type;batch;condition"
+
+  - name: Options for CellRanger reports
+    arguments:
+      - name: --obs_cellbender
+        type: string
+        multiple: true
+        description: The cellbender keys in the h5mu .obs to include in the output JSON
+        default: [
+          "cellbender_background_fraction",
+          "cellbender_cell_probability",
+          "cellbender_cell_size",
+          "cellbender_droplet_efficiency"
+          ]
+      - name: --uns_cellranger_metrics
+        type: string
+        description: The key in the h5mu file .uns that contains the cellranger metrics
+        default: metrics_cellranger
+
+
+  - name: Options for Xenium reports
+    arguments:
+      - name: --obs_nucleus_area
+        type: string
+        description: The key in the h5mu .obs field that contains the nucleus area.
+        default: nucleus_area
+      - name: --obs_cell_area
+        type: string
+        description: The key in the h5mu .obs field that contains the cell area.
+        default: cell_area
+      - name: --obs_x_coord
+        type: string
+        description: The key in the h5mu .obs field that contains the x coordinate.
+        default: x_coord
+      - name: --obs_y_coord
+        type: string
+        description: The key in the h5mu .obs field that contains the y coordinate.
+        default: y_coord
+      - name: --obs_control_probe_counts
+        type: string
+        description: The key in the h5mu .obs field that contains the number of control probes.
+        default: control_probe_counts
+      - name: --obs_control_codeword_counts
+        type: string
+        description: The key in the h5mu .obs field that contains the number of control codewords.
+        default: control_codeword_counts  
+
+  # - name: Options for CosMx reports
+
 resources:
   - type: python_script
     path: script.py
   - path: /src/utils/setup_logger.py
+  - path: report_structure
 test_resources:
   - type: python_script
     path: test.py
