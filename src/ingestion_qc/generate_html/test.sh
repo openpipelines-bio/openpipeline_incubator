@@ -1,7 +1,7 @@
 echo ">> Generating report"
 "$meta_executable" \
-    --input_data "$meta_resources_dir/dataset.json" \
-    --input_structure "$meta_resources_dir/report_structure.json" \
+    --input_data "$meta_resources_dir/sc_dataset.json" \
+    --input_structure "$meta_resources_dir/sc_report_structure.json" \
     --output_qc_report "index.html" \
 
 echo ">> Checking output"

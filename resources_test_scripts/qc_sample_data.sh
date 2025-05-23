@@ -1,6 +1,7 @@
 #/bin/bash
 
 OUT_DIR=resources_test/qc_sample_data
+OUT_DIR_SPATIAL=resources_test/spatial_qc_sample_data
 
 [ ! -d "$OUT_DIR" ] && mkdir -p "$OUT_DIR"
 
@@ -123,12 +124,33 @@ nextflow run openpipelines-bio/openpipeline \
 viash run src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
   --input "$OUT_DIR"/sample_one.qc.cellbender.h5mu \
   --input "$OUT_DIR"/sample_two.qc.cellbender.h5mu \
-  --metadata_obs_keys "donor_id;cell_type;batch;condition" \
-  --output "$OUT_DIR"/dataset.json
+  --ingestion_method cellranger_multi \
+  --obs_metadata "donor_id;cell_type;batch;condition" \
+  --output "$OUT_DIR"/sc_dataset.json \
+  --output_reporting_json "$OUT_DIR"/sc_report_structure.json
+
+
+viash run src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
+  --input "$OUT_DIR_SPATIAL"/xenium_tiny.qc.h5mu \
+  --input "$OUT_DIR_SPATIAL"/xenium_tiny.qc.h5mu \
+  --ingestion_method xenium \
+  --min_num_nonzero_vars 1 \
+  --output "$OUT_DIR_SPATIAL"/xenium_dataset.json \
+  --output_reporting_json "$OUT_DIR_SPATIAL"/xenium_report_structure.json
+
 
 # copy to s3
 aws s3 sync \
   --profile di \
   resources_test/qc_sample_data \
   s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data \
-  --delete --dryrun
+  --delete --dryrun \
+  --exclude "*.yaml" --include "*.h5mu"  --include "*.json"
+
+
+aws s3 sync \
+  --profile di \
+  resources_test/spatial_qc_sample_data \
+  s3://openpipelines-bio/openpipeline_incubator/resources_test/spatial_qc_sample_data \
+  --delete --dryrun \
+  --exclude "*.yaml" --include "*.h5mu"  --include "*.json"
