@@ -146,7 +146,8 @@ workflow run_wf {
     // generate report
     | generate_html.run(
       fromState: [ 
-        input: "output" 
+        input_data: "output",
+        input_structure: "output_reporting_json"
       ],
       toState: [
         output_qc_report: "output_qc_report"

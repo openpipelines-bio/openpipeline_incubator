@@ -8,12 +8,12 @@ cd "$REPO_ROOT"
 
 viash ns build --setup cb -q generate_report
 
-# nextflow run . \
-#   -main-script src/ingestion_qc/generate_report/test.nf \
-#   -profile docker,no_publish,local \
-#   -entry test_no_cellbender \
-#   -c src/configs/labels_ci.config \
-#   -resume
+nextflow run . \
+  -main-script src/ingestion_qc/generate_report/test.nf \
+  -profile docker,no_publish,local \
+  -entry test_no_cellbender \
+  -c src/configs/labels_ci.config \
+  -resume
 
 nextflow run . \
   -main-script src/ingestion_qc/generate_report/test.nf \
@@ -22,9 +22,9 @@ nextflow run . \
   -c src/configs/labels_ci.config \
   -resume
 
-# nextflow run . \
-#   -main-script src/ingestion_qc/generate_report/test.nf \
-#   -profile docker,no_publish,local \
-#   -entry test_with_cellbender \
-#   -c src/configs/labels_ci.config \
-#   -resume
+nextflow run . \
+  -main-script src/ingestion_qc/generate_report/test.nf \
+  -profile docker,no_publish,local \
+  -entry test_with_cellbender \
+  -c src/configs/labels_ci.config \
+  -resume
