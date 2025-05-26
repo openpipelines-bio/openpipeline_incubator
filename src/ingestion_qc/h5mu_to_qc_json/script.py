@@ -13,19 +13,19 @@ import shutil
 inputs = list(Path("resources_test/qc_sample_data").glob("*.qc.cellbender.h5mu"))
 output = "tmp.json"
 par = {
-    "input": sorted([str(x) for x in inputs]),
-    # "input": ["resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu", "resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu"],
+    # "input": sorted([str(x) for x in inputs]),
+    "input": ["resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu", "resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu"],
     "output": "sc_data.json",
     "output_reporting_json": "sc_report_structure.json",
     "modality": "rna",
-    "ingestion_method": "cellranger_multi",
+    "ingestion_method": "xenium",
     "obs_sample_id": "sample_id",
     "obs_total_counts": "total_counts",
     "obs_num_nonzero_vars": "num_nonzero_vars",
     "obs_fraction_mitochondrial": "fraction_mitochondrial",
     "obs_fraction_ribosomal": "fraction_ribosomal",
     "min_total_counts": 10,
-    "min_num_nonzero_vars": 10,
+    "min_num_nonzero_vars": 1,
     "obs_cellbender": [
         "cellbender_background_fraction",
         "cellbender_cell_probability",

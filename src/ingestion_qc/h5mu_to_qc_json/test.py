@@ -130,7 +130,7 @@ def test_xenium_execution(run_component, tmp_path):
         "sample_id", "total_counts", "num_nonzero_vars",
         "fraction_mitochondrial",  "fraction_ribosomal",
         "cell_area", "nucleus_ratio",
-        "x_coord", "y_coord"
+        "x_coord", "y_coord", "cell_id", "segmentation_method", "region"
         ]
     assert np.all([column in column_names_cell for column in expected_column_names])
 

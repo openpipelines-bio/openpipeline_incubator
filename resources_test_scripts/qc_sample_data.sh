@@ -23,7 +23,7 @@ EOF
 # add the sample ID to the mudata object
 nextflow run openpipelines-bio/openpipeline \
   -latest \
-  -r 2.0.0 \
+  -r 2.1.2 \
   -main-script target/nextflow/metadata/add_id/main.nf \
   -profile docker \
   -params-file /tmp/params_create_h5mu.yaml \
@@ -44,7 +44,7 @@ EOF
 # subset h5mus
 nextflow run openpipelines-bio/openpipeline \
   -latest \
-  -r 2.0.0 \
+  -r 2.1.2 \
   -main-script target/nextflow/filter/subset_h5mu/main.nf \
   -profile docker \
   -params-file /tmp/params_subset.yaml \
@@ -115,7 +115,7 @@ EOF
 
 nextflow run openpipelines-bio/openpipeline \
   -latest \
-  -r 2.0.0 \
+  -r 2.1.2 \
   -main-script target/nextflow/correction/cellbender_remove_background/main.nf \
   -profile docker \
   -params-file /tmp/params_cellbender.yaml \
