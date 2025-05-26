@@ -38,8 +38,10 @@ def test_cellranger_execution(run_component, tmp_path):
         "sample_id", "total_counts", "num_nonzero_vars",
         "fraction_mitochondrial",  "fraction_ribosomal",
         "cellbender_background_fraction", "cellbender_cell_probability",
-        "cellbender_cell_size", "cellbender_droplet_efficiency"
+        "cellbender_cell_size", "cellbender_droplet_efficiency",
+        "donor_id", "cell_type", "batch", "condition"
         ]
+
     assert np.all([column in column_names_cell for column in expected_column_names])
 
     for key in output_json_dict.keys():
@@ -65,7 +67,8 @@ def test_set_filters(run_component, tmp_path):
             "--obs_fraction_mitochondrial", "fraction_mitochondrial",
             "--obs_fraction_ribosomal", "fraction_ribosomal",
             "--min_total_counts", "20",
-            "--min_num_nonzero_vars", "20"
+            "--min_num_nonzero_vars", "20",
+            "--obs_metadata", "cell_type"
         ]
     )
 
@@ -81,9 +84,12 @@ def test_set_filters(run_component, tmp_path):
         "sample_id", "total_counts", "num_nonzero_vars",
         "fraction_mitochondrial",  "fraction_ribosomal",
         "cellbender_background_fraction", "cellbender_cell_probability",
-        "cellbender_cell_size", "cellbender_droplet_efficiency"
+        "cellbender_cell_size", "cellbender_droplet_efficiency",
+        "cell_type"
         ]
+    unexpected_column_names = ["batch", "condition", "donor_id"]
     assert np.all([column in column_names for column in expected_column_names])
+    assert np.all([column not in column_names for column in unexpected_column_names])
     for key in output_json_dict.keys():
         assert output_json_dict[key].keys() == {"num_rows", "num_cols", "columns"}
         for col in output_json_dict[key]["columns"]:

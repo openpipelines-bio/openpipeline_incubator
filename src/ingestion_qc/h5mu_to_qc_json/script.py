@@ -56,7 +56,6 @@ from setup_logger import setup_logger
 logger = setup_logger()
 
 par["obs_cellbender"] = {} if not par["obs_cellbender"] else par["obs_cellbender"]
-par["obs_metadata"] = {} if not par["obs_metadata"] else par["obs_metadata"]
 
 
 def transform_df(df):
