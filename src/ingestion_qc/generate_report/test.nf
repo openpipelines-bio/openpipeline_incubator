@@ -11,7 +11,7 @@ workflow test_no_cellbender {
 
   output_ch = Channel.fromList([
       [
-        id: "sample_one",
+        id: "sample_1",
         input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
@@ -19,8 +19,32 @@ workflow test_no_cellbender {
         publish_dir: "test_out"
       ],
       [
-        id: "sample_two",
+        id: "sample_2",
         input: resources_test_file.resolve("qc_sample_data/sample_two.qc.h5mu"),
+        run_cellbender: false,
+        metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
+        output_html: "report.html",
+        publish_dir: "test_out"
+      ],
+      [
+        id: "sample_3",
+        input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
+        run_cellbender: false,
+        metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
+        output_html: "report.html",
+        publish_dir: "test_out"
+      ],
+      [
+        id: "sample_4",
+        input: resources_test_file.resolve("qc_sample_data/sample_two.qc.h5mu"),
+        run_cellbender: false,
+        metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
+        output_html: "report.html",
+        publish_dir: "test_out"
+      ],
+      [
+        id: "sample_5",
+        input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
