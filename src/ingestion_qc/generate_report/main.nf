@@ -89,12 +89,12 @@ workflow run_wf {
 
         // calculate number of reports to be generated and number of samples per report
         def totalInputs = state.input.size()
-        def maxSamplesPerGroup =2
+        def maxSamplesPerGroup = state.max_samples_per_report
         def numGroups = Math.max(1, Math.ceil(totalInputs / maxSamplesPerGroup) as Integer)
         def baseSamplesPerGroup = totalInputs.intdiv(numGroups)
         def remainder = totalInputs % numGroups
 
-        println "Splitting ${totalInputs} samples into ${numGroups} groups (max ${maxSamplesPerGroup} per group)"
+        println "Dividing ${totalInputs} sample(s) over ${numGroups} report(s) (max ${maxSamplesPerGroup} per report)"
         
         // sort inputs to make grouping deterministic
         def inputs = []
