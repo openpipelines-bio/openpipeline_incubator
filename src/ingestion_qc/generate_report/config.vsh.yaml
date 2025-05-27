@@ -81,6 +81,7 @@ argument_groups:
       - name: --output_qc_report
         type: file
         required: true
+        multiple: true
         direction: output
         description: The output HTML report
         example: path/to/file.html
