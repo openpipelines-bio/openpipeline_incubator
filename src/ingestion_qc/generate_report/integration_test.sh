@@ -18,6 +18,13 @@ nextflow run . \
 nextflow run . \
   -main-script src/ingestion_qc/generate_report/test.nf \
   -profile docker,no_publish,local \
+  -entry test_xenium \
+  -c src/configs/labels_ci.config \
+  -resume
+
+nextflow run . \
+  -main-script src/ingestion_qc/generate_report/test.nf \
+  -profile docker,no_publish,local \
   -entry test_with_cellbender \
   -c src/configs/labels_ci.config \
   -resume
