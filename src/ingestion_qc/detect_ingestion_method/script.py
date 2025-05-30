@@ -53,14 +53,14 @@ def main(par):
     else:
         raise ValueError(f"Multiple ingestion methods detected: {', '.join(detected_methods)}")
 
-    # write ingestion method to .uns if not already present and save updated h5mu
-    if par["output_uns_ingestion_method"] in mod_uns:
-        if mod_uns[par["output_uns_ingestion_method"]] != detected_method:
-            raise ValueError(f"Output uns key {par['output_uns_ingestion_method']} already exists and contains different value `{mod_uns[par['output_uns_ingestion_method']]}` then detected method `{detected_method}`.")
-        shutil.copy(par["input"], par["output"])
+    # check if mod_uns already contains a different detected method
+    if mod_uns.get(par["output_uns_ingestion_method"], detected_method) != detected_method:
+        raise ValueError(f"Field .uns['{par['output_uns_ingestion_method']}'] already exists and contains different value `{mod_uns.get(par['output_uns_ingestion_method'])}` than detected method (`{detected_method}`).")
 
-    else:
-        shutil.copy(par["input"], par["output"])
+    # copy input to output
+    shutil.copy(par["input"], par["output"])
+
+    if par["output_uns_ingestion_method"] not in mod_uns:
         with h5py.File (par["output"], "r+") as out_file:
             out_file["uns"][par["output_uns_ingestion_method"]] = detected_method
 
