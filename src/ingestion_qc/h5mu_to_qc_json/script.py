@@ -10,22 +10,22 @@ import shutil
 ## VIASH START
 # inputs = list(Path("data/sample_data/sample_data").glob("*.h5mu"))
 # output = "data/sample-data.json"
-inputs = list(Path("resources_test/qc_sample_data").glob("*.qc.cellbender.h5mu"))
+inputs = list(Path("resources_test_after_running_script/qc_sample_data").glob("*.qc.h5mu"))
 output = "tmp.json"
 par = {
-    # "input": sorted([str(x) for x in inputs]),
-    "input": ["resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu", "resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu"],
+    "input": sorted([str(x) for x in inputs]),
+    # "input": ["resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu", "resources_test/spatial_qc_sample_data/xenium_tiny.qc.h5mu"],
     "output": "sc_data.json",
     "output_reporting_json": "sc_report_structure.json",
     "modality": "rna",
-    "ingestion_method": "xenium",
+    "ingestion_method": "cellranger_multi",
     "obs_sample_id": "sample_id",
     "obs_total_counts": "total_counts",
     "obs_num_nonzero_vars": "num_nonzero_vars",
     "obs_fraction_mitochondrial": "fraction_mitochondrial",
     "obs_fraction_ribosomal": "fraction_ribosomal",
-    "min_total_counts": 10,
-    "min_num_nonzero_vars": 1,
+    "min_total_counts": 20,
+    "min_num_nonzero_vars": 20,
     "obs_cellbender": [
         "cellbender_background_fraction",
         "cellbender_cell_probability",
@@ -33,7 +33,7 @@ par = {
         "cellbender_droplet_efficiency",
     ],
     "uns_cellranger_metrics": "metrics_cellranger",
-    "obs_metadata": [],
+    "obs_metadata": ["cell_type"],
     "obs_nucleus_area": "nucleus_area",
     "obs_cell_area": "cell_area",
     "obs_x_coord": "x_coord",
@@ -247,6 +247,22 @@ def generate_xenium_stats(mod_obs, sample_id, required_keys):
     return cell_rna_stats
 
 
+def concatenate_dataframes(dfs):
+    '''Concatenates a list of dataframes into a single dataframe, preserving categorical columns.'''
+    df = pd.concat(dfs, ignore_index=True)
+
+    # Find categorical columns that became object columms
+    for col in df.columns:
+        if any(df[col].dtype.name == 'category' for df in dfs if col in df.columns):
+            # Get all categorical series for this column
+            cat_series = [df[col] for df in dfs if col in df.columns and df[col].dtype.name == 'category']
+            if cat_series:
+                # Union the categories and apply to result
+                unioned = pd.api.types.union_categoricals(cat_series)
+                df[col] = pd.Categorical(df[col], categories=unioned.categories)
+    return df
+
+
 def main(par):
     cell_stats_dfs = []
     sample_stats_dfs = []
@@ -330,10 +346,10 @@ def main(par):
 
     # Combine dataframes of all samples
     logger.info("Combining data of all samples into single object...")
-    combined_cell_stats = pd.concat(cell_stats_dfs, ignore_index=True)
-    combined_sample_stats = pd.concat(sample_stats_dfs, ignore_index=True)
+    combined_cell_stats = concatenate_dataframes(cell_stats_dfs)
+    combined_sample_stats = concatenate_dataframes(sample_stats_dfs)
     if par["ingestion_method"] == "cellranger_multi":
-        combined_metrics_cellranger = pd.concat(metrics_cellranger_dfs, ignore_index=True)
+        combined_metrics_cellranger = concatenate_dataframes(metrics_cellranger_dfs)
 
     report_categories = [combined_cell_stats, combined_sample_stats]
 

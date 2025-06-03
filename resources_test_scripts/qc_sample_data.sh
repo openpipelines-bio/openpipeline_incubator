@@ -25,6 +25,7 @@ nextflow run openpipelines-bio/openpipeline \
   -latest \
   -r 2.1.2 \
   -main-script target/nextflow/metadata/add_id/main.nf \
+  -c src/configs/labels_ci.config \
   -profile docker \
   -params-file /tmp/params_create_h5mu.yaml \
   -resume
@@ -46,6 +47,7 @@ nextflow run openpipelines-bio/openpipeline \
   -latest \
   -r 2.1.2 \
   -main-script target/nextflow/filter/subset_h5mu/main.nf \
+  -c src/configs/labels_ci.config \
   -profile docker \
   -params-file /tmp/params_subset.yaml \
   -resume
@@ -117,6 +119,7 @@ nextflow run openpipelines-bio/openpipeline \
   -latest \
   -r 2.1.2 \
   -main-script target/nextflow/correction/cellbender_remove_background/main.nf \
+  -c src/configs/labels_ci.config \
   -profile docker \
   -params-file /tmp/params_cellbender.yaml \
   -resume
@@ -144,19 +147,20 @@ viash run src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml --engine docker -- \
   --output "$OUT_DIR_SPATIAL"/xenium_dataset.json \
   --output_reporting_json "$OUT_DIR_SPATIAL"/xenium_report_structure.json
 
+# remove all state yaml files
+rm "$OUT_DIR"/*.yaml
+rm "$OUT_DIR_SPATIAL"/*.yaml
 
 # copy to s3
 aws s3 sync \
-  --profile di \
-  resources_test/qc_sample_data \
-  s3://openpipelines-bio/openpipeline_incubator/resources_test/qc_sample_data \
-  --delete --dryrun \
-  --exclude "*.yaml" --include "*.h5mu"  --include "*.json"
+  "$OUT_DIR" \
+  s3://openpipelines-bio/openpipeline_incubator/"$OUT_DIR" \
+  --delete \
+  --dryrun 
 
 
 aws s3 sync \
-  --profile di \
-  resources_test/spatial_qc_sample_data \
-  s3://openpipelines-bio/openpipeline_incubator/resources_test/spatial_qc_sample_data \
-  --delete --dryrun \
-  --exclude "*.yaml" --include "*.h5mu"  --include "*.json"
+  "$OUT_DIR_SPATIAL" \
+  s3://openpipelines-bio/openpipeline_incubator/"$OUT_DIR_SPATIAL" \
+  --delete \
+  --dryrun 
