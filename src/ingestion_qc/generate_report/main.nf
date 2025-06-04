@@ -1,8 +1,7 @@
 workflow run_wf {
   take: input_ch
   main:
-  output_ch = input_ch
-
+  qc_ch = input_ch
     // store join id
     | map { id, state ->
       [id, state + [_meta: [join_id: id]]]
@@ -50,18 +49,20 @@ workflow run_wf {
         output_obs_num_nonzero_vars: "num_nonzero_vars",
         output_obs_total_counts_vars: "total_counts"
       ],
-      toState: [ "output": "output" ]
+      toState: { id, output, state ->
+        def keysToRemove = ["var_gene_names", "var_name_mitochondrial_genes", "var_name_ribosomal_genes", "run_cellbender", "cellbender_epochs"]
+        def newState = state.findAll{it.key !in keysToRemove}
+        newState + ["input": output.output]
+      }
     )
 
-    | view {"After QC: $it"}
-
     | joinStates { ids, states ->
-      def newId = "combined"
+      def newId = "qc_data"
       // gather keys with unique values across states that should be combined
       def new_state_non_unique_values = [
-        input: states.collect{it.output},
-        _meta: states[0]._meta,
-        output_html: states[0].output_html,
+        input: states.collect{it.input},
+        join_ids: states.collect{it._meta.join_id},
+        _meta: [join_id: ids[0]]
       ]
       // gather keys from different states
       def all_state_keys = states.inject([].toSet()){ current_keys, state ->
@@ -79,11 +80,11 @@ workflow run_wf {
             def current_state = old_state + [(argument_name): argument_value]
             return current_state
         }
-      def final_state = new_state_non_unique_values + new_state
-      [ newId, final_state ]
+      def data_state = new_state_non_unique_values + new_state
+      [ newId, data_state ]
     }
 
-    | view {"After combining states: $it"}
+  processed_files_ch = qc_ch
 
     // move all processed h5mu files to the same folder
     | move_files_to_directory.run(
@@ -93,6 +94,52 @@ workflow run_wf {
       ],
       toState: [ "output_processed_h5mu": "output" ]
     )
+    | setState(["output_processed_h5mu"])
+
+  report_ch = qc_ch
+    // group the processed samples to generate one or multiple reports
+    | flatMap { id, state ->
+
+        // calculate number of reports to be generated and number of samples per report
+        def totalInputs = state.input.size()
+        def maxSamplesPerGroup = state.max_samples_per_report
+        def numGroups = Math.max(1, Math.ceil(totalInputs / maxSamplesPerGroup) as Integer)
+        def baseSamplesPerGroup = totalInputs.intdiv(numGroups)
+        def remainder = totalInputs % numGroups
+
+        println "Dividing ${totalInputs} sample(s) over ${numGroups} report(s) (max ${maxSamplesPerGroup} per report)"
+        
+        // sort inputs to make grouping deterministic
+        def inputs = []
+        for (int i = 0; i < state.input.size(); i++) {
+            inputs << [input: state.input[i], _meta: [join_id: state.join_ids[i]]]
+        }
+
+        def sortedInputs = inputs.sort { it._meta.join_id }
+  
+        def groups = []
+        def itemIndex = 0
+
+        // create one channel per report
+        (0..<numGroups).each { groupNum ->
+            def samplesInGroup = baseSamplesPerGroup + (groupNum < remainder ? 1 : 0)
+            def groupItems = sortedInputs[itemIndex..<(itemIndex + samplesInGroup)]
+            
+            def newId = "combined_${groupNum + 1}_of_${numGroups}"
+            def newState = state.clone()  // Copy all the original state
+            
+            // Override the input and _meta with the grouped items
+            newState.input = groupItems.collect { it.input }
+            newState._meta = groupItems[0]._meta
+            
+            println "Group ${groupNum + 1}: ${samplesInGroup} samples - ${newState._meta}"
+            
+            groups << [newId, newState]
+            itemIndex += samplesInGroup
+        }
+        
+        return groups
+    }
 
     // Set aside output for QC report instructions
     | map { id, state -> 
@@ -143,7 +190,7 @@ workflow run_wf {
       ]
     )
 
-    // generate report
+    // generate html report
     | generate_html.run(
       fromState: [ 
         input_data: "output",
@@ -154,7 +201,29 @@ workflow run_wf {
       ]
     )
 
-    | setState([ "_meta", "output_qc_report", "output_processed_h5mu" ])
+    // collect the reports into a single channel
+    | joinStates { ids, states ->
+      def newId = "qc_report"
+      def report_state = [
+        output_qc_report: states.collect{it.output_qc_report},
+        _meta: states[0]._meta
+      ]
+      [ newId, report_state ]
+    }
+    
+  output_ch = report_ch.mix(processed_files_ch)
+
+    | joinStates { ids, states ->
+
+      assert states.size() == 2, "Expected 2 states, but got ${states.size()}"
+      assert ids.contains('qc_report'), "Expected one channel to have the id `qc_report`, but got ${ids}"
+      assert ids.contains('qc_data'), "Expected one channel to have the id `qc_data`, but got ${ids}"
+
+      def newId = "combined"
+      def combined_state = states[0] + states [1]
+
+      [ newId, combined_state ]
+    }
 
   emit: output_ch
 }
