@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc detect_ingestion_method"
-LABEL org.opencontainers.image.created="2025-05-30T09:29:51Z"
+LABEL org.opencontainers.image.created="2025-06-04T06:57:35Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_incubator"
-LABEL org.opencontainers.image.revision="65ff17dbde3ca0ab5fd82cc5496a9049cb7eecb6"
+LABEL org.opencontainers.image.revision="dac49e3010949fc065921d176de121e3eb72782f"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
