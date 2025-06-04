@@ -21,3 +21,6 @@ work
 # viash
 /target/
 /resources_test/
+
+# pycache
+*__pycache__*

@@ -13,11 +13,17 @@ authors:
 argument_groups:
   - name: Inputs
     arguments:
-      - name: --input
+      - name: --input_data
         type: file
         required: true
         direction: input
         description: The input JSON file containing the QC metrics
+        example: path/to/file.json
+      - name: --input_structure
+        type: file
+        required: true
+        direction: input
+        description: The input JSON file containing the structure of the data
         example: path/to/file.json
   - name: Outputs
     arguments:
@@ -33,8 +39,10 @@ resources:
 test_resources:
   - type: bash_script
     path: test.sh
-  - type: file
-    path: /resources_test/qc_sample_data/dataset.json
+  - path: /resources_test/qc_sample_data/sc_dataset.json
+  - path: /resources_test/qc_sample_data/sc_report_structure.json
+  - path: /resources_test/spatial_qc_sample_data/xenium_dataset.json
+  - path: /resources_test/spatial_qc_sample_data/xenium_report_structure.json
 engines:
   - type: docker
     image: node:latest
@@ -46,8 +54,8 @@ engines:
         run: |
           npm install -g pnpm@latest-10 \
           && cd /opt && git clone https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
-          && cd incubator_ingestion_qc && pnpm install \
-          && true
+          && cd incubator_ingestion_qc && pnpm install
+
 runners:
   - type: executable
   - type: nextflow
