@@ -151,12 +151,12 @@ workflow run_wf {
     | map { id, state -> 
       def conditionalValues = [
         "cellranger_multi": [
-          "min_total_counts": "10",
-          "min_num_nonzero_vars": "10"
+          "min_total_counts": 10,
+          "min_num_nonzero_vars": 10
         ],
         "xenium": [
-          "min_total_counts": "10", 
-          "min_num_nonzero_vars": "1"
+          "min_total_counts": 10, 
+          "min_num_nonzero_vars": 1
         ]
       ]
       
