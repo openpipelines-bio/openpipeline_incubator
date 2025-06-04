@@ -88,7 +88,8 @@ workflow test_xenium {
         assert state instanceof Map : "State should be a map. Found: ${state}"
         assert state.containsKey("output_qc_report"): "Output should contain key `output_qc_report`"
         assert state.containsKey("output_processed_h5mu"): "Output should contain key `output_processed_h5mu`"
-        assert state.output_qc_report.isFile() : "Output HTML report file should exist"
+        assert state.output_qc_report.size() == 1 : "Expected exactly one output HTML file to be generated"
+        assert state.output_qc_report.every { it.isFile()} : "All output HTML report file should exist"
         assert state.output_processed_h5mu.isDirectory() : "Output directory should exist"
         def files = state.output_processed_h5mu.listFiles().findAll { it.isFile() }
         assert files.size() == 2 : "Output directory should contain exactly 2 files, but found ${files.size()} files"
@@ -151,6 +152,7 @@ workflow test_multiple_reports {
       [
         id: "sample_1",
         input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
+        ingestion_method: "cellranger_multi",
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
@@ -160,6 +162,7 @@ workflow test_multiple_reports {
       [
         id: "sample_2",
         input: resources_test_file.resolve("qc_sample_data/sample_two.qc.h5mu"),
+        ingestion_method: "cellranger_multi",
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
@@ -169,6 +172,7 @@ workflow test_multiple_reports {
       [
         id: "sample_3",
         input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
+        ingestion_method: "cellranger_multi",
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
@@ -178,6 +182,7 @@ workflow test_multiple_reports {
       [
         id: "sample_4",
         input: resources_test_file.resolve("qc_sample_data/sample_two.qc.h5mu"),
+        ingestion_method: "cellranger_multi",
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
@@ -187,6 +192,7 @@ workflow test_multiple_reports {
       [
         id: "sample_5",
         input: resources_test_file.resolve("qc_sample_data/sample_one.qc.h5mu"),
+        ingestion_method: "cellranger_multi",
         run_cellbender: false,
         metadata_obs_keys: ["donor_id", "cell_type", "batch", "condition"],
         output_html: "report.html",
