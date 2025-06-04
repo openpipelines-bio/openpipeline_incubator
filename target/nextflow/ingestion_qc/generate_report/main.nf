@@ -3156,9 +3156,21 @@ meta = [
           "multiple_sep" : ";"
         },
         {
+          "type" : "string",
+          "name" : "--ingestion_method",
+          "required" : true,
+          "choices" : [
+            "cellranger_multi",
+            "xenium"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
           "type" : "file",
           "name" : "--sample_metadata",
-          "description" : "The sample metadata file. Must contain at least\na column 'sample_id' corresponding to the --sample_ids\nargument.\n",
+          "description" : "The sample metadata file corresponding to .obs fields in the h5mu input files, to be used for grouping in the report.\n",
           "example" : [
             "path/to/file.csv"
           ],
@@ -3189,11 +3201,8 @@ meta = [
         {
           "type" : "string",
           "name" : "--var_gene_names",
-          "description" : "The column name in the .var h5mu files that contains the gene names.\n",
+          "description" : "The column name in the .var h5mu files that contains the gene names. If not provided, .var_names will be used.\n",
           "example" : [
-            "gene_symbol"
-          ],
-          "default" : [
             "gene_symbol"
           ],
           "required" : false,
@@ -3201,6 +3210,26 @@ meta = [
           "multiple" : false,
           "multiple_sep" : ";"
         },
+        {
+          "type" : "string",
+          "name" : "--obs_metadata",
+          "description" : "The metadata keys in the h5mu .obs to include in the report.",
+          "example" : [
+            "donor_id",
+            "cell_type",
+            "batch",
+            "condition"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "QC options",
+      "arguments" : [
         {
           "type" : "string",
           "name" : "--var_name_mitochondrial_genes",
@@ -3223,18 +3252,6 @@ meta = [
           "required" : false,
           "direction" : "input",
           "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--metadata_obs_keys",
-          "description" : "The metadata keys in the h5mu .obs to include in the report.",
-          "example" : [
-            "donor_id;cell_type;batch;condition"
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : true,
           "multiple_sep" : ";"
         }
       ]
@@ -3489,7 +3506,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/generate_report",
     "viash_version" : "0.9.4",
-    "git_commit" : "dac49e3010949fc065921d176de121e3eb72782f",
+    "git_commit" : "7e5e3d2c2a2967034d8557401842806a61c8da17",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3539,7 +3556,7 @@ include { add_id } from "${meta.root_dir}/dependencies/github/openpipelines-bio/
 include { qc } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/qc/qc/main.nf"
 include { cellbender_remove_background as cellbender_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/correction/cellbender_remove_background/main.nf"
 cellbender = cellbender_viashalias.run(key: "cellbender")
-include { h5mu_to_qc_json } from "${meta.resources_dir}/../../../nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
+include { h5mu_to_qc_json } from "${meta.resources_dir}/../../../_private/nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
 include { generate_html } from "${meta.resources_dir}/../../../nextflow/ingestion_qc/generate_html/main.nf"
 include { move_files_to_directory } from "${meta.root_dir}/dependencies/vsh/vsh/craftbox/main/nextflow/move_files_to_directory/main.nf"
 
@@ -3560,6 +3577,9 @@ workflow run_wf {
         input_id: "id", 
         input: "input"
       ],
+      args: [
+        obs_output: "sample_id"
+      ],
       toState: [ "input": "output" ]
     )
 
@@ -3571,6 +3591,12 @@ workflow run_wf {
         input: "input",
         epochs: "cellbender_epochs",
       ],
+      args: [
+        obs_background_fraction: "cellbender_background_fraction",
+        obs_cell_probability: "cellbender_cell_probability",
+        obs_droplet_efficiency: "cellbender_droplet_efficiency",
+        obs_cell_size: "cellbender_cell_size",
+      ],
       toState: ["input": "output"]
     )
 
@@ -3579,9 +3605,13 @@ workflow run_wf {
       fromState: [
         id: "id",
         input: "input",
-        var_gene_names: "var_gene_names",
-        var_name_mitochondrial_genes: "var_name_mitochondrial_genes",
-        var_name_ribosomal_genes: "var_name_ribosomal_genes"
+        var_gene_names: "var_gene_names"
+      ],
+      args: [
+        var_name_mitochondrial_genes: "mitochondrial",
+        var_name_ribosomal_genes: "ribosomal",
+        output_obs_num_nonzero_vars: "num_nonzero_vars",
+        output_obs_total_counts_vars: "total_counts"
       ],
       toState: { id, output, state ->
         def keysToRemove = ["var_gene_names", "var_name_mitochondrial_genes", "var_name_ribosomal_genes", "run_cellbender", "cellbender_epochs"]
@@ -3675,21 +3705,61 @@ workflow run_wf {
         return groups
     }
 
+    // Set aside output for QC report instructions
+    | map { id, state -> 
+      def new_state = state + ["output_reporting_json": "reporting_json.json"]
+      [id, new_state]
+    }
+
+    // Set report filter settings
+    | map { id, state -> 
+      def conditionalValues = [
+        "cellranger_multi": [
+          "min_total_counts": 10,
+          "min_num_nonzero_vars": 10
+        ],
+        "xenium": [
+          "min_total_counts": 10, 
+          "min_num_nonzero_vars": 1
+        ]
+      ]
+      
+      def method = state.ingestion_method
+      def additionalParams = conditionalValues[method]
+      
+      [ id, state + additionalParams ]
+    }
+
+    | view {"After setting filters: $it"}
+
     // generate qc json
     | h5mu_to_qc_json.run(
-      fromState: ["input"],
+      fromState: [
+        input: "input",
+        ingestion_method: "ingestion_method",
+        obs_metadata: "obs_metadata",
+        min_total_counts: "min_total_counts",
+        min_num_nonzero_vars: "min_num_nonzero_vars"
+      ],
       args: [
-        sample_id_key: "sample_id",
-        metadata_obs_keys: "metadata_obs_keys",
+        obs_sample_id: "sample_id",
+        obs_total_counts: "total_counts",
+        obs_num_nonzero_vars: "num_nonzero_vars",
+        obs_fraction_mitochondrial: "fraction_mitochondrial",
+        obs_fraction_ribosomal: "fraction_ribosomal",
       ],
       toState: [
-        output_qc_json: "output"
+        output: "output",
+        output_reporting_json: "output_reporting_json"
       ]
     )
 
     // generate html report
     | generate_html.run(
-      fromState: [ input: "output_qc_json" ],
+      fromState: [ 
+        input_data: "output",
+        input_structure: "output_reporting_json"
+      ],
       toState: [
         output_qc_report: "output_qc_report"
       ]

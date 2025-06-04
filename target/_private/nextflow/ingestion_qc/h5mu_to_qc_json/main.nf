@@ -3154,6 +3154,79 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--ingestion_method",
+          "description" : "Method that was used to ingest the data - this will define the structure of the report that is generated.",
+          "required" : true,
+          "choices" : [
+            "cellranger_multi",
+            "xenium"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_sample_id",
+          "description" : "The key in the h5mu file that contains the sample ID. If not provided, each H5MU file will be considered as a separate sample.",
+          "default" : [
+            "sample_id"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_total_counts",
+          "description" : "The key in the h5mu .obs field that contains the total counts.",
+          "default" : [
+            "total_counts"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_num_nonzero_vars",
+          "description" : "The key in the h5mu .obs field that contains the number of nonzero vars.",
+          "default" : [
+            "num_nonzero_vars"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_fraction_mitochondrial",
+          "description" : "The key in the h5mu .obs field that contains the fraction mitochondrial genes.",
+          "default" : [
+            "fraction_mitochondrial"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_fraction_ribosomal",
+          "description" : "The key in the h5mu .obs field that contains the fraction ribosomal genes.",
+          "default" : [
+            "fraction_ribosomal"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3173,11 +3246,25 @@ meta = [
           "direction" : "output",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--output_reporting_json",
+          "description" : "The output JSON file that defines the QC report",
+          "example" : [
+            "path/to/file.json"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : true,
+          "direction" : "output",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
     {
-      "name" : "Options",
+      "name" : "Filtering & grouping options",
       "arguments" : [
         {
           "type" : "integer",
@@ -3205,34 +3292,24 @@ meta = [
         },
         {
           "type" : "string",
-          "name" : "--sample_id_key",
-          "description" : "The key in the h5mu file that contains the sample ID",
-          "default" : [
-            "sample_id"
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--obs_keys",
-          "description" : "The keys in the h5mu .obs to include in the output JSON",
-          "default" : [
-            "total_counts",
-            "num_nonzero_vars",
-            "fraction_mitochondrial",
-            "fraction_ribosomal"
+          "name" : "--obs_metadata",
+          "description" : "The metadata keys in the h5mu .obs to include in the output JSON.",
+          "example" : [
+            "donor_id;cell_type;batch;condition"
           ],
           "required" : false,
           "direction" : "input",
           "multiple" : true,
           "multiple_sep" : ";"
-        },
+        }
+      ]
+    },
+    {
+      "name" : "Options for CellRanger reports",
+      "arguments" : [
         {
           "type" : "string",
-          "name" : "--cellbender_obs_keys",
+          "name" : "--obs_cellbender",
           "description" : "The cellbender keys in the h5mu .obs to include in the output JSON",
           "default" : [
             "cellbender_background_fraction",
@@ -3247,7 +3324,7 @@ meta = [
         },
         {
           "type" : "string",
-          "name" : "--cellranger_metrics_uns_key",
+          "name" : "--uns_cellranger_metrics",
           "description" : "The key in the h5mu file .uns that contains the cellranger metrics",
           "default" : [
             "metrics_cellranger"
@@ -3256,17 +3333,82 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
-        },
+        }
+      ]
+    },
+    {
+      "name" : "Options for Xenium reports",
+      "arguments" : [
         {
           "type" : "string",
-          "name" : "--metadata_obs_keys",
-          "description" : "The metadata keys in the h5mu .obs to include in the output JSON.",
-          "example" : [
-            "donor_id;cell_type;batch;condition"
+          "name" : "--obs_nucleus_area",
+          "description" : "The key in the h5mu .obs field that contains the nucleus area.",
+          "default" : [
+            "nucleus_area"
           ],
           "required" : false,
           "direction" : "input",
-          "multiple" : true,
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_cell_area",
+          "description" : "The key in the h5mu .obs field that contains the cell area.",
+          "default" : [
+            "cell_area"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_x_coord",
+          "description" : "The key in the h5mu .obs field that contains the x coordinate.",
+          "default" : [
+            "x_coord"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_y_coord",
+          "description" : "The key in the h5mu .obs field that contains the y coordinate.",
+          "default" : [
+            "y_coord"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_control_probe_counts",
+          "description" : "The key in the h5mu .obs field that contains the number of control probes.",
+          "default" : [
+            "control_probe_counts"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--obs_control_codeword_counts",
+          "description" : "The key in the h5mu .obs field that contains the number of control codewords.",
+          "default" : [
+            "control_codeword_counts"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
           "multiple_sep" : ";"
         }
       ]
@@ -3284,11 +3426,15 @@ meta = [
     },
     {
       "type" : "file",
+      "path" : "report_structure"
+    },
+    {
+      "type" : "file",
       "path" : "/src/configs/labels.config",
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "Convert QC metrics from h5mu to JSON",
+  "description" : "Takes H5MU files that have been ingested by CellRanger, Xenium or CosMx and processed by the QC workflow, and generates:\n- A JSON file that contains the combined data for the QC report\n- A JSON file that defines the layout and structure of the QC report\n",
   "test_resources" : [
     {
       "type" : "python_script",
@@ -3302,8 +3448,8 @@ meta = [
   ],
   "status" : "enabled",
   "scope" : {
-    "image" : "public",
-    "target" : "public"
+    "image" : "private",
+    "target" : "private"
   },
   "requirements" : {
     "commands" : [
@@ -3458,9 +3604,9 @@ meta = [
     "config" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker",
-    "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/ingestion_qc/h5mu_to_qc_json",
+    "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/_private/nextflow/ingestion_qc/h5mu_to_qc_json",
     "viash_version" : "0.9.4",
-    "git_commit" : "dac49e3010949fc065921d176de121e3eb72782f",
+    "git_commit" : "7e5e3d2c2a2967034d8557401842806a61c8da17",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3519,20 +3665,33 @@ from pathlib import Path
 import anndata as ad
 import h5py
 import sys
+import os
+import shutil
 
 ## VIASH START
 # The following code has been auto-generated by Viash.
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
   'modality': $( if [ ! -z ${VIASH_PAR_MODALITY+x} ]; then echo "r'${VIASH_PAR_MODALITY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'ingestion_method': $( if [ ! -z ${VIASH_PAR_INGESTION_METHOD+x} ]; then echo "r'${VIASH_PAR_INGESTION_METHOD//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_sample_id': $( if [ ! -z ${VIASH_PAR_OBS_SAMPLE_ID+x} ]; then echo "r'${VIASH_PAR_OBS_SAMPLE_ID//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_total_counts': $( if [ ! -z ${VIASH_PAR_OBS_TOTAL_COUNTS+x} ]; then echo "r'${VIASH_PAR_OBS_TOTAL_COUNTS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_num_nonzero_vars': $( if [ ! -z ${VIASH_PAR_OBS_NUM_NONZERO_VARS+x} ]; then echo "r'${VIASH_PAR_OBS_NUM_NONZERO_VARS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_fraction_mitochondrial': $( if [ ! -z ${VIASH_PAR_OBS_FRACTION_MITOCHONDRIAL+x} ]; then echo "r'${VIASH_PAR_OBS_FRACTION_MITOCHONDRIAL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_fraction_ribosomal': $( if [ ! -z ${VIASH_PAR_OBS_FRACTION_RIBOSOMAL+x} ]; then echo "r'${VIASH_PAR_OBS_FRACTION_RIBOSOMAL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'output_reporting_json': $( if [ ! -z ${VIASH_PAR_OUTPUT_REPORTING_JSON+x} ]; then echo "r'${VIASH_PAR_OUTPUT_REPORTING_JSON//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'min_total_counts': $( if [ ! -z ${VIASH_PAR_MIN_TOTAL_COUNTS+x} ]; then echo "int(r'${VIASH_PAR_MIN_TOTAL_COUNTS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'min_num_nonzero_vars': $( if [ ! -z ${VIASH_PAR_MIN_NUM_NONZERO_VARS+x} ]; then echo "int(r'${VIASH_PAR_MIN_NUM_NONZERO_VARS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
-  'sample_id_key': $( if [ ! -z ${VIASH_PAR_SAMPLE_ID_KEY+x} ]; then echo "r'${VIASH_PAR_SAMPLE_ID_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'obs_keys': $( if [ ! -z ${VIASH_PAR_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_OBS_KEYS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
-  'cellbender_obs_keys': $( if [ ! -z ${VIASH_PAR_CELLBENDER_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_CELLBENDER_OBS_KEYS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
-  'cellranger_metrics_uns_key': $( if [ ! -z ${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY+x} ]; then echo "r'${VIASH_PAR_CELLRANGER_METRICS_UNS_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'metadata_obs_keys': $( if [ ! -z ${VIASH_PAR_METADATA_OBS_KEYS+x} ]; then echo "r'${VIASH_PAR_METADATA_OBS_KEYS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi )
+  'obs_metadata': $( if [ ! -z ${VIASH_PAR_OBS_METADATA+x} ]; then echo "r'${VIASH_PAR_OBS_METADATA//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
+  'obs_cellbender': $( if [ ! -z ${VIASH_PAR_OBS_CELLBENDER+x} ]; then echo "r'${VIASH_PAR_OBS_CELLBENDER//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
+  'uns_cellranger_metrics': $( if [ ! -z ${VIASH_PAR_UNS_CELLRANGER_METRICS+x} ]; then echo "r'${VIASH_PAR_UNS_CELLRANGER_METRICS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_nucleus_area': $( if [ ! -z ${VIASH_PAR_OBS_NUCLEUS_AREA+x} ]; then echo "r'${VIASH_PAR_OBS_NUCLEUS_AREA//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_cell_area': $( if [ ! -z ${VIASH_PAR_OBS_CELL_AREA+x} ]; then echo "r'${VIASH_PAR_OBS_CELL_AREA//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_x_coord': $( if [ ! -z ${VIASH_PAR_OBS_X_COORD+x} ]; then echo "r'${VIASH_PAR_OBS_X_COORD//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_y_coord': $( if [ ! -z ${VIASH_PAR_OBS_Y_COORD+x} ]; then echo "r'${VIASH_PAR_OBS_Y_COORD//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_control_probe_counts': $( if [ ! -z ${VIASH_PAR_OBS_CONTROL_PROBE_COUNTS+x} ]; then echo "r'${VIASH_PAR_OBS_CONTROL_PROBE_COUNTS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'obs_control_codeword_counts': $( if [ ! -z ${VIASH_PAR_OBS_CONTROL_CODEWORD_COUNTS+x} ]; then echo "r'${VIASH_PAR_OBS_CONTROL_CODEWORD_COUNTS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3565,15 +3724,13 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
-par["cellbender_obs_keys"] = {} if not par["cellbender_obs_keys"] else par["cellbender_obs_keys"]
-par["metadata_obs_keys"] = {} if not par["metadata_obs_keys"] else par["metadata_obs_keys"]
-par["obs_keys"] = {} if not par["obs_keys"] else par["obs_keys"]
+par["obs_cellbender"] = {} if not par["obs_cellbender"] else par["obs_cellbender"]
+
 
 def transform_df(df):
     """Transform a DataFrame into the annotation object format."""
     columns = []
     for name in df.columns:
-        print(f"Processing column {name}")
         data = df[name]
 
         # Determine dtype
@@ -3598,20 +3755,190 @@ def transform_df(df):
 
     return {"num_rows": len(df), "num_cols": len(df.columns), "columns": columns}
 
+
 def check_optional_obs_keys(obs, keys, message):
     missing_keys = [key for key in keys if key not in obs.columns]
     if missing_keys:
         logger.info(f"Missing keys in obs: {', '.join(missing_keys)}. {message}")
 
-def main(par):    
+
+def transform_cellranger_metrics(uns, sample_id):
+    if not par["uns_cellranger_metrics"] in uns:
+        raise ValueError(f"Could not find cellranger metrics in uns: {par['uns_cellranger_metrics']}. Provide correct value for --uns_cellranger_metrics or make sure data was ingested using CellRanger multi.")
+
+    cellranger_metrics = (
+        uns[par["uns_cellranger_metrics"]]
+        .pivot_table(
+            index=[],
+            columns="Metric Name",
+            values="Metric Value",
+            aggfunc="first",
+        )
+        .reset_index(drop=True)
+    )
+
+    cellranger_metrics.columns.name = None
+    # Remove thousands separator and convert to numeric
+    cellranger_metrics = cellranger_metrics.map(
+        lambda x: (
+            pd.to_numeric(x.replace(",", ""), errors="coerce")
+            if isinstance(x, str)
+            else x
+        )
+    )
+    # Replace spaces with underscores in column names
+    cellranger_metrics.columns = cellranger_metrics.columns.str.replace(" ", "_")
+    for col in cellranger_metrics.columns:
+        cellranger_metrics[col] = pd.to_numeric(cellranger_metrics[col], errors="coerce")
+    cellranger_metrics["sample_id"] = [sample_id[0]]
+
+    return cellranger_metrics
+
+
+def format_cellbender_columns(mod_obs):
+    # Check if celbender was run on the dataset
+    if par["obs_cellbender"]:
+        check_optional_obs_keys(mod_obs, par["obs_cellbender"], "Run cellbender first to include these metrics.")
+
+    cellbender_obs_keys = [column for column in par["obs_cellbender"] if column in mod_obs]
+
+    for key in cellbender_obs_keys:
+        if not pd.api.types.is_float_dtype(mod_obs[key]):
+            try:
+                mod_obs[key] = mod_obs[key].astype("float16")
+            except ValueError:
+                raise ValueError(f"Could not convert column {key} to a float dtype. Please make sure all cellbender metrics are numeric.")
+
+    return cellbender_obs_keys, mod_obs
+
+
+def format_required_columns(required_keys, mod_obs):
+
+    for key in required_keys:
+        if not pd.api.types.is_numeric_dtype(mod_obs[key]):
+            raise ValueError(f"Column {key} must be a numeric dtype.")
+
+    if not pd.api.types.is_integer_dtype(mod_obs[par["obs_total_counts"]]):
+        logger.info(f"Converting {par['obs_total_counts']} from {mod_obs[par['obs_total_counts']].dtype} to integer dtype...")
+        mod_obs[par["obs_total_counts"]] = mod_obs[par["obs_total_counts"]].astype(int)
+
+    if not pd.api.types.is_integer_dtype(mod_obs[par["obs_num_nonzero_vars"]]):
+        logger.info(f"Converting {par['obs_num_nonzero_vars']} from {mod_obs[par['obs_num_nonzero_vars']].dtype} to integer dtype...")
+        mod_obs[par["obs_num_nonzero_vars"]] = mod_obs[par["obs_num_nonzero_vars"]].astype(int)
+
+    if not pd.api.types.is_float_dtype(mod_obs[par["obs_fraction_mitochondrial"]]):
+        logger.info(f"Converting {par['obs_fraction_mitochondrial']} from {mod_obs[par['obs_fraction_mitochondrial']].dtype} to float dtype...")
+        mod_obs[par["obs_fraction_mitochondrial"]] = mod_obs[par["obs_fraction_mitochondrial"]].astype("float16")
+
+    if not pd.api.types.is_float_dtype(mod_obs[par["obs_fraction_ribosomal"]]):
+        logger.info(f"Converting {par['obs_fraction_ribosomal']} from {mod_obs[par['obs_fraction_ribosomal']].dtype} to float dtype...")
+        mod_obs[par["obs_fraction_ribosomal"]] = mod_obs[par["obs_fraction_ribosomal"]].astype("float16")
+
+    return mod_obs
+
+
+def format_categorical_columns(mod_obs):
+    # Fetch all categorical columns for grouping if no columns are provided
+    if not par["obs_metadata"]:
+        metadata_obs_keys = mod_obs.select_dtypes(include=["object", "category"]).columns.tolist()
+        if par["obs_sample_id"] in metadata_obs_keys:
+            metadata_obs_keys.remove(par["obs_sample_id"])
+    else:
+        check_optional_obs_keys(mod_obs, par["obs_metadata"], "Make sure requested metadata colmuns are present in obs.")
+        metadata_obs_keys = [key for key in par["obs_metadata"] if key in mod_obs]
+
+    for key in metadata_obs_keys:
+        if not isinstance(key, pd.CategoricalDtype):
+            logger.info(f"{key} is not a categorical dtype. Converting {key} from {mod_obs[key].dtype} to categorical dtype...")
+            mod_obs[key] = mod_obs[key].astype(str).astype("category")
+
+    return metadata_obs_keys, mod_obs
+
+
+def generate_cellranger_stats(mod_obs, uns, sample_id, required_keys):
+
+    # Format required columns
+    mod_obs = format_required_columns(required_keys, mod_obs)
+
+    # Fetch and format  all categorical columns for grouping
+    metadata_obs_keys, mod_obs = format_categorical_columns(mod_obs)
+
+    # Fetch and format cellbender columns
+    cellbender_obs_keys, mod_obs = format_cellbender_columns(mod_obs)
+
+    # Create cell RNA stats dataframe
+    cell_rna_stats = pd.DataFrame(
+        {
+            "sample_id": pd.Categorical(sample_id),
+            **{key: mod_obs[key] for key in required_keys},
+            **{key: mod_obs[key] for key in cellbender_obs_keys},
+            **{key: mod_obs[key] for key in metadata_obs_keys},
+        }
+    )
+
+    cellranger_stats = transform_cellranger_metrics(uns, sample_id)
+
+    return cell_rna_stats, cellranger_stats
+
+
+def format_xenium_columns(mod_obs):
+
+    mod_obs["nucleus_ratio"] = mod_obs[par["obs_nucleus_area"]] / mod_obs[par["obs_cell_area"]]
+
+    xenium_formatted_columns = [par["obs_cell_area"], "nucleus_ratio", "x_coord", "y_coord"]
+    for key in xenium_formatted_columns:
+        mod_obs[key] = mod_obs[key].astype("float16")
+
+    return mod_obs, xenium_formatted_columns
+
+
+def generate_xenium_stats(mod_obs, sample_id, required_keys):
+
+    # Format required columns
+    mod_obs = format_required_columns(required_keys, mod_obs)
+
+    # Format xenium-specific columns
+    mod_obs, xenium_formatted_columns = format_xenium_columns(mod_obs)
+
+    # Fetch and format  all categorical columns for grouping
+    metadata_obs_keys, mod_obs = format_categorical_columns(mod_obs)
+
+    # Create cell RNA stats dataframe
+    cell_rna_stats = pd.DataFrame(
+        {
+            "sample_id": pd.Categorical(sample_id),
+            **{key: mod_obs[key] for key in required_keys},
+            **{key: mod_obs[key] for key in xenium_formatted_columns},
+            **{key: mod_obs[key] for key in metadata_obs_keys}
+        }
+    )
+
+    return cell_rna_stats
+
+
+def concatenate_dataframes(dfs):
+    \'\'\'Concatenates a list of dataframes into a single dataframe, preserving categorical columns.\'\'\'
+    df = pd.concat(dfs, ignore_index=True)
+
+    # Find categorical columns that became object columms
+    for col in df.columns:
+        if any(df[col].dtype.name == 'category' for df in dfs if col in df.columns):
+            # Get all categorical series for this column
+            cat_series = [df[col] for df in dfs if col in df.columns and df[col].dtype.name == 'category']
+            if cat_series:
+                # Union the categories and apply to result
+                unioned = pd.api.types.union_categoricals(cat_series)
+                df[col] = pd.Categorical(df[col], categories=unioned.categories)
+    return df
+
+
+def main(par):
     cell_stats_dfs = []
     sample_stats_dfs = []
     metrics_cellranger_dfs = []
 
-    print(par["input"])
-
     for i, mudata_file in enumerate(par["input"]):
-        print(f"Processing {mudata_file}")
+        logger.info(f"Processing {mudata_file}")
 
         # read h5mu file
         file = h5py.File(mudata_file, "r")
@@ -3619,6 +3946,7 @@ def main(par):
         # read the necessary info
         grp_mod = file["mod"][par["modality"]]
         mod_obs = ad.experimental.read_elem(grp_mod["obs"])
+        mod_obsm = ad.experimental.read_elem(grp_mod["obsm"])
         uns = ad.experimental.read_elem(file["uns"])
 
         # close the h5mu file
@@ -3626,96 +3954,100 @@ def main(par):
 
         barcodes_original_count = mod_obs.shape[0]
 
-        # pre-filter cells
+        # Add coordinates to obs before filtering
+        if par["ingestion_method"] == "xenium":
+            mod_obs["x_coord"] = mod_obsm["spatial"][:, 0]
+            mod_obs["y_coord"] = mod_obsm["spatial"][:, 1]
+
+        # Pre-filter cells
+        logger.info("Pre-filtering cells based on counts...")
         if "min_total_counts" in par:
             mod_obs = mod_obs[mod_obs["total_counts"] >= par["min_total_counts"]]
         if "min_num_nonzero_vars" in par:
             mod_obs = mod_obs[mod_obs["num_nonzero_vars"] >= par["min_num_nonzero_vars"]]
         barcodes_filtered_count = mod_obs.shape[0]
 
-        missing_keys = [key for key in par["obs_keys"] if key not in mod_obs.columns]
-        if missing_keys:
-            raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
-        
-        if par["cellbender_obs_keys"]:
-            check_optional_obs_keys(mod_obs, par["cellbender_obs_keys"], "Run cellbender first to include these metrics.")
-        if par["metadata_obs_keys"]:
-            check_optional_obs_keys(mod_obs, par["metadata_obs_keys"], "Make sure requested metadata colmuns are present in obs.")
-
+        # Detect sample id's
+        logger.info("Detecting sample id's...")
         sample_id = (
-            mod_obs[par["sample_id_key"]].tolist()
-            if par["sample_id_key"] in mod_obs.columns
+            mod_obs[par["obs_sample_id"]].tolist()
+            if par["obs_sample_id"] in mod_obs.columns
             else [f"sample_{i}"] * mod_obs.shape[0]
         )
 
-        cell_rna_stats = pd.DataFrame(
-            {
-                "sample_id": pd.Categorical(sample_id),
-                **{key: mod_obs[key] for key in par["obs_keys"]},
-                **{key: mod_obs[key] for key in par["cellbender_obs_keys"] if key in mod_obs.columns},
-                **{key: mod_obs[key] for key in par["metadata_obs_keys"] if key in mod_obs.columns},
-            }
-        )
-        
-        sample_summary_stats = pd.DataFrame(
-            {
-                "sample_id": pd.Categorical([sample_id[0]]),
-                "rna_num_barcodes": [barcodes_original_count],
-                "rna_num_barcodes_filtered": [barcodes_filtered_count],
-                "rna_sum_total_counts": [mod_obs["total_counts"].sum()],
-                "rna_median_total_counts": [mod_obs["total_counts"].median()],
-                "rna_overall_num_nonzero_vars": [mod_obs["num_nonzero_vars"].sum()],
-                "rna_median_num_nonzero_vars": [mod_obs["num_nonzero_vars"].median()],
-            }
-        )
+        # Generating sample summary statistics
+        logger.info("Generating sample summary statistics...")
+        required_keys = [
+            par["obs_total_counts"],
+            par["obs_num_nonzero_vars"],
+            par["obs_fraction_mitochondrial"],
+            par["obs_fraction_ribosomal"]
+            ]
+        missing_keys = [key for key in required_keys if key not in mod_obs.columns]
+        if missing_keys:
+            raise ValueError(f"Missing keys in obs: {', '.join(missing_keys)}")
 
-        if par["cellranger_metrics_uns_key"] in uns:
-            metrics = (
-                uns[par["cellranger_metrics_uns_key"]]
-                .pivot_table(
-                    index=[],
-                    columns="Metric Name",
-                    values="Metric Value",
-                    aggfunc="first",
-                )
-                .reset_index(drop=True)
-            )
+        sample_summary = {
+            "sample_id": pd.Categorical([sample_id[0]]),
+            "rna_num_barcodes": [barcodes_original_count],
+            "rna_num_barcodes_filtered": [barcodes_filtered_count],
+            "rna_sum_total_counts": [mod_obs[par["obs_total_counts"]].sum()],
+            "rna_median_total_counts": [mod_obs[par["obs_total_counts"]].median()],
+            "rna_overall_num_nonzero_vars": [mod_obs[par["obs_num_nonzero_vars"]].sum()],
+            "rna_median_num_nonzero_vars": [mod_obs[par["obs_num_nonzero_vars"]].median()],
+        }
 
-            metrics.columns.name = None
-            # Remove thousands separator and convert to numeric
-            metrics = metrics.map(
-                lambda x: (
-                    pd.to_numeric(x.replace(",", ""), errors="coerce")
-                    if isinstance(x, str)
-                    else x
-                )
-            )
-            # Replace spaces with underscores in column names
-            metrics.columns = metrics.columns.str.replace(" ", "_")
-            for col in metrics.columns:
-                metrics[col] = pd.to_numeric(metrics[col], errors="coerce")
-            metrics["sample_id"] = [sample_id[0]]
-            metrics_cellranger_dfs.append(metrics)
-        
+        if par["ingestion_method"] == "xenium":
+            sample_summary["control_probe_percentage"] = mod_obs[par["obs_control_probe_counts"]].sum() / mod_obs["total_counts"].sum() * 100
+            sample_summary["negative_decoding_percentage"] = mod_obs[par["obs_control_codeword_counts"]].sum() / mod_obs["total_counts"].sum() * 100
+
+        sample_summary_stats = pd.DataFrame(sample_summary)
+
+        if par["ingestion_method"] == "cellranger_multi":
+            cell_rna_stats, cellranger_stats = generate_cellranger_stats(mod_obs, uns, sample_id, required_keys)
+            metrics_cellranger_dfs.append(cellranger_stats)
+
+        if par["ingestion_method"] == "xenium":
+            cell_rna_stats = generate_xenium_stats(mod_obs, sample_id, required_keys)
+
         cell_stats_dfs.append(cell_rna_stats)
         sample_stats_dfs.append(sample_summary_stats)
 
-    combined_cell_stats = pd.concat(cell_stats_dfs, ignore_index=True)
-    combined_sample_stats = pd.concat(sample_stats_dfs, ignore_index=True)
-    combined_metrics_cellranger = pd.concat(metrics_cellranger_dfs, ignore_index=True)
+    # Combine dataframes of all samples
+    logger.info("Combining data of all samples into single object...")
+    combined_cell_stats = concatenate_dataframes(cell_stats_dfs)
+    combined_sample_stats = concatenate_dataframes(sample_stats_dfs)
+    if par["ingestion_method"] == "cellranger_multi":
+        combined_metrics_cellranger = concatenate_dataframes(metrics_cellranger_dfs)
 
-    for df in [combined_cell_stats, combined_sample_stats, combined_metrics_cellranger]:
+    report_categories = [combined_cell_stats, combined_sample_stats]
+
+    if par["ingestion_method"] == "cellranger_multi":
+        report_categories.append(combined_metrics_cellranger)
+
+    for df in report_categories:
         df["sample_id"] = pd.Categorical(df["sample_id"])
 
     output = {
         "cell_rna_stats": transform_df(combined_cell_stats),
-        "sample_summary_stats": transform_df(combined_sample_stats),
-        "metrics_cellranger_stats": transform_df(combined_metrics_cellranger),
+        "sample_summary_stats": transform_df(combined_sample_stats)
     }
 
+    if par["ingestion_method"] == "cellranger_multi":
+        output["metrics_cellranger_stats"] = transform_df(combined_metrics_cellranger)
+
+    logger.info(f"Writing output data json to {par['output']}")
     output_path = Path(par["output"])
     with open(output_path, "w") as f:
         json.dump(output, f, indent=2)
+
+    report_structures = {
+        "cellranger_multi": os.path.join(meta["resources_dir"], "report_structure/cellranger.json"),
+        "xenium": os.path.join(meta["resources_dir"], "report_structure/xenium.json")
+    }
+
+    logger.info(f"Writing output report structure json to {par['output_reporting_json']}")
+    shutil.copy(report_structures[par["ingestion_method"]], par["output_reporting_json"])
 
 
 if __name__ == "__main__":

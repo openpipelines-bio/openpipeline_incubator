@@ -78,6 +78,72 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+  - type: "string"
+    name: "--ingestion_method"
+    description: "Method that was used to ingest the data - this will define the structure\
+      \ of the report that is generated."
+    info: null
+    required: true
+    choices:
+    - "cellranger_multi"
+    - "xenium"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_sample_id"
+    description: "The key in the h5mu file that contains the sample ID. If not provided,\
+      \ each H5MU file will be considered as a separate sample."
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_total_counts"
+    description: "The key in the h5mu .obs field that contains the total counts."
+    info: null
+    default:
+    - "total_counts"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_num_nonzero_vars"
+    description: "The key in the h5mu .obs field that contains the number of nonzero\
+      \ vars."
+    info: null
+    default:
+    - "num_nonzero_vars"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_fraction_mitochondrial"
+    description: "The key in the h5mu .obs field that contains the fraction mitochondrial\
+      \ genes."
+    info: null
+    default:
+    - "fraction_mitochondrial"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_fraction_ribosomal"
+    description: "The key in the h5mu .obs field that contains the fraction ribosomal\
+      \ genes."
+    info: null
+    default:
+    - "fraction_ribosomal"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 - name: "Outputs"
   arguments:
   - type: "file"
@@ -92,7 +158,19 @@ argument_groups:
     direction: "output"
     multiple: false
     multiple_sep: ";"
-- name: "Options"
+  - type: "file"
+    name: "--output_reporting_json"
+    description: "The output JSON file that defines the QC report"
+    info: null
+    example:
+    - "path/to/file.json"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+- name: "Filtering & grouping options"
   arguments:
   - type: "integer"
     name: "--min_total_counts"
@@ -116,30 +194,19 @@ argument_groups:
     multiple: false
     multiple_sep: ";"
   - type: "string"
-    name: "--sample_id_key"
-    description: "The key in the h5mu file that contains the sample ID"
+    name: "--obs_metadata"
+    description: "The metadata keys in the h5mu .obs to include in the output JSON."
     info: null
-    default:
-    - "sample_id"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--obs_keys"
-    description: "The keys in the h5mu .obs to include in the output JSON"
-    info: null
-    default:
-    - "total_counts"
-    - "num_nonzero_vars"
-    - "fraction_mitochondrial"
-    - "fraction_ribosomal"
+    example:
+    - "donor_id;cell_type;batch;condition"
     required: false
     direction: "input"
     multiple: true
     multiple_sep: ";"
+- name: "Options for CellRanger reports"
+  arguments:
   - type: "string"
-    name: "--cellbender_obs_keys"
+    name: "--obs_cellbender"
     description: "The cellbender keys in the h5mu .obs to include in the output JSON"
     info: null
     default:
@@ -152,7 +219,7 @@ argument_groups:
     multiple: true
     multiple_sep: ";"
   - type: "string"
-    name: "--cellranger_metrics_uns_key"
+    name: "--uns_cellranger_metrics"
     description: "The key in the h5mu file .uns that contains the cellranger metrics"
     info: null
     default:
@@ -161,15 +228,69 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+- name: "Options for Xenium reports"
+  arguments:
   - type: "string"
-    name: "--metadata_obs_keys"
-    description: "The metadata keys in the h5mu .obs to include in the output JSON."
+    name: "--obs_nucleus_area"
+    description: "The key in the h5mu .obs field that contains the nucleus area."
     info: null
-    example:
-    - "donor_id;cell_type;batch;condition"
+    default:
+    - "nucleus_area"
     required: false
     direction: "input"
-    multiple: true
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_cell_area"
+    description: "The key in the h5mu .obs field that contains the cell area."
+    info: null
+    default:
+    - "cell_area"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_x_coord"
+    description: "The key in the h5mu .obs field that contains the x coordinate."
+    info: null
+    default:
+    - "x_coord"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_y_coord"
+    description: "The key in the h5mu .obs field that contains the y coordinate."
+    info: null
+    default:
+    - "y_coord"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_control_probe_counts"
+    description: "The key in the h5mu .obs field that contains the number of control\
+      \ probes."
+    info: null
+    default:
+    - "control_probe_counts"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_control_codeword_counts"
+    description: "The key in the h5mu .obs field that contains the number of control\
+      \ codewords."
+    info: null
+    default:
+    - "control_codeword_counts"
+    required: false
+    direction: "input"
+    multiple: false
     multiple_sep: ";"
 resources:
 - type: "python_script"
@@ -178,9 +299,14 @@ resources:
 - type: "file"
   path: "setup_logger.py"
 - type: "file"
+  path: "report_structure"
+- type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Convert QC metrics from h5mu to JSON"
+description: "Takes H5MU files that have been ingested by CellRanger, Xenium or CosMx\
+  \ and processed by the QC workflow, and generates:\n- A JSON file that contains\
+  \ the combined data for the QC report\n- A JSON file that defines the layout and\
+  \ structure of the QC report\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
@@ -190,8 +316,8 @@ test_resources:
 info: null
 status: "enabled"
 scope:
-  image: "public"
-  target: "public"
+  image: "private"
+  target: "private"
 requirements:
   commands:
   - "ps"
@@ -310,10 +436,10 @@ build_info:
   config: "src/ingestion_qc/h5mu_to_qc_json/config.vsh.yaml"
   runner: "nextflow"
   engine: "docker"
-  output: "target/nextflow/ingestion_qc/h5mu_to_qc_json"
-  executable: "target/nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
+  output: "target/_private/nextflow/ingestion_qc/h5mu_to_qc_json"
+  executable: "target/_private/nextflow/ingestion_qc/h5mu_to_qc_json/main.nf"
   viash_version: "0.9.4"
-  git_commit: "dac49e3010949fc065921d176de121e3eb72782f"
+  git_commit: "7e5e3d2c2a2967034d8557401842806a61c8da17"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
 package_config:
   name: "openpipeline_incubator"

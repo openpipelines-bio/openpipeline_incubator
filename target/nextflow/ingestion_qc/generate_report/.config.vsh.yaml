@@ -79,10 +79,20 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+  - type: "string"
+    name: "--ingestion_method"
+    info: null
+    required: true
+    choices:
+    - "cellranger_multi"
+    - "xenium"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
   - type: "file"
     name: "--sample_metadata"
-    description: "The sample metadata file. Must contain at least\na column 'sample_id'\
-      \ corresponding to the --sample_ids\nargument.\n"
+    description: "The sample metadata file corresponding to .obs fields in the h5mu\
+      \ input files, to be used for grouping in the report.\n"
     info: null
     example:
     - "path/to/file.csv"
@@ -108,16 +118,30 @@ argument_groups:
   arguments:
   - type: "string"
     name: "--var_gene_names"
-    description: "The column name in the .var h5mu files that contains the gene names.\n"
+    description: "The column name in the .var h5mu files that contains the gene names.\
+      \ If not provided, .var_names will be used.\n"
     info: null
     example:
-    - "gene_symbol"
-    default:
     - "gene_symbol"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
+  - type: "string"
+    name: "--obs_metadata"
+    description: "The metadata keys in the h5mu .obs to include in the report."
+    info: null
+    example:
+    - "donor_id"
+    - "cell_type"
+    - "batch"
+    - "condition"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "QC options"
+  arguments:
   - type: "string"
     name: "--var_name_mitochondrial_genes"
     description: "In which .var slot to store a boolean array corresponding the mitochondrial\
@@ -139,16 +163,6 @@ argument_groups:
     required: false
     direction: "input"
     multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--metadata_obs_keys"
-    description: "The metadata keys in the h5mu .obs to include in the report."
-    info: null
-    example:
-    - "donor_id;cell_type;batch;condition"
-    required: false
-    direction: "input"
-    multiple: true
     multiple_sep: ";"
 - name: "Cellbender options"
   arguments:
@@ -335,13 +349,13 @@ build_info:
   output: "target/nextflow/ingestion_qc/generate_report"
   executable: "target/nextflow/ingestion_qc/generate_report/main.nf"
   viash_version: "0.9.4"
-  git_commit: "dac49e3010949fc065921d176de121e3eb72782f"
+  git_commit: "7e5e3d2c2a2967034d8557401842806a61c8da17"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
   dependencies:
   - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/metadata/add_id"
   - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/qc/qc"
   - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/correction/cellbender_remove_background"
-  - "target/nextflow/ingestion_qc/h5mu_to_qc_json"
+  - "target/_private/nextflow/ingestion_qc/h5mu_to_qc_json"
   - "target/nextflow/ingestion_qc/generate_html"
   - "target/dependencies/vsh/vsh/craftbox/main/nextflow/move_files_to_directory"
 package_config:
