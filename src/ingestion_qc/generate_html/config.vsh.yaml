@@ -54,7 +54,8 @@ engines:
         run: |
           npm install -g pnpm@latest-10 \
           && cd /opt && git clone https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
-          && cd incubator_ingestion_qc && pnpm install
+          && cd incubator_ingestion_qc && pnpm install \
+          && true
 
 runners:
   - type: executable

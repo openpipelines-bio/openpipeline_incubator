@@ -457,13 +457,14 @@ RUN apt-get update && \
 
 RUN npm install -g pnpm@latest-10 \
 && cd /opt && git clone https://github.com/openpipelines-bio/incubator_ingestion_qc.git \
-&& cd incubator_ingestion_qc && pnpm install
+&& cd incubator_ingestion_qc && pnpm install \
+&& true
 
 LABEL org.opencontainers.image.authors="Jakub Majercik, Dorien Roosen, Robrecht Cannoodt, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc generate_html"
-LABEL org.opencontainers.image.created="2025-06-04T13:55:55Z"
+LABEL org.opencontainers.image.created="2025-06-11T08:41:47Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_incubator"
-LABEL org.opencontainers.image.revision="7e5e3d2c2a2967034d8557401842806a61c8da17"
+LABEL org.opencontainers.image.revision="d2d0558441bd5f664de6720c8361f9f33a58ffda"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
