@@ -462,7 +462,7 @@ RUN npm install -g pnpm@latest-10 \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik, Dorien Roosen, Robrecht Cannoodt, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component ingestion_qc generate_html"
-LABEL org.opencontainers.image.created="2025-07-08T07:16:51Z"
+LABEL org.opencontainers.image.created="2025-07-08T09:04:42Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_incubator"
 LABEL org.opencontainers.image.revision="8d0ca660b502453b1353fbc3a9a588fedf1b0a67"
 LABEL org.opencontainers.image.version="build_xenium"
