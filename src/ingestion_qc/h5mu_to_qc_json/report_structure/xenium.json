@@ -1,0 +1,91 @@
+{
+  "categories": [
+    {
+      "name": "Sample QC",
+      "key": "sample_summary_stats",
+      "additionalAxes": false,
+      "defaultFilters": []
+    },
+    {
+      "name": "Cell RNA QC",
+      "key": "cell_rna_stats",
+      "additionalAxes": true,
+      "defaultFilters": [
+        {
+          "type": "histogram",
+          "visualizationType": "histogram",
+          "field": "total_counts",
+          "label": "Total UMI per cell",
+          "description": "Total number of RNA molecules detected per cell. Low values typically indicate empty droplets or low-quality cells that should be filtered out.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "zoomMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "visualizationType": "histogram",
+          "field": "num_nonzero_vars",
+          "label": "Number of non-zero genes per cell",
+          "description": "Count of unique genes detected in each cell. Low gene counts often indicate poor-quality cells.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "zoomMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "visualizationType": "histogram",
+          "field": "fraction_mitochondrial",
+          "label": "Fraction UMI of mitochondrial genes per cell",
+          "description": "Proportion of cell's RNA from mitochondrial genes.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "visualizationType": "histogram",
+          "field": "fraction_ribosomal",
+          "label": "Fraction UMI of ribosomal genes per cell",
+          "description": "Proportion of cell's RNA from ribosomal protein genes. Extreme values may indicate stress responses or cell cycle abnormalities.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "visualizationType": "histogram",
+          "field": "cell_area",
+          "label": "Segmented cell area",
+          "description": "Area of the segmented cells.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "visualizationType": "histogram",
+          "field": "nucleus_ratio",
+          "label": "Nucleus Ratio",
+          "description": "Ratio of the nucleus area to the segmented cell area.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,956 @@
+name: "atlas_service"
+version: "build_xenium"
+authors:
+- name: "Dorien Roosen"
+  roles:
+  - "author"
+  - "maintainer"
+  info:
+    role: "Core Team Member"
+    links:
+      email: "dorien@data-intuitive.com"
+      github: "dorien-er"
+      linkedin: "dorien-roosen"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Scientist"
+- name: "Weiwei Schultz"
+  roles:
+  - "contributor"
+  info:
+    role: "Contributor"
+    organizations:
+    - name: "Janssen R&D US"
+      role: "Associate Director Data Sciences"
+argument_groups:
+- name: "Input (query) data arguments"
+  description: "The input query dataset(s) to be annotated"
+  arguments:
+  - type: "string"
+    name: "--id"
+    description: "ID of the sample."
+    info: null
+    example:
+    - "foo"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input"
+    description: "Input query dataset(s) to be annotated"
+    info: null
+    example:
+    - "input.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Modality to be processed. Should match the modality in the --reference\
+      \ dataset, if provided."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_layer"
+    description: "The layer in the input data containing the raw counts, if .X is\
+      \ not to be used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_var_gene_names"
+    description: "The name of the adata var column containing gene names; when no\
+      \ gene_name_layer is provided, the var index will be used.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--input_reference_gene_overlap"
+    description: "The minimum number of genes present in both the reference and query\
+      \ datasets.\n"
+    info: null
+    default:
+    - 100
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Reference data arguments"
+  description: "Dataset to be used as a reference for label transfer and to train\
+    \ annotation algorithms on."
+  arguments:
+  - type: "file"
+    name: "--reference"
+    description: "The reference dataset in .h5mu format to be used as a reference\
+      \ mapper and to train annotation algorithms on.\n"
+    info: null
+    example:
+    - "reference.h5mu"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_layer_raw_counts"
+    description: "The layer in the reference dataset containing the raw counts, if\
+      \ .X is not to be used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_layer_lognormalized_counts"
+    description: "The layer in the reference dataset containing the log-normalized\
+      \ counts, if .X is not to be used."
+    info: null
+    default:
+    - "log_normalized"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_var_gene_names"
+    description: "The name of the adata .var column containing gene names if the .var\
+      \ index is not to be used.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_batch"
+    description: "The .obs column of the reference dataset containing the batch information.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_label"
+    description: "The `.obs` key of the target labels to tranfer."
+    info: null
+    example:
+    - "cell_type"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_label_unlabeled_category"
+    description: "Value in the --reference_obs_label field that indicates unlabeled\
+      \ observations"
+    info: null
+    default:
+    - "Unkown"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_var_input"
+    description: ".var column containing highly variable genes. By default, do not\
+      \ subset genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Annotation methods"
+  description: "The available annotation methods to annotate the query dataset(s)\
+    \ with."
+  arguments:
+  - type: "string"
+    name: "--annotation_methods"
+    description: "Annotation methods to be executed."
+    info: null
+    example:
+    - "harmony_knn;scanvi_scarches"
+    required: true
+    choices:
+    - "celltypist"
+    - "harmony_knn"
+    - "scgpt_annotation"
+    - "scvi_knn"
+    - "scanvi_scarches"
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Pre-processing options: RNA filtering"
+  description: "Pre-processing options for filtering RNA data"
+  arguments:
+  - type: "integer"
+    name: "--rna_min_counts"
+    description: "Minimum number of counts captured per cell."
+    info: null
+    example:
+    - 200
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_max_counts"
+    description: "Maximum number of counts captured per cell."
+    info: null
+    example:
+    - 5000000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_min_genes_per_cell"
+    description: "Minimum of non-zero values per cell."
+    info: null
+    example:
+    - 200
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_max_genes_per_cell"
+    description: "Maximum of non-zero values per cell."
+    info: null
+    example:
+    - 1500000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_min_cells_per_gene"
+    description: "Minimum of non-zero values per gene."
+    info: null
+    example:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_min_fraction_mito"
+    description: "Minimum fraction of UMIs that are mitochondrial."
+    info: null
+    example:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_max_fraction_mito"
+    description: "Maximum fraction of UMIs that are mitochondrial."
+    info: null
+    example:
+    - 0.2
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: Highly variable features detection"
+  description: "Pre-processing options for detecting highly variable features"
+  arguments:
+  - type: "integer"
+    name: "--n_hvg"
+    description: "Number of highly-variable features to keep. \nOnly relevant if HVG\
+      \ need to be calculated across query and reference datasets (e.g. for --annotation_methods\
+      \ scvi_knn and harmony_knn). \nFor reference mapping-based methods, the HVG's\
+      \ specified in --reference_var_input will be used.\n"
+    info: null
+    default:
+    - 2000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: Mitochondrial & Ribosomal Gene Detection"
+  description: "Pre-processing options for detecting mitochondrial genes"
+  arguments:
+  - type: "string"
+    name: "--var_name_mitochondrial_genes"
+    description: "In which .var slot to store a boolean array corresponding the mitochondrial\
+      \ genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--var_name_ribosomal_genes"
+    description: "In which .var slot to store a boolean array corresponding the ribosomal\
+      \ genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_name_mitochondrial_fraction"
+    description: "When specified, write the fraction of counts originating from mitochondrial\
+      \ genes \n(based on --mitochondrial_gene_regex) to an .obs column with the specified\
+      \ name.\nRequires --var_name_mitochondrial_genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_name_ribosomal_fraction"
+    description: "When specified, write the fraction of counts originating from ribosomal\
+      \ genes \n(based on --ribosomal_gene_regex) to an .obs column with the specified\
+      \ name.\nRequires --var_name_ribosomal_genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--mitochondrial_gene_regex"
+    description: "Regex string that identifies mitochondrial genes from --var_gene_names.\n\
+      By default will detect human and mouse mitochondrial genes from a gene symbol.\n"
+    info: null
+    default:
+    - "^[mM][tT]-"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--ribosomal_gene_regex"
+    description: "Regex string that identifies ribosomal genes from --var_gene_names.\n\
+      By default will detect human and mouse ribosomal genes from a gene symbol.\n"
+    info: null
+    default:
+    - "^[Mm]?[Rr][Pp][LlSs]"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: QC metrics calculation options"
+  description: "Pre-processing options for calculating QC metrics"
+  arguments:
+  - type: "string"
+    name: "--var_qc_metrics"
+    description: "Keys to select a boolean (containing only True or False) column\
+      \ from .var.\nFor each cell, calculate the proportion of total values for genes\
+      \ which are labeled 'True', \ncompared to the total sum of the values for all\
+      \ genes. Defaults to the combined values specified for\n--var_name_mitochondrial_genes\
+      \ and --highly_variable_features_var_output.\n"
+    info: null
+    example:
+    - "ercc,highly_variable"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ","
+- name: "Harmony integration options"
+  description: "Specifications for harmony integration."
+  arguments:
+  - type: "double"
+    name: "--harmony_theta"
+    description: "Diversity clustering penalty parameter. Specify for each variable\
+      \ in group.by.vars. \ntheta=0 does not encourage any diversity. Larger values\
+      \ of theta\nresult in more diverse clusters.\"\n"
+    info: null
+    example:
+    - 0.0
+    - 1.0
+    - 2.0
+    default:
+    - 2.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "scVI, scANVI and scArches training options"
+  description: "Training arguments for scVI, scANVI and scArches. Relevant for --annotation_methods\
+    \ 'scvi_knn' and 'scanvi_scarches'."
+  arguments:
+  - type: "boolean"
+    name: "--early_stopping"
+    description: "Whether to perform early stopping with respect to the validation\
+      \ set."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--early_stopping_monitor"
+    description: "Metric logged during validation set epoch."
+    info: null
+    default:
+    - "elbo_validation"
+    required: false
+    choices:
+    - "elbo_validation"
+    - "reconstruction_loss_validation"
+    - "kl_local_validation"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--early_stopping_patience"
+    description: "Number of validation epochs with no improvement after which training\
+      \ will be stopped."
+    info: null
+    default:
+    - 45
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--early_stopping_min_delta"
+    description: "Minimum change in the monitored quantity to qualify as an improvement,\
+      \ i.e. an absolute change of less than min_delta, will count as no improvement."
+    info: null
+    default:
+    - 0.0
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_epochs"
+    description: "Number of passes through the dataset, defaults to (20000 / number\
+      \ of cells) * 400 or 400; whichever is smallest."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--reduce_lr_on_plateau"
+    description: "Whether to monitor validation loss and reduce learning rate when\
+      \ validation set `lr_scheduler_metric` plateaus."
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--lr_factor"
+    description: "Factor to reduce learning rate."
+    info: null
+    default:
+    - 0.6
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--lr_patience"
+    description: "Number of epochs with no improvement after which learning rate will\
+      \ be reduced."
+    info: null
+    default:
+    - 30.0
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "scGPT reference model"
+  description: "scGPT model input, required for scGPT annotation methods"
+  arguments:
+  - type: "file"
+    name: "--scgpt_model"
+    description: "The model file containing checkpoints and cell type label mapper.\n"
+    info: null
+    example:
+    - "best_model.pt"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--scgpt_model_config"
+    description: "The model configuration file. \n"
+    info: null
+    example:
+    - "args.json"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--scgpt_model_vocab"
+    description: "Model vocabulary file directory.\n"
+    info: null
+    example:
+    - "vocab.json"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scgpt_finetuned_checkpoints_key"
+    description: "Key in the model file containing the pretrained checkpoints.\n"
+    info: null
+    default:
+    - "model_state_dict"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scgpt_label_mapper_key"
+    description: "Key in the model file containing the cell type class to label mapper\
+      \ dictionary.\n"
+    info: null
+    default:
+    - "id_to_class"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "scGPT annotation options"
+  description: "Specifications for scGPT annotation."
+  arguments:
+  - type: "string"
+    name: "--scgpt_pad_token"
+    description: "Token used for padding.\n"
+    info: null
+    default:
+    - "<pad>"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scgpt_pad_value"
+    description: "The value of the padding token.\n"
+    info: null
+    default:
+    - -2
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scgpt_n_hvg"
+    description: "Number of highly variable genes to consider for scGPT annotation.\n"
+    info: null
+    default:
+    - 1200
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scgpt_hvg_flavor"
+    description: "Method to be used for identifying highly variable genes. \nNote\
+      \ that the default for this workflow (`cell_ranger`) is not the default method\
+      \ for scanpy hvg detection (`seurat`).\n"
+    info: null
+    default:
+    - "cell_ranger"
+    required: false
+    choices:
+    - "cell_ranger"
+    - "seurat"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--scgpt_dsbn"
+    description: "Apply domain-specific batch normalization\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scgpt_batch_size"
+    description: "The batch size to be used for embedding inference.\n"
+    info: null
+    default:
+    - 64
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scgpt_n_input_bins"
+    description: "The number of bins to discretize the data into; When no value is\
+      \ provided, data won't be binned.\n"
+    info: null
+    default:
+    - 51
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scgpt_seed"
+    description: "Seed for random number generation used for binning. If not set,\
+      \ no seed is used.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "CellTypist reference model"
+  description: "The CellTypist reference model to use for annotation. If not provided,\
+    \ the reference dataset will be used for model training."
+  arguments:
+  - type: "file"
+    name: "--celltypist_model"
+    description: "Pretrained model in pkl format. If not provided, the model will\
+      \ be trained on the reference data and --reference should be provided."
+    info: null
+    example:
+    - "pretrained_model.pkl"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "CellTypist annotation options"
+  description: "Specifications for CellTypist annotation."
+  arguments:
+  - type: "boolean"
+    name: "--celltypist_feature_selection"
+    description: "Whether to perform feature selection."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--celltypist_majority_voting"
+    description: "Whether to refine the predicted labels by running the majority voting\
+      \ classifier after over-clustering."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--celltypist_C"
+    description: "Inverse of regularization strength in logistic regression."
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--celltypist_max_iter"
+    description: "Maximum number of iterations before reaching the minimum of the\
+      \ cost function."
+    info: null
+    default:
+    - 1000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--celltypist_use_SGD"
+    description: "Whether to use the stochastic gradient descent algorithm."
+    info: null
+    direction: "input"
+  - type: "double"
+    name: "--celltypist_min_prop"
+    description: "\"For the dominant cell type within a subcluster, the minimum proportion\
+      \ of cells required to \nsupport naming of the subcluster by this cell type.\
+      \ Ignored if majority_voting is set to False. \nSubcluster that fails to pass\
+      \ this proportion threshold will be assigned 'Heterogeneous'.\"\n"
+    info: null
+    default:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Clustering options"
+  description: "Arguments for Leiden clustering. Only relevant for --annotation_methods\
+    \ `scvi_knn`, `scanvi_scarches` and `harmony_knn`."
+  arguments:
+  - type: "double"
+    name: "--leiden_resolution"
+    description: "Control the coarseness of the clustering. Higher values lead to\
+      \ more clusters."
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Neighbor classifier arguments"
+  description: "Arguments related to calculating the n nearest neighbors. Only relevant\
+    \ for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`."
+  arguments:
+  - type: "string"
+    name: "--knn_weights"
+    description: "Weight function used in prediction. Possible values are:\n`uniform`\
+      \ (all points in each neighborhood are weighted equally) or \n`distance` (weight\
+      \ points by the inverse of their distance)\n"
+    info: null
+    default:
+    - "uniform"
+    required: false
+    choices:
+    - "uniform"
+    - "distance"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--knn_n_neighbors"
+    description: "The number of neighbors to use in k-neighbor graph structure used\
+      \ for fast approximate nearest neighbor search with PyNNDescent. \nLarger values\
+      \ will result in more accurate search results at the cost of computation time.\n"
+    info: null
+    default:
+    - 15
+    required: false
+    min: 5
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  description: "The output file to write the annotated dataset to."
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "The output file.\n"
+    info: null
+    example:
+    - "output.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "nextflow_script"
+  path: "main.nf"
+  is_executable: true
+  entrypoint: "run_wf"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "A pipeline to process and annotate gene expression data."
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_wf"
+- type: "file"
+  path: "scgpt"
+- type: "file"
+  path: "pbmc_1k_protein_v3_mms.h5mu"
+- type: "file"
+  path: "TS_Blood_filtered.h5mu"
+- type: "file"
+  path: "celltypist_model_Immune_All_Low.pkl"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+requirements:
+  commands:
+  - "ps"
+dependencies:
+- name: "workflows/multiomics/process_samples"
+  alias: "process_samples_workflow"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "workflows/annotation/scgpt_annotation"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "annotate/celltypist"
+  alias: "celltypist_annotation"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "workflows/annotation/harmony_knn"
+  alias: "harmony_knn_annotation"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "workflows/annotation/scvi_knn"
+  alias: "scvi_knn_annotation"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "workflows/annotation/scanvi_scarches"
+  alias: "scanvi_scarches_annotation"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+repositories:
+- type: "github"
+  name: "openpipeline"
+  repo: "openpipelines-bio/openpipeline"
+  tag: "2.1.2"
+- type: "vsh"
+  name: "craftbox"
+  repo: "craftbox"
+  tag: "main"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_incubator"
+  docker_registry: "ghcr.io"
+runners:
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+build_info:
+  config: "src/atlas_service/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "native"
+  output: "target/nextflow/atlas_service"
+  executable: "target/nextflow/atlas_service/main.nf"
+  viash_version: "0.9.4"
+  git_commit: "8d0ca660b502453b1353fbc3a9a588fedf1b0a67"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
+  dependencies:
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/multiomics/process_samples"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scgpt_annotation"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/annotate/celltypist"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/harmony_knn"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scvi_knn"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scanvi_scarches"
+package_config:
+  name: "openpipeline_incubator"
+  version: "build_xenium"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_incubator/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "github"
+    name: "openpipeline"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+  - type: "vsh"
+    name: "craftbox"
+    repo: "craftbox"
+    tag: "main"
+  viash_version: "0.9.4"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag\
+    \ := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'\n"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_incubator"
+    docker_registry: "ghcr.io"

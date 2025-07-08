@@ -1,0 +1,389 @@
+name: "generate_report"
+namespace: "ingestion_qc"
+version: "build_xenium"
+authors:
+- name: "Jakub Majercik"
+  roles:
+  - "author"
+  info:
+    role: "Contributor"
+    links:
+      email: "jakub@data-intuitive.com"
+      github: "jakubmajercik"
+      linkedin: "jakubmajercik"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Bioinformatics Engineer"
+- name: "Dorien Roosen"
+  roles:
+  - "author"
+  info:
+    role: "Core Team Member"
+    links:
+      email: "dorien@data-intuitive.com"
+      github: "dorien-er"
+      linkedin: "dorien-roosen"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Scientist"
+- name: "Robrecht Cannoodt"
+  roles:
+  - "author"
+  info:
+    role: "Core Team Member"
+    links:
+      email: "robrecht@data-intuitive.com"
+      github: "rcannood"
+      orcid: "0000-0003-3641-729X"
+      linkedin: "robrechtcannoodt"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Science Engineer"
+    - name: "Open Problems"
+      href: "https://openproblems.bio"
+      role: "Core Member"
+- name: "Weiwei Schultz"
+  roles:
+  - "contributor"
+  info:
+    role: "Contributor"
+    organizations:
+    - name: "Janssen R&D US"
+      role: "Associate Director Data Sciences"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "string"
+    name: "--id"
+    description: "The sample IDs to include in the report. If not provided,\nthe sample\
+      \ IDs will be extracted from the h5mu files.\n"
+    info: null
+    example:
+    - "sample1"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input"
+    description: "The input h5mu files."
+    info: null
+    example:
+    - "path/to/file1.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--ingestion_method"
+    info: null
+    required: true
+    choices:
+    - "cellranger_multi"
+    - "xenium"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--sample_metadata"
+    description: "The sample metadata file corresponding to .obs fields in the h5mu\
+      \ input files, to be used for grouping in the report.\n"
+    info: null
+    example:
+    - "path/to/file.csv"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_samples_per_report"
+    description: "The maximum number of samples to be included per report. \nMultiple\
+      \ reports will be generated (with samples equally divided over all reports)\
+      \ if number of input samples exceeds this threshold.\n"
+    info: null
+    default:
+    - 20
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Options"
+  arguments:
+  - type: "string"
+    name: "--var_gene_names"
+    description: "The column name in the .var h5mu files that contains the gene names.\
+      \ If not provided, .var_names will be used.\n"
+    info: null
+    example:
+    - "gene_symbol"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_metadata"
+    description: "The metadata keys in the h5mu .obs to include in the report."
+    info: null
+    example:
+    - "donor_id"
+    - "cell_type"
+    - "batch"
+    - "condition"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "QC options"
+  arguments:
+  - type: "string"
+    name: "--var_name_mitochondrial_genes"
+    description: "In which .var slot to store a boolean array corresponding the mitochondrial\
+      \ genes.\n"
+    info: null
+    default:
+    - "mitochondrial"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--var_name_ribosomal_genes"
+    description: "In which .var slot to store a boolean array corresponding the ribosomal\
+      \ genes.\n"
+    info: null
+    default:
+    - "ribosomal"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Cellbender options"
+  arguments:
+  - type: "boolean"
+    name: "--run_cellbender"
+    description: "Whether to run cellbender or not."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--cellbender_epochs"
+    description: "Number of epochs to train cellbender."
+    info: null
+    default:
+    - 150
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output_qc_report"
+    description: "The output HTML report"
+    info: null
+    example:
+    - "path/to/file.html"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: true
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_processed_h5mu"
+    description: "Folder containing the processed h5mu files."
+    info: null
+    default:
+    - "qc_h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "nextflow_script"
+  path: "main.nf"
+  is_executable: true
+  entrypoint: "run_wf"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "Run the ingestion QC report generation"
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_no_cellbender"
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_with_cellbender"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+requirements:
+  commands:
+  - "ps"
+dependencies:
+- name: "metadata/add_id"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "workflows/qc/qc"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "correction/cellbender_remove_background"
+  alias: "cellbender"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+- name: "ingestion_qc/h5mu_to_qc_json"
+  repository:
+    type: "local"
+- name: "ingestion_qc/generate_html"
+  repository:
+    type: "local"
+- name: "move_files_to_directory"
+  repository:
+    type: "vsh"
+    repo: "craftbox"
+    tag: "main"
+repositories:
+- type: "github"
+  name: "openpipeline"
+  repo: "openpipelines-bio/openpipeline"
+  tag: "2.1.2"
+- type: "vsh"
+  name: "craftbox"
+  repo: "craftbox"
+  tag: "main"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_incubator"
+  docker_registry: "ghcr.io"
+runners:
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+build_info:
+  config: "src/ingestion_qc/generate_report/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "native"
+  output: "target/nextflow/ingestion_qc/generate_report"
+  executable: "target/nextflow/ingestion_qc/generate_report/main.nf"
+  viash_version: "0.9.4"
+  git_commit: "8d0ca660b502453b1353fbc3a9a588fedf1b0a67"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
+  dependencies:
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/metadata/add_id"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/qc/qc"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/correction/cellbender_remove_background"
+  - "target/_private/nextflow/ingestion_qc/h5mu_to_qc_json"
+  - "target/nextflow/ingestion_qc/generate_html"
+  - "target/dependencies/vsh/vsh/craftbox/main/nextflow/move_files_to_directory"
+package_config:
+  name: "openpipeline_incubator"
+  version: "build_xenium"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_incubator/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "github"
+    name: "openpipeline"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "2.1.2"
+  - type: "vsh"
+    name: "craftbox"
+    repo: "craftbox"
+    tag: "main"
+  viash_version: "0.9.4"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag\
+    \ := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'\n"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_incubator"
+    docker_registry: "ghcr.io"

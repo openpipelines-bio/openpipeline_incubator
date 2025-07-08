@@ -1,0 +1,162 @@
+{
+  "categories": [
+    {
+      "name": "Sample QC",
+      "key": "sample_summary_stats",
+      "additionalAxes": false,
+      "defaultFilters": []
+    },
+    {
+      "name": "SampleQC",
+      "key": "metrics_cellranger_stats",
+      "additionalAxes": false,
+      "defaultFilters": [
+        {
+          "type": "bar",
+          "field": "Number_of_reads_in_the_library",
+          "label": "Number of reads per library",
+          "description": "Sequencing depth per sample. Higher values generally indicate more comprehensive cell profiling.",
+          "nBins": 10,
+          "groupBy": "sample_id",
+          "xAxisType": "linear",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "bar",
+          "field": "Confidently_mapped_reads_in_cells",
+          "label": "Confidently mapped reads in cells",
+          "description": "Number of reads that were mapped unambiguously to the reference genome within cell-containing droplets.",
+          "groupBy": "sample_id",
+          "nBins": 10,
+          "yAxisType": "linear"
+        },
+        {
+          "type": "bar",
+          "field": "Estimated_number_of_cells",
+          "label": "Estimated number of cells",
+          "description": "CellRanger's estimate of the number of cells per sample based on the UMI count distribution.",
+          "groupBy": "sample_id",
+          "nBins": 10,
+          "yAxisType": "linear"
+        },
+        {
+          "type": "bar",
+          "field": "Sequencing_saturation",
+          "label": "Sequencing saturation",
+          "description": "Fraction of reads that are duplicates of existing UMIs. Higher values suggest deeper sequencing coverage.",
+          "groupBy": "sample_id",
+          "nBins": 10,
+          "yAxisType": "linear"
+        }
+      ]
+    },
+    {
+      "name": "Cell RNA QC",
+      "key": "cell_rna_stats",
+      "additionalAxes": true,
+      "defaultFilters": [
+        {
+          "type": "histogram",
+          "field": "total_counts",
+          "label": "Total UMI per cell",
+          "description": "Total number of RNA molecules detected per cell. Low values typically indicate empty droplets or low-quality cells that should be filtered out.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "zoomMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "num_nonzero_vars",
+          "label": "Number of non-zero genes per cell",
+          "description": "Count of unique genes detected in each cell. Low gene counts often indicate poor-quality cells.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "zoomMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "fraction_mitochondrial",
+          "label": "Fraction UMI of mitochondrial genes per cell",
+          "description": "Proportion of cell's RNA from mitochondrial genes.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "fraction_ribosomal",
+          "label": "Fraction UMI of ribosomal genes per cell",
+          "description": "Proportion of cell's RNA from ribosomal protein genes. Extreme values may indicate stress responses or cell cycle abnormalities.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "pct_of_counts_in_top_50_vars",
+          "label": "Fraction UMI in top 50 genes per cell",
+          "description": "Proportion of RNA molecules from the 50 most-expressed genes in each cell.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "cellbender_cell_probability",
+          "label": "CellBender cell probability",
+          "description": "CellBender's statistical confidence (0-1) that a barcode represents a real cell, with higher values indicating stronger confidence.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "cellbender_background_fraction",
+          "label": "CellBender background fraction",
+          "description": "Estimated percentage of each cell's RNA that comes from the ambient solution rather than the cell itself.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "cellbender_cell_size",
+          "label": "CellBender cell size",
+          "description": "CellBender's estimate of the true number of RNA molecules in each cell after removing ambient contamination. Reflects actual cell RNA content rather than raw UMI counts.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        },
+        {
+          "type": "histogram",
+          "field": "cellbender_droplet_efficiency",
+          "label": "CellBender droplet efficiency",
+          "description": "CellBender's estimate of how efficiently each droplet captured RNA molecules. Higher values indicate more reliable RNA sampling within individual droplets.",
+          "cutoffMin": null,
+          "cutoffMax": null,
+          "nBins": 50,
+          "groupBy": "sample_id",
+          "yAxisType": "linear"
+        }
+      ]
+    }
+  ]
+}
