@@ -80,7 +80,7 @@ def transform_df(df):
             column_info["data"] = data.cat.codes.tolist()
             column_info["categories"] = data.cat.categories.tolist()
         else:
-            column_info["data"] = data.tolist()
+            column_info["data"] = [None if pd.isna(x) else x for x in data]
 
         columns.append(column_info)
 
