@@ -1,0 +1,69 @@
+name: "process_single_sample_test"
+namespace: "test_workflows/processing"
+scope: "test"
+description: |
+  Inspects the output of the process_single_sample integration test. Unlike the QC sub-workflows
+  (which run in flag-only mode), process_single_sample actually subsets: it applies the keep-flags,
+  removes rare RNA genes and intersects the modalities. This component verifies that subsetting
+  happened, that the modalities were intersected to a common set of cells, and that the cell-count
+  report is consistent with the final, subset output.
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ author ]
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Path to the filtered h5mu emitted by process_single_sample.
+        example: output.h5mu
+      - name: "--og_input"
+        type: file
+        required: true
+        description: Path to the original (unfiltered) h5mu fed into the workflow.
+        example: input.h5mu
+      - name: "--cell_count_report"
+        type: file
+        required: true
+        description: Path to the per-sample cell-count report TSV emitted by the workflow.
+        example: cell_counts.tsv
+      - name: "--rna_modality"
+        type: string
+        default: rna
+        description: Name of the RNA modality.
+      - name: "--prot_modality"
+        type: string
+        default: prot
+        description: Name of the protein modality.
+      - name: "--sample_id_column"
+        type: string
+        default: sample_id
+        description: ".obs column the cell-count report is grouped by."
+      - name: "--expected_sample_id"
+        type: string
+        required: false
+        description: |
+          Expected sample id in the report. The workflow passes its event id as the sample-id
+          fallback, so when the data carries no sample-id .obs column the report is grouped by
+          this id.
+      - name: "--expect_scrublet"
+        type: boolean_true
+        description: |
+          Whether the workflow ran scrublet doublet detection, in which case the report is
+          expected to contain a scrublet stage column.
+resources:
+  - type: python_script
+    path: script.py
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: python
+        __merge__: /src/base/requirements/anndata_mudata.yaml
+    __merge__: /src/base/requirements/testworkflows_setup.yaml
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ singlecpu, lowmem ]

@@ -1,0 +1,104 @@
+name: "qc_filter_prot"
+namespace: "workflows/qc"
+scope: "public"
+description: |
+  Compute QC keep-flags for a single-sample, unimodal protein h5mu. All filters run in
+  flag-only mode (no subsetting): boolean keep-columns (True = keep) are written to .obs so
+  that a downstream component can report per-stage cell counts and subset once.
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ author ]
+argument_groups:
+  - name: "Input"
+    arguments:
+      - name: "--id"
+        required: true
+        type: string
+        description: ID of the sample.
+        example: foo
+      - name: "--input"
+        type: file
+        required: true
+        description: Path to the unimodal protein sample.
+        example: dataset.h5mu
+      - name: "--layer"
+        type: string
+        required: false
+        description: "Input layer to start from. By default, .X will be used."
+  - name: "Output"
+    arguments:
+      - name: "--output"
+        type: file
+        required: true
+        direction: output
+        description: The input data with QC keep-flags added to .obs.
+        example: output.h5mu
+  - name: "Filtering options"
+    arguments:
+      - name: "--min_total_counts"
+        type: integer
+        example: 500
+        description: |
+          Minimum number of total counts per cell. Cells below this are flagged for removal.
+      - name: "--max_total_counts"
+        type: integer
+        required: false
+        example: 60000
+        description: |
+          Maximum number of total counts per cell. Cells above this are flagged for removal.
+      - name: "--min_log1p_total_counts_quantile"
+        type: double
+        min: 0
+        max: 1
+        example: 0.05
+        description: |
+          Minimum quantile of the log1p-transformed total counts. Cells below this quantile
+          are flagged for removal. The quantile filter only runs when a min and/or max quantile
+          is provided.
+      - name: "--max_log1p_total_counts_quantile"
+        type: double
+        min: 0
+        max: 1
+        example: 0.95
+        description: |
+          Maximum quantile of the log1p-transformed total counts. Cells above this quantile
+          are flagged for removal. The quantile filter only runs when a min and/or max quantile
+          is provided.
+      - name: "--top_n_vars"
+        type: integer
+        multiple: true
+        required: false
+        description: |
+          Numbers of top genes used to calculate the cumulative proportion of counts
+          (scanpy's `percent_top`). For each value `n`, a `pct_counts_in_top_<n>_genes`
+          column is added to .obs. If not provided, these proportions are not calculated.
+  - name: "Keep-flag columns"
+    arguments:
+      - name: "--obs_name_filter_total_counts"
+        type: string
+        default: "filter_counts_prot"
+        description: Name of the .obs keep-flag column for the total-counts filter.
+      - name: "--obs_name_filter_quantile"
+        type: string
+        default: "filter_quantile_prot"
+        description: Name of the .obs keep-flag column for the quantile filter.
+resources:
+  - type: nextflow_script
+    path: main.nf
+    entrypoint: run_wf
+  - type: file
+    path: /src/workflows/utils/
+dependencies:
+  - name: components/qc/calculate_qc_metrics_scanpy
+    alias: calculate_qc_metrics
+  - name: filter/delimit_counts
+    repository: openpipeline
+  - name: filter/filter_with_quantile
+    repository: openpipeline
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf
+  - path: /resources_test/pbmc_1k_protein_v3
+runners:
+  - type: nextflow
