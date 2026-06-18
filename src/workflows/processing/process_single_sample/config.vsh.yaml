@@ -56,9 +56,11 @@ argument_groups:
       - name: "--rna_min_total_counts"
         type: integer
         default: 2500
+        min: 0
         description: Minimum number of total counts per cell for the RNA modality.
       - name: "--rna_max_total_counts"
         type: integer
+        min: 0
         required: false
         description: Maximum number of total counts per cell for the RNA modality.
       - name: "--rna_min_log1p_total_counts_quantile"
@@ -95,6 +97,7 @@ argument_groups:
         type: integer
         multiple: true
         default: 20
+        min: 1
         description: |
           Numbers of top genes used to calculate the cumulative proportion of counts for the
           RNA modality (scanpy's `percent_top`). For each value `n`, a `pct_counts_in_top_<n>_genes`
@@ -115,9 +118,11 @@ argument_groups:
       - name: "--prot_min_total_counts"
         type: integer
         default: 500
+        min: 0
         description: Minimum number of total counts per cell for the protein modality.
       - name: "--prot_max_total_counts"
         type: integer
+        min: 0
         required: false
         description: Maximum number of total counts per cell for the protein modality.
       - name: "--prot_min_log1p_total_counts_quantile"
@@ -140,6 +145,7 @@ argument_groups:
           max quantile is provided.
       - name: "--prot_top_n_vars"
         type: integer
+        min: 1
         multiple: true
         required: false
         description: |
@@ -151,6 +157,7 @@ argument_groups:
     arguments:
       - name: "--filter_genes_min_cells"
         type: integer
+        min: 0
         required: false
         description: |
           Remove RNA genes expressed in fewer than this number of cells, evaluated after
@@ -178,21 +185,26 @@ argument_groups:
         type: integer
         required: false
         default: 2
+        min: 0
         description: "Scrublet gene filter: minimum number of counts per gene."
       - name: "--scrublet_min_cells"
         type: integer
         required: false
         default: 3
+        min: 0
         description: "Scrublet gene filter: minimum number of cells expressing a gene."
       - name: "--scrublet_min_gene_variability_percent"
         type: double
         required: false
         default: 85
+        min: 0
+        max: 100
         description: Scrublet highly-variable gene percentile.
       - name: "--scrublet_num_pca_components"
         type: integer
         required: false
         default: 30
+        min: 1
         description: Number of principal components used by scrublet.
   - name: "Behavior"
     arguments:

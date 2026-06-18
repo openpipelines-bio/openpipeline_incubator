@@ -9,14 +9,6 @@ import pandas as pd
 import anndata as ad
 from scipy.sparse import csr_matrix, csr_array
 
-## VIASH START
-meta = {
-    "name": "foo",
-    "resources_dir": "resources_test/",
-    "executable": "target/executable/filter/filter_with_scrublet/filter_with_scrublet",
-    "config": "./src/filter/filter_with_scrublet/config.vsh.yaml",
-}
-## VIASH END
 
 # read input file
 

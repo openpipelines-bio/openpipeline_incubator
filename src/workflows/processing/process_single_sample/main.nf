@@ -218,17 +218,22 @@ workflow run_wf {
     )
     | cell_count_report.run(
       fromState: {id, state ->
-        [
+        def args = [
           "input": state.flagged_inputs,
           "sample_id": state.sample_ids,
-          "modality": "rna",
-          "prot_modality": state.modalities.contains("prot") ? "prot" : null,
           "sample_id_column": state.sample_id_column,
           "rna_filter_columns": ["filter_counts_rna", "filter_quantile_rna", "filter_mito_rna"],
-          "scrublet_filter_column": state.skip_scrublet ? null : "filter_scrublet",
-          "prot_filter_columns": state.modalities.contains("prot") ? ["filter_counts_prot", "filter_quantile_prot"] : null,
           "output": state.cell_count_report,
+          "modality": "rna"
         ]
+        if (state.modalities.contains("prot")) {
+          args.prot_modality = "prot"
+          args.prot_filter_columns = ["filter_counts_prot", "filter_quantile_prot"]
+        }
+        if (!state.skip_scrublet) {
+          args.scrublet_filter_column = "filter_scrublet"
+        }
+        args
       },
       toState: ["cell_count_report": "output"]
     )

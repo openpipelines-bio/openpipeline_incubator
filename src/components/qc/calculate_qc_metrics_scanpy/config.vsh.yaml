@@ -45,6 +45,7 @@ argument_groups:
       - name: "--top_n_vars"
         type: integer
         multiple: true
+        min: 1
         required: false
         description: |
           Numbers of top genes used to calculate the cumulative proportion of counts

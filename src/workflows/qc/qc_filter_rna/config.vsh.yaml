@@ -38,12 +38,14 @@ argument_groups:
       - name: "--min_total_counts"
         type: integer
         example: 2500
+        min: 0
         description: |
           Minimum number of total counts per cell. Cells below this are flagged for removal.
       - name: "--max_total_counts"
         type: integer
         required: false
         example: 50000
+        min: 0
         description: |
           Maximum number of total counts per cell. Cells above this are flagged for removal.
       - name: "--min_log1p_total_counts_quantile"
@@ -83,6 +85,7 @@ argument_groups:
       - name: "--top_n_vars"
         type: integer
         multiple: true
+        min: 1
         required: false
         description: |
           Numbers of top genes used to calculate the cumulative proportion of counts
@@ -154,21 +157,26 @@ argument_groups:
         type: integer
         required: false
         default: 2
+        min: 0
         description: "Scrublet gene filter: minimum number of counts per gene."
       - name: "--scrublet_min_cells"
         type: integer
         required: false
         default: 3
+        min: 0
         description: "Scrublet gene filter: minimum number of cells expressing a gene."
       - name: "--scrublet_min_gene_variability_percent"
         type: double
         required: false
         default: 85
+        min: 0
+        max: 100
         description: Scrublet highly-variable gene percentile.
       - name: "--scrublet_num_pca_components"
         type: integer
         required: false
         default: 30
+        min: 1
         description: Number of principal components used by scrublet.
 resources:
   - type: nextflow_script

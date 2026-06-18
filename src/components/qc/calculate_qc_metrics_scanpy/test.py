@@ -5,14 +5,6 @@ import mudata as md
 import subprocess
 import re
 
-## VIASH START
-meta = {
-    "executable": "./target/executable/qc/calculate_qc_metrics_scanpy/calculate_qc_metrics_scanpy",
-    "resources_dir": "./resources_test/pbmc_1k_protein_v3/",
-    "config": "./src/qc/calculate_qc_metrics_scanpy/config.vsh.yaml",
-}
-## VIASH END
-
 
 @pytest.fixture
 def input_path():

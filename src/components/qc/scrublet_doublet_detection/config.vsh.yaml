@@ -85,13 +85,14 @@ arguments:
   - name: "--stdev_doublet_rate"
     type: double
     min: 0
+    max: 1
     required: false
     description: Uncertainty in the expected doublet rate.
 
   - name: "--n_neighbors"
     type: integer
     required: false
-    min: 0
+    min: 1
     description: |
       Number of neighbors used to construct the KNN classifier of observed transcriptomes
       and simulated doublets.
@@ -106,21 +107,26 @@ arguments:
   - name: "--min_counts"
     type: integer
     default: 2
+    min: 0
     description: The number of minimal UMI counts per cell that have to be present for initial cell detection.
 
   - name: "--min_cells"
     type: integer
     default: 3
+    min: 0
     description: The number of cells in which UMIs for a gene were detected.
 
   - name: "--min_gene_variablity_percent"
     type: double
     default: 85
+    min: 0
+    max: 100
     description: Used for gene filtering prior to PCA. Keep the most highly variable genes (in the top min_gene_variability_pctl percentile), as measured by the v-statistic [Klein et al., Cell 2015].
 
   - name: "--num_pca_components"
     type: integer
     default: 30
+    min: 1
     description: Number of principal components to use during PCA dimensionality reduction.
 
   - name: "--distance_metric"
