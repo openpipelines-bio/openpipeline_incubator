@@ -104,7 +104,7 @@ workflow run_wf {
           "expected_doublet_rate": state.scrublet_expected_doublet_rate,
           "min_counts": state.scrublet_min_counts,
           "min_cells": state.scrublet_min_cells,
-          "min_gene_variablity_percent": state.scrublet_min_gene_variability_percent,
+          "min_gene_variability_percent": state.scrublet_min_gene_variability_percent,
           "num_pca_components": state.scrublet_num_pca_components,
         ]
       },

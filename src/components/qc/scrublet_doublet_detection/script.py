@@ -15,7 +15,7 @@ par = {
     "expected_doublet_rate": 0.05,
     "min_counts": 2,
     "min_cells": 3,
-    "min_gene_variablity_percent": 85,
+    "min_gene_variability_percent": 85,
     "num_pca_components": 30,
     "distance_metric": "euclidean",
     "obs_name_doublet_score": "scrublet_doublet_score",
@@ -68,7 +68,7 @@ scrub = scr.Scrublet(input_layer, **initializer_args)
 doublet_scores, predicted_doublets = scrub.scrub_doublets(
     min_counts=par["min_counts"],
     min_cells=par["min_cells"],
-    min_gene_variability_pctl=par["min_gene_variablity_percent"],
+    min_gene_variability_pctl=par["min_gene_variability_percent"],
     n_prin_comps=par["num_pca_components"],
     distance_metric=par["distance_metric"],
     use_approx_neighbors=False,
@@ -122,7 +122,7 @@ if par["obs_name_filter"] is not None:
 
 if par["do_subset"]:
     if pd.api.types.is_scalar(keep_cells) and pd.isna(keep_cells):
-        logger.warning("Not subsetting beacuse doublets were not predicted")
+        logger.warning("Not subsetting because doublets were not predicted")
     else:
         data = data[keep_cells, :]
 

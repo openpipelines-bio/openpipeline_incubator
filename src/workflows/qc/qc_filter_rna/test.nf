@@ -12,7 +12,7 @@ workflow test_wf {
   output_ch = Channel.fromList([
       [
         id: "qc_filter_rna_test",
-        input: resources_test.resolve("pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"),
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"),
         min_total_counts: 100,
         max_log1p_total_counts_quantile: 0.99,
         max_pct_counts_mitochondrial: 50,
@@ -59,7 +59,7 @@ workflow test_wf_skip_scrublet {
   output_ch = Channel.fromList([
       [
         id: "qc_filter_rna_skip_scrublet_test",
-        input: resources_test.resolve("pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"),
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"),
         min_total_counts: 100,
         max_log1p_total_counts_quantile: 0.99,
         max_pct_counts_mitochondrial: 50,

@@ -116,7 +116,7 @@ arguments:
     min: 0
     description: The number of cells in which UMIs for a gene were detected.
 
-  - name: "--min_gene_variablity_percent"
+  - name: "--min_gene_variability_percent"
     type: double
     default: 85
     min: 0

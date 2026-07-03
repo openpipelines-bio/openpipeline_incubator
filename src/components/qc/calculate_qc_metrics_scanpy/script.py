@@ -23,7 +23,7 @@ from compress_h5mu import write_h5ad_to_h5mu_with_compression
 logger = setup_logger()
 
 logger.info("Reading modality %s from %s", par["modality"], par["input"])
-adata = mu.read_h5ad(par["input"], mod=par["modality"]).copy()
+adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
 qc_vars = par["qc_vars"] if par["qc_vars"] else []
 for qc_var in qc_vars:
