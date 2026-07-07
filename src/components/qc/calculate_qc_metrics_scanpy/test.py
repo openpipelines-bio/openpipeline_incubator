@@ -8,9 +8,7 @@ import re
 
 @pytest.fixture
 def input_path():
-    return Path(
-        f"{meta['resources_dir']}/pbmc_1k_protein_v3_mms.h5mu"
-    )
+    return Path(f"{meta['resources_dir']}/pbmc_1k_protein_v3_mms.h5mu")
 
 
 @pytest.fixture
