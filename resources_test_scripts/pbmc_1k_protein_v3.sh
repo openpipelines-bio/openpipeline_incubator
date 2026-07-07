@@ -143,7 +143,7 @@ mudata = mu.read_h5mu("${DIR}/pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu
 mudata.mod["rna"].write_h5ad("${DIR}/pbmc_1k_protein_v3_filtered_feature_bc_matrix_rna.h5ad")
 HEREDOC
 
-find "${OUT}" -mindepth 1 ! -name "${ID}_mms.h5mu" -delete
+find "${DIR}" -mindepth 1 ! -name "${ID}_mms.h5mu" -delete
 
 aws s3 sync \
   "$DIR" \
