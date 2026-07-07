@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 include { qc_filter_prot } from params.rootDir + "/target/nextflow/workflows/qc/qc_filter_prot/main.nf"
 include { qc_filter_test } from params.rootDir + "/target/_test/nextflow/test_workflows/qc/qc_filter_test/main.nf"
 
-params.resources_test = params.rootDir + "/resources_test"
+params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
 
@@ -12,7 +12,7 @@ workflow test_wf {
   output_ch = Channel.fromList([
       [
         id: "qc_filter_prot_test",
-        input: resources_test.resolve("pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"),
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         min_total_counts: 5,
         max_log1p_total_counts_quantile: 0.99,
         output: "qc_filter_prot_test.output.h5mu",
