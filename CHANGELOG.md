@@ -24,4 +24,4 @@ openpipeline_incubator x.x.x (unreleased)
 * `workflows/processing/process_single_sample`: multimodal (RNA + protein) orchestrator that
   splits modalities, runs each through its `qc_filter_<modality>` sub-workflow, merges them back,
   writes the cell-count report, applies the keep-flags, filters rare RNA genes, and intersects
-  observations across modalities (PR #1).
+  observations across modalities (PR #1, #3).
