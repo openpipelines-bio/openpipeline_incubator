@@ -3342,7 +3342,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/_test/nextflow/test_workflows/processing/process_single_sample_test",
     "viash_version" : "0.9.7",
-    "git_commit" : "3a58d4ac292c56f587b7c8314048f8e42ca7f736",
+    "git_commit" : "1d4c48c712624cc235bfefe67959fc850cee7f27",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3352,7 +3352,7 @@ meta = [
       "test_resources" : [
         {
           "type" : "s3",
-          "path" : "s3://openpipelines-data",
+          "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
           "dest" : "resources_test"
         }
       ],

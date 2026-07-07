@@ -463,9 +463,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component test_workflows/processing process_single_sample_test"
-LABEL org.opencontainers.image.created="2026-07-07T07:57:29Z"
+LABEL org.opencontainers.image.created="2026-07-07T12:53:35Z"
 LABEL org.opencontainers.image.source="https://github.com/viash-hub/custom-singlecell/"
-LABEL org.opencontainers.image.revision="3a58d4ac292c56f587b7c8314048f8e42ca7f736"
+LABEL org.opencontainers.image.revision="1d4c48c712624cc235bfefe67959fc850cee7f27"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
