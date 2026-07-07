@@ -172,12 +172,12 @@ def test_run():
     for modality in (par["rna_modality"], par["prot_modality"]):
         median_col = f"{modality}_median_total_counts_after_all_filter"
         max_col = f"{modality}_max_total_counts_after_all_filter"
-        assert (
-            survived[median_col] > 0
-        ).all(), f"Median total counts should be positive for surviving samples in '{median_col}'."
-        assert (
-            survived[max_col] >= survived[median_col]
-        ).all(), f"Max total counts should be >= median in '{max_col}'."
+        assert (survived[median_col] > 0).all(), (
+            f"Median total counts should be positive for surviving samples in '{median_col}'."
+        )
+        assert (survived[max_col] >= survived[median_col]).all(), (
+            f"Max total counts should be >= median in '{max_col}'."
+        )
 
 
 def test_post_filter_qc_metrics_recomputed():
