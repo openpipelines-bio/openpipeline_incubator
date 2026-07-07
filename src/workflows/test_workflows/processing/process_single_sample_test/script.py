@@ -55,9 +55,9 @@ def test_run():
         f"output: {list(output_mudata.mod.keys())}"
     )
     for modality in (rna_modality, prot_modality):
-        assert (
-            modality in output_mudata.mod
-        ), f"Modality '{modality}' should be present in the output."
+        assert modality in output_mudata.mod, (
+            f"Modality '{modality}' should be present in the output."
+        )
 
     og_rna = og_mudata.mod[rna_modality]
     output_rna = output_mudata.mod[rna_modality]
@@ -138,9 +138,9 @@ def test_run():
     if par["expect_scrublet"]:
         per_stage_columns.append(SCRUBLET_COLUMN)
     for column in per_stage_columns:
-        assert (
-            report[ALL_COLUMN] <= report[column]
-        ).all(), f"'{ALL_COLUMN}' should never exceed '{column}' for any sample."
+        assert (report[ALL_COLUMN] <= report[column]).all(), (
+            f"'{ALL_COLUMN}' should never exceed '{column}' for any sample."
+        )
 
     # The report is computed before subsetting; the final output is exactly the cells passing
     # every filter in every modality. The two must agree.
