@@ -15,7 +15,9 @@ from scipy.sparse import csr_matrix, csr_array
 
 @pytest.fixture
 def input_mudata_path():
-    return f"{meta['resources_dir']}/pbmc_1k_protein_v3/pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"
+    return Path(
+        f"{meta['resources_dir']}/pbmc_1k_protein_v3_mms.h5mu"
+    )
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 include { process_single_sample } from params.rootDir + "/target/nextflow/workflows/processing/process_single_sample/main.nf"
 include { process_single_sample_test } from params.rootDir + "/target/_test/nextflow/test_workflows/processing/process_single_sample_test/main.nf"
 
-params.resources_test = params.rootDir + "/resources_test"
+params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
 
@@ -12,7 +12,7 @@ workflow test_wf {
   output_ch = Channel.fromList([
       [
         id: "qc_filter_test",
-        input: resources_test.resolve("pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"),
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         rna_min_total_counts: 100,
         rna_max_log1p_total_counts_quantile: 0.99,
         max_pct_counts_mitochondrial: 50,
@@ -73,7 +73,7 @@ workflow test_wf_skip_scrublet {
   output_ch = Channel.fromList([
       [
         id: "qc_filter_skip_scrublet_test",
-        input: resources_test.resolve("pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"),
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         rna_min_total_counts: 100,
         rna_max_log1p_total_counts_quantile: 0.99,
         max_pct_counts_mitochondrial: 50,

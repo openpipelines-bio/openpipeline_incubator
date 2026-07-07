@@ -159,7 +159,7 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/pbmc_1k_protein_v3
+  - path: /resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
 
 engines:
 - type: docker
