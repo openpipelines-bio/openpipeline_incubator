@@ -228,6 +228,8 @@ resources:
 dependencies:
   - name: workflows/qc/qc_filter_rna
   - name: workflows/qc/qc_filter_prot
+  - name: components/qc/calculate_qc_metrics_scanpy
+    alias: calculate_qc_metrics
   - name: metadata/add_id
     repository: openpipeline
   - name: dataflow/split_modalities

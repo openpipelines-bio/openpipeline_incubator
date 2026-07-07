@@ -181,11 +181,47 @@ workflow run_wf {
       },
       toState: ["input": "output"]
     )
+    // The QC metrics in .obs/.var were computed by the qc_filter sub-workflows before any
+    // subsetting, so after the filtering above they still reflect the pre-filter data.
+    // Re-run calculate_qc_metrics per modality to overwrite those slots with post-filter
+    // metrics (scanpy writes in place with the same column names). The `mt` .var flag written
+    // by the RNA sub-workflow is preserved through filtering, so pct_counts_mt is recomputed.
+    | calculate_qc_metrics.run(
+      key: "rna_post_filter_qc_metrics",
+      runIf: {id, state -> state.modalities.contains("rna")},
+      fromState: {id, state ->
+        [
+          "input": state.input,
+          "modality": "rna",
+          "layer": state.rna_layer,
+          "qc_vars": ["mt"],
+          "top_n_vars": state.rna_top_n_vars,
+          "log1p": true,
+        ]
+      },
+      args: [output_compression: "gzip"],
+      toState: ["input": "output"]
+    )
+    | calculate_qc_metrics.run(
+      key: "prot_post_filter_qc_metrics",
+      runIf: {id, state -> state.modalities.contains("prot")},
+      fromState: {id, state ->
+        [
+          "input": state.input,
+          "modality": "prot",
+          "layer": state.prot_layer,
+          "top_n_vars": state.prot_top_n_vars,
+          "log1p": true,
+        ]
+      },
+      args: [output_compression: "gzip"],
+      toState: ["input": "output"]
+    )
 
-  // Barrier: gather every sample into a single event holding the list of filtered files
-  // (`filtered_inputs`) and the list of still-unsubset, flag-carrying files (`flagged_inputs`).
-  // The workflow output arguments and report knobs are identical across samples.
-  combined_ch = filtered_ch
+  // Synchronize all samples into a single event so the cell-count report can be written
+  // once across every sample. It reads the still-unsubset, flag-carrying files, so the
+  // filtered outputs and the flagged inputs are both gathered here.
+  output_ch = filtered_ch
     | joinStates { ids, states ->
       def combined_state = [
         "filtered_inputs": states.collect{it.input},
@@ -203,10 +239,6 @@ workflow run_wf {
       ["combined", combined_state]
     }
 
-  // Collect the filtered files into a single output directory, then write a single cell-count
-  // report across all samples from the unsubset keep-flags. Both run off the one joinStates
-  // barrier above, chained linearly (disjoint output keys, no fork to rejoin).
-  output_ch = combined_ch
     | move_files_to_directory.run(
       fromState: {id, state ->
         [

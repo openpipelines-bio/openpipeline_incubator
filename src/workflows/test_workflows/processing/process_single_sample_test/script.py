@@ -1,6 +1,8 @@
 import sys
 import pytest
+import numpy as np
 import pandas as pd
+from scipy.sparse import issparse
 from mudata import read_h5mu
 
 ## VIASH START
@@ -27,6 +29,17 @@ ALL_COLUMN = "cell_count_after_all_filter"
 QC_AGGREGATIONS = ("median", "mean", "max")
 RNA_QC_METRICS = ("total_counts", "pct_counts_mt", "n_genes_by_counts")
 PROT_QC_METRICS = ("total_counts", "n_genes_by_counts")
+
+
+def _sum(matrix, axis):
+    """Sum a (possibly sparse) matrix along an axis, returned as a flat float array."""
+    return np.asarray(matrix.sum(axis=axis)).ravel().astype(float)
+
+
+def _nonzero_count(matrix, axis):
+    """Count non-zero entries of a (possibly sparse) matrix along an axis, as a flat int array."""
+    nonzero = (matrix > 0) if issparse(matrix) else (np.asarray(matrix) > 0)
+    return np.asarray(nonzero.sum(axis=axis)).ravel().astype(int)
 
 
 def test_run():
@@ -164,6 +177,90 @@ def test_run():
         )
         assert (survived[max_col] >= survived[median_col]).all(), (
             f"Max total counts should be >= median in '{max_col}'."
+        )
+
+
+def test_post_filter_qc_metrics_recomputed():
+    """The post-filter calculate_qc_metrics steps (rna_/prot_post_filter_qc_metrics in main.nf)
+    overwrite the QC slots so the output carries metrics reflecting the *filtered* data, not the
+    pre-filter values the sub-workflows wrote. This recomputes the metrics independently from the
+    output's own count matrix and asserts the stored .obs/.var values match. Because RNA gene
+    filtering dropped genes and cell filtering dropped cells, stale pre-filter values would not
+    match these recomputations — so a pass proves the second calculate_qc_metrics ran on the
+    subset data.
+    """
+    output_mudata = read_h5mu(par["input"])
+    output_rna = output_mudata.mod[par["rna_modality"]]
+    output_prot = output_mudata.mod[par["prot_modality"]]
+
+    # The workflow leaves rna_layer/prot_layer unset in this test, so metrics were computed from
+    # .X. Compare against .X here.
+    for modality_name, mod_data, metrics in (
+        (par["rna_modality"], output_rna, RNA_QC_METRICS),
+        (par["prot_modality"], output_prot, PROT_QC_METRICS),
+    ):
+        for metric in metrics:
+            assert metric in mod_data.obs.columns, (
+                f"Post-filter QC metric '{metric}' should be present in the '{modality_name}' "
+                f".obs. Found: {mod_data.obs.columns.to_list()}"
+            )
+
+        matrix = mod_data.X
+        stored_total = mod_data.obs["total_counts"].to_numpy(dtype=float)
+        expected_total = _sum(matrix, axis=1)
+        np.testing.assert_allclose(
+            stored_total,
+            expected_total,
+            rtol=1e-4,
+            err_msg=(
+                f"'{modality_name}' .obs['total_counts'] should equal the per-cell sum of the "
+                f"filtered matrix; a mismatch means the metrics were not recomputed after "
+                f"filtering."
+            ),
+        )
+
+        stored_n_genes = mod_data.obs["n_genes_by_counts"].to_numpy(dtype=int)
+        expected_n_genes = _nonzero_count(matrix, axis=1)
+        np.testing.assert_array_equal(
+            stored_n_genes,
+            expected_n_genes,
+            err_msg=(
+                f"'{modality_name}' .obs['n_genes_by_counts'] should equal the per-cell count of "
+                f"detected features in the filtered matrix."
+            ),
+        )
+
+    # RNA mitochondrial percentage: recompute from the preserved `mt` .var flag. This exercises the
+    # `qc_vars: [mt]` path of the post-filter recompute and confirms the flag survived filtering.
+    assert "mt" in output_rna.var.columns, (
+        f"The 'mt' .var flag should be preserved so pct_counts_mt can be recomputed. "
+        f"Found: {output_rna.var.columns.to_list()}"
+    )
+    mt_indices = np.where(output_rna.var["mt"].to_numpy(dtype=bool))[0]
+    mt_counts = _sum(output_rna.X[:, mt_indices], axis=1)
+    total_counts = _sum(output_rna.X, axis=1)
+    expected_pct_mt = 100.0 * mt_counts / total_counts
+    np.testing.assert_allclose(
+        output_rna.obs["pct_counts_mt"].to_numpy(dtype=float),
+        expected_pct_mt,
+        rtol=1e-4,
+        atol=1e-6,
+        err_msg=(
+            "RNA .obs['pct_counts_mt'] should equal the mitochondrial fraction of the filtered "
+            "matrix; a mismatch means it was not recomputed after gene/cell filtering."
+        ),
+    )
+
+    # scanpy also refreshes the per-gene .var metrics. n_cells_by_counts must reflect the surviving
+    # cell set, which changed after cell filtering and intersection.
+    if "n_cells_by_counts" in output_rna.var.columns:
+        np.testing.assert_array_equal(
+            output_rna.var["n_cells_by_counts"].to_numpy(dtype=int),
+            _nonzero_count(output_rna.X, axis=0),
+            err_msg=(
+                "RNA .var['n_cells_by_counts'] should equal the per-gene count of cells with "
+                "non-zero expression in the filtered matrix."
+            ),
         )
 
 
