@@ -15,6 +15,10 @@ repositories:
     repo: openpipeline
     type: vsh
     tag: v4.1.0
+  - name: craftbox
+    repo: craftbox
+    type: vsh
+    tag: v0.3.2
 
 info:
   test_resources:
