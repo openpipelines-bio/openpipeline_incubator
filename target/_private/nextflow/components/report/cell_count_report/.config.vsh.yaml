@@ -1,0 +1,381 @@
+name: "cell_count_report"
+namespace: "components/report"
+version: "build_main"
+authors:
+- name: "Dorien Roosen"
+  roles:
+  - "author"
+  info:
+    role: "Core Team Member"
+    links:
+      email: "dorien@data-intuitive.com"
+      github: "dorien-er"
+      linkedin: "dorien-roosen"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Scientist"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "file"
+    name: "--input"
+    alternatives:
+    - "-i"
+    description: "One or more h5mu files, each carrying the per-modality boolean keep-columns\
+      \ in .obs.\nThe per-sample counts of every input are combined into a single\
+      \ report.\n"
+    info: null
+    example:
+    - "input.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "The RNA modality to read the RNA and scrublet keep-columns from."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--prot_modality"
+    description: "The protein modality to read the protein keep-columns from. If not\
+      \ provided, no\nprotein counts are reported.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--sample_id_column"
+    description: "The .obs column to group the counts by. If the column is not present\
+      \ in .obs, all\nobservations are treated as a single sample.\n"
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--sample_id"
+    description: "Fallback sample label per input file, in the same order as --input.\
+      \ Used as the\nsample id when --sample_id_column is absent from a file's .obs\
+      \ (e.g. the workflow\nevent id). When the column is present, it takes precedence\
+      \ and this is ignored.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--rna_filter_columns"
+    description: "Boolean .obs columns (in the RNA modality) that together (logical\
+      \ AND) define the\ncells passing the RNA QC filters.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scrublet_filter_column"
+    description: "Boolean .obs column (in the RNA modality) with the scrublet keep-mask.\
+      \ If not\nprovided, the scrublet count column is omitted from the report.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--prot_filter_columns"
+    description: "Boolean .obs columns (in the protein modality) that together (logical\
+      \ AND) define\nthe cells passing the protein QC filters.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "QC metrics"
+  arguments:
+  - type: "string"
+    name: "--rna_qc_metrics"
+    description: "Per-cell QC metric .obs columns (in the RNA modality) to aggregate\
+      \ over the cells\nsurviving every filter. One column per (aggregation, metric)\
+      \ is added to the report,\nnamed `<modality>_<aggregation>_<metric>_after_all_filter`.\n"
+    info: null
+    default:
+    - "total_counts"
+    - "pct_counts_mt"
+    - "n_genes_by_counts"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--prot_qc_metrics"
+    description: "Per-cell QC metric .obs columns (in the protein modality) to aggregate\
+      \ over the cells\nsurviving every filter. Only used when --prot_modality is\
+      \ provided.\n"
+    info: null
+    default:
+    - "total_counts"
+    - "n_genes_by_counts"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--qc_metric_aggregations"
+    description: "Aggregation functions applied to each QC metric over the surviving\
+      \ cells, per sample.\n"
+    info: null
+    default:
+    - "median"
+    - "mean"
+    - "max"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    alternatives:
+    - "-o"
+    description: "Output TSV file with the per-sample cell counts."
+    info: null
+    example:
+    - "cell_counts.tsv"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_column_rna"
+    info: null
+    default:
+    - "cell_count_after_rna_filter"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_column_scrublet"
+    info: null
+    default:
+    - "cell_count_after_scrublet_filter"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_column_prot"
+    info: null
+    default:
+    - "cell_count_after_protein_filter"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_column_all"
+    info: null
+    default:
+    - "cell_count_after_all_filter"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "python_script"
+  path: "script.py"
+  is_executable: true
+- type: "file"
+  path: "setup_logger.py"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "Report the number of cells (observations) that pass each QC filter stage,\
+  \ per sample.\nReads boolean keep-columns (True = keep) that were written to .obs\
+  \ by upstream filter\ncomponents (run in flag-only mode, without subsetting) and\
+  \ writes a TSV with one row per\nsample. For each sample the number of cells passing\
+  \ the RNA filters, the scrublet filter,\nthe protein filters, and the combined (intersection\
+  \ of all) filters is reported.\n"
+test_resources:
+- type: "python_script"
+  path: "test.py"
+  is_executable: true
+info: null
+status: "enabled"
+scope:
+  image: "private"
+  target: "private"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.1.0"
+- type: "vsh"
+  name: "craftbox"
+  repo: "craftbox"
+  tag: "v0.3.2"
+links:
+  repository: "https://github.com/viash-hub/custom-singlecell/"
+  docker_registry: "ghcr.io"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    label:
+    - "singlecpu"
+    - "lowmem"
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "python:3.13-slim"
+  namespace_separator: "/"
+  setup:
+  - type: "apt"
+    packages:
+    - "procps"
+    interactive: false
+  - type: "python"
+    user: false
+    packages:
+    - "anndata~=0.12.16"
+    - "awkward"
+    - "scipy~=1.17.1"
+    - "mudata~=0.3.8"
+    script:
+    - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
+      \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
+      ).partition(\\\".\\\")[0]) > 2\")"
+    upgrade: true
+  test_setup:
+  - type: "apt"
+    packages:
+    - "git"
+    interactive: false
+  - type: "python"
+    user: false
+    packages:
+    - "viashpy==0.10.0"
+    github:
+    - "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
+    upgrade: true
+  entrypoint: []
+  cmd: null
+build_info:
+  config: "src/components/report/cell_count_report/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "docker"
+  output: "target/_private/nextflow/components/report/cell_count_report"
+  executable: "target/_private/nextflow/components/report/cell_count_report/main.nf"
+  viash_version: "0.9.7"
+  git_commit: "3a58d4ac292c56f587b7c8314048f8e42ca7f736"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
+package_config:
+  name: "custom-singlecell"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-data"
+      dest: "resources_test"
+    nextflow_labels_ci:
+    - path: "src/workflows/utils/labels_ci.config"
+      description: "Adds the correct memory and CPU labels when running on the Viash\
+        \ Hub CI."
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+  - type: "vsh"
+    name: "craftbox"
+    repo: "craftbox"
+    tag: "v0.3.2"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "viash-hub"
+  links:
+    repository: "https://github.com/viash-hub/custom-singlecell/"
+    docker_registry: "ghcr.io"

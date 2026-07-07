@@ -1,0 +1,569 @@
+name: "process_single_sample"
+namespace: "workflows/processing"
+version: "build_main"
+authors:
+- name: "Dorien Roosen"
+  roles:
+  - "author"
+  - "maintainer"
+  info:
+    role: "Core Team Member"
+    links:
+      email: "dorien@data-intuitive.com"
+      github: "dorien-er"
+      linkedin: "dorien-roosen"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Scientist"
+argument_groups:
+- name: "Input"
+  arguments:
+  - type: "string"
+    name: "--id"
+    description: "ID of the sample."
+    info: null
+    example:
+    - "foo"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input"
+    description: "Path to the single-sample, multimodal input."
+    info: null
+    example:
+    - "dataset.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--rna_layer"
+    description: "Input layer for the RNA modality. By default, .X is used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--prot_layer"
+    description: "Input layer for the protein modality. By default, .X is used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Output"
+  arguments:
+  - type: "file"
+    name: "--output_processed_h5mu"
+    description: "Directory containing the filtered output h5mu of every sample, one\
+      \ file per sample.\n"
+    info: null
+    example:
+    - "processed_h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--cell_count_report"
+    description: "Single TSV with the number of cells passing each filter stage, per\
+      \ sample, across\nall samples.\n"
+    info: null
+    example:
+    - "cell_counts.tsv"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+- name: "RNA filtering"
+  arguments:
+  - type: "integer"
+    name: "--rna_min_total_counts"
+    description: "Minimum number of total counts per cell for the RNA modality."
+    info: null
+    default:
+    - 2500
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_max_total_counts"
+    description: "Maximum number of total counts per cell for the RNA modality."
+    info: null
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_min_log1p_total_counts_quantile"
+    description: "Minimum quantile of the log1p total counts for the RNA modality.\
+      \ Cells below this\nquantile are flagged for removal. The quantile filter only\
+      \ runs when a min and/or\nmax quantile is provided.\n"
+    info: null
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_max_log1p_total_counts_quantile"
+    description: "Maximum quantile of the log1p total counts for the RNA modality.\
+      \ Cells above this\nquantile are flagged for removal. The quantile filter only\
+      \ runs when a min and/or\nmax quantile is provided.\n"
+    info: null
+    default:
+    - 0.95
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--min_pct_counts_mitochondrial"
+    description: "Minimum percentage of mitochondrial counts per cell."
+    info: null
+    required: false
+    min: 0
+    max: 100
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_pct_counts_mitochondrial"
+    description: "Maximum percentage of mitochondrial counts per cell."
+    info: null
+    default:
+    - 10
+    required: false
+    min: 0
+    max: 100
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_top_n_vars"
+    description: "Numbers of top genes used to calculate the cumulative proportion\
+      \ of counts for the\nRNA modality (scanpy's `percent_top`). For each value `n`,\
+      \ a `pct_counts_in_top_<n>_genes`\ncolumn is added to .obs.\n"
+    info: null
+    default:
+    - 20
+    required: false
+    min: 1
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--mitochondrial_gene_regex"
+    description: "Regex that identifies mitochondrial genes."
+    info: null
+    default:
+    - "^[mM][tT]-"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--var_gene_names"
+    description: ".var column with gene names used to detect mitochondrial genes instead\
+      \ of .var_names.\n"
+    info: null
+    default:
+    - "gene_symbol"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Protein filtering"
+  arguments:
+  - type: "integer"
+    name: "--prot_min_total_counts"
+    description: "Minimum number of total counts per cell for the protein modality."
+    info: null
+    default:
+    - 500
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--prot_max_total_counts"
+    description: "Maximum number of total counts per cell for the protein modality."
+    info: null
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--prot_min_log1p_total_counts_quantile"
+    description: "Minimum quantile of the log1p total counts for the protein modality.\
+      \ Cells below this\nquantile are flagged for removal. The quantile filter only\
+      \ runs when a min and/or\nmax quantile is provided.\n"
+    info: null
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--prot_max_log1p_total_counts_quantile"
+    description: "Maximum quantile of the log1p total counts for the protein modality.\
+      \ Cells above this\nquantile are flagged for removal. The quantile filter only\
+      \ runs when a min and/or\nmax quantile is provided.\n"
+    info: null
+    default:
+    - 0.95
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--prot_top_n_vars"
+    description: "Numbers of top genes used to calculate the cumulative proportion\
+      \ of counts for the\nprotein modality (scanpy's `percent_top`). For each value\
+      \ `n`, a\n`pct_counts_in_top_<n>_genes` column is added to .obs. Not calculated\
+      \ by default,\nmatching the reference protein QC.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Gene filtering"
+  arguments:
+  - type: "integer"
+    name: "--filter_genes_min_cells"
+    description: "Remove RNA genes expressed in fewer than this number of cells, evaluated\
+      \ after\ncell filtering. Gene filtering is skipped unless this is set.\n"
+    info: null
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Doublet detection"
+  arguments:
+  - type: "boolean_true"
+    name: "--skip_scrublet"
+    description: "Skip the scrublet doublet detection step."
+    info: null
+    direction: "input"
+  - type: "double"
+    name: "--scrublet_score_threshold"
+    description: "Manual doublet score threshold."
+    info: null
+    default:
+    - 0.3
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--scrublet_expected_doublet_rate"
+    description: "The estimated fraction of doublets from the experimental setup."
+    info: null
+    default:
+    - 0.12
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scrublet_min_counts"
+    description: "Scrublet gene filter: minimum number of counts per gene."
+    info: null
+    default:
+    - 2
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scrublet_min_cells"
+    description: "Scrublet gene filter: minimum number of cells expressing a gene."
+    info: null
+    default:
+    - 3
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--scrublet_min_gene_variability_percent"
+    description: "Scrublet highly-variable gene percentile."
+    info: null
+    default:
+    - 85.0
+    required: false
+    min: 0.0
+    max: 100.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scrublet_num_pca_components"
+    description: "Number of principal components used by scrublet."
+    info: null
+    default:
+    - 30
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Behavior"
+  arguments:
+  - type: "boolean"
+    name: "--intersect_obs"
+    description: "Intersect the observations across modalities so that only cells\
+      \ passing every\nfilter in every modality are retained.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--sample_id_column"
+    description: ".obs column used to group the cell-count report by."
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "nextflow_script"
+  path: "main.nf"
+  is_executable: true
+  entrypoint: "run_wf"
+- type: "file"
+  path: "utils"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "Quantile-based QC and doublet filtering for single-sample multimodal\
+  \ (RNA + protein) data.\n\nThe input is split per modality and each modality is\
+  \ processed independently to compute\nQC (and, for RNA, scrublet doublet) keep-flags\
+  \ without subsetting. The modalities are then\nmerged back together, the keep-flags\
+  \ are applied, RNA genes expressed in too few cells are\nremoved, and the modalities\
+  \ are intersected so that only cells passing every filter in every\nmodality are\
+  \ retained. The filtered per-sample files are collected into a single output\ndirectory,\
+  \ and a single cell-count report covering every sample is written alongside it.\n"
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_wf"
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_wf_skip_scrublet"
+- type: "file"
+  path: "pbmc_1k_protein_v3"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+dependencies:
+- name: "workflows/qc/qc_filter_rna"
+  repository:
+    type: "local"
+- name: "workflows/qc/qc_filter_prot"
+  repository:
+    type: "local"
+- name: "metadata/add_id"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "dataflow/split_modalities"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "dataflow/merge"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "filter/filter_with_counts"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "filter/do_filter"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "filter/intersect_obs"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "move_files_to_directory"
+  repository:
+    type: "vsh"
+    repo: "craftbox"
+    tag: "v0.3.2"
+- name: "components/report/cell_count_report"
+  repository:
+    type: "local"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.1.0"
+- type: "vsh"
+  name: "craftbox"
+  repo: "craftbox"
+  tag: "v0.3.2"
+links:
+  repository: "https://github.com/viash-hub/custom-singlecell/"
+  docker_registry: "ghcr.io"
+runners:
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+build_info:
+  config: "src/workflows/processing/process_single_sample/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "native"
+  output: "target/nextflow/workflows/processing/process_single_sample"
+  executable: "target/nextflow/workflows/processing/process_single_sample/main.nf"
+  viash_version: "0.9.7"
+  git_commit: "3a58d4ac292c56f587b7c8314048f8e42ca7f736"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
+  dependencies:
+  - "target/nextflow/workflows/qc/qc_filter_rna"
+  - "target/nextflow/workflows/qc/qc_filter_prot"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/metadata/add_id"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/dataflow/split_modalities"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/dataflow/merge"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/filter/filter_with_counts"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/filter/do_filter"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/filter/intersect_obs"
+  - "target/dependencies/vsh/vsh/craftbox/v0.3.2/nextflow/move_files_to_directory"
+  - "target/_private/nextflow/components/report/cell_count_report"
+package_config:
+  name: "custom-singlecell"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-data"
+      dest: "resources_test"
+    nextflow_labels_ci:
+    - path: "src/workflows/utils/labels_ci.config"
+      description: "Adds the correct memory and CPU labels when running on the Viash\
+        \ Hub CI."
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+  - type: "vsh"
+    name: "craftbox"
+    repo: "craftbox"
+    tag: "v0.3.2"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "viash-hub"
+  links:
+    repository: "https://github.com/viash-hub/custom-singlecell/"
+    docker_registry: "ghcr.io"
