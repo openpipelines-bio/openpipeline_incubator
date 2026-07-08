@@ -3276,7 +3276,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     },
     {
@@ -3284,7 +3284,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     }
   ],
@@ -3293,7 +3293,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.1.0"
+      "tag" : "v4.1.1"
     },
     {
       "type" : "vsh",
@@ -3390,7 +3390,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/workflows/qc/qc_filter_prot",
     "viash_version" : "0.9.7",
-    "git_commit" : "94da8b33c017acbcdf51c51bcc16eba7d7b5c561",
+    "git_commit" : "076aa732d3b7c2a862e6b28067b23545993a3aaa",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3416,7 +3416,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       },
       {
         "type" : "vsh",
@@ -3444,8 +3444,8 @@ meta = [
 meta["root_dir"] = getRootDir()
 include { calculate_qc_metrics_scanpy as calculate_qc_metrics_viashalias } from "${meta.resources_dir}/../../../../_private/nextflow/components/qc/calculate_qc_metrics_scanpy/main.nf"
 calculate_qc_metrics = calculate_qc_metrics_viashalias.run(key: "calculate_qc_metrics")
-include { delimit_counts } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/_private/nextflow/filter/delimit_counts/main.nf"
-include { filter_with_quantile } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/filter/filter_with_quantile/main.nf"
+include { delimit_counts } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/_private/nextflow/filter/delimit_counts/main.nf"
+include { filter_with_quantile } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/filter/filter_with_quantile/main.nf"
 
 // inner workflow
 // user-provided Nextflow code

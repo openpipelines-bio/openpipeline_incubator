@@ -10,7 +10,7 @@ repositories:
   - name: openpipeline
     repo: openpipeline
     type: vsh
-    tag: v4.1.0
+    tag: v4.1.1
   - name: craftbox
     repo: craftbox
     type: vsh

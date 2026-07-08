@@ -3231,7 +3231,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.1.0"
+      "tag" : "v4.1.1"
     },
     {
       "type" : "vsh",
@@ -3390,7 +3390,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/_private/nextflow/components/qc/calculate_qc_metrics_scanpy",
     "viash_version" : "0.9.7",
-    "git_commit" : "94da8b33c017acbcdf51c51bcc16eba7d7b5c561",
+    "git_commit" : "076aa732d3b7c2a862e6b28067b23545993a3aaa",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3416,7 +3416,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       },
       {
         "type" : "vsh",
