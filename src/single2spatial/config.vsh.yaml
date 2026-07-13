@@ -1,0 +1,240 @@
+name: "single2spatial"
+namespace: mapping
+scope: "private"
+description: |
+  Deep-learning mapper (based on the Bulk2Space deep-forest algorithm) that
+  projects single-cell RNA-seq profiles onto spatial coordinates.
+  Takes a single-cell AnnData and a spatial AnnData as input and writes
+  the resulting spatially-mapped AnnData to disk.
+authors:
+  - __merge__: /src/authors/hannes_demeyer.yaml
+    roles: [ author, maintainer ]
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input_sc"
+        type: file
+        description: Input h5ad single-cell AnnData file.
+        direction: input
+        required: true
+        example: input_sc.h5ad
+
+      - name: "--input_spatial"
+        type: file
+        description: Input h5ad spatial AnnData file.
+        direction: input
+        required: true
+        example: input_spatial.h5ad
+
+  - name: Arguments
+    arguments:
+      - name: "--celltype_key"
+        type: string
+        multiple: false
+        required: true
+        example: "Cell_type"
+        description: |
+          Column name in input_sc.obs that contains cell type annotations.
+
+      - name: "--obsm_spatial_coordinates"
+        type: string
+        required: false
+        default: "spatial"
+        description: |
+          .obsm slot in the spatial AnnData containing x/y coordinates.
+          Used when coordinates live in .obsm (e.g. from SpaceRanger or Xenium outputs).
+
+      - name: "--spot_key"
+        type: string
+        multiple: true
+        multiple_sep: ","
+        required: false
+        default: ['xcoord', 'ycoord']
+        description: |
+          Column names in spatial_data.obs storing x/y coordinates.
+          Fallback for inputs where coordinates are in .obs rather than .obsm.
+
+      - name: "--spot_num"
+        type: integer
+        required: true
+        example: 500
+        description: |
+          Number of synthetic spots sampled from the single-cell data when
+          constructing training pairs for the mapping model.
+
+      - name: "--cell_num"
+        type: integer
+        required: true
+        example: 10
+        description: |
+          Number of cells assigned to each synthetic training spot.
+
+      - name: "--top_marker_num"
+        type: integer
+        required: false
+        default: 500
+        description: |
+          Number of marker genes used to train mapping model.
+
+      - name: "--marker_used"
+        type: boolean
+        required: false
+        default: true
+        description: |
+          Whether to restrict training features to marker genes.
+
+      - name: "--k"
+        type: integer
+        required: false
+        default: 10
+        description: |
+          Number of nearest neighbors used for mapping refinement.
+
+      - name: "--num_epochs"
+        type: integer
+        required: false
+        default: 1000
+        description: |
+          Number of epochs used to train the mapping neural network.
+
+      - name: "--batch_size"
+        type: integer
+        required: false
+        default: 1000
+        description: |
+          Mini-batch size used during training.
+
+      - name: "--predicted_size"
+        type: integer
+        required: false
+        default: 32
+        description: |
+          Output embedding size of the model's prediction head.
+
+      - name: "--layer"
+        type: string
+        required: false
+        description: |
+          Use specified layer for expression values instead of .X from the modality.
+
+      - name: "--gpu"
+        type: string
+        required: false
+        default: "0"
+        description: |
+          Compute device selector: CUDA index (e.g. "0"), "mps" for Apple Silicon,
+          or "cpu" to force CPU. Passed directly to Single2Spatial.
+
+  - name: Outputs
+    arguments:
+      - name: "--output"
+        type: file
+        description: Output h5ad AnnData file.
+        direction: output
+        example: output.h5ad
+
+      - name: "--obsm_output"
+        type: string
+        default: "spatial"
+        required: false
+        description: |
+          .obsm slot in the output AnnData where predicted spatial coordinates are stored.
+
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: Single2Spatial.py
+  - path: /src/workflows/utils/setup_logger.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/annotation_test_data/TS_Blood_filtered.h5mu
+  - path: /resources_test/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny.h5mu
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        packages:
+          # No explicit anndata pin needed: omicverse (all versions) requires
+          # anndata<0.12, and pip's resolver already lands on a version
+          # satisfying that alongside scanpy's own anndata>=0.8 constraint
+          # (verified: resolves to anndata 0.11.4 without being listed here).
+          # Merging /src/base/requirements/anndata.yaml would still break this,
+          # since its anndata~=0.12.16 pin is incompatible with omicverse - so
+          # that file stays unmerged here. omicverse is pinned to the exact
+          # version the create_st() patch below was verified against - unpinned,
+          # a future release could shift the source text the patch matches
+          # against without warning.
+          - omicverse~=2.2.3
+        __merge__: [/src/base/requirements/scanpy.yaml, .]
+      - type: docker
+        # omicverse shadows a local `sc` variable with `import scanpy as sc` in
+        # two places, then calls scanpy-only attributes on the shadowed value:
+        #   - create_st() (_map_utils.py): `sc` holds a DataFrame, gets
+        #     rebound to the scanpy module, then `sc.T` is called on the
+        #     module instead of the DataFrame.
+        #   - DFRunner.__init__ (_map_utils.py): `sc` (the scanpy module) gets
+        #     rebound to a fresh AnnData, then `sc.tl.rank_genes_groups(...)`
+        #     is called on the AnnData instead of the module.
+        # Both raise AttributeError whenever marker_used=True. Renaming the
+        # non-scanpy variable in each spot (`sc_data`, `adata`) fixes both
+        # without touching the `import scanpy as sc` convention. Each
+        # replacement is asserted to match exactly once so a future omicverse
+        # release that changes this code fails the build loudly instead of
+        # silently leaving the bug in place.
+        run: |
+          printf '%s\n' \
+            'import omicverse' \
+            'from pathlib import Path' \
+            '' \
+            'path = Path(omicverse.__file__).parent / "bulk2single" / "_map_utils.py"' \
+            'src = path.read_text()' \
+            '' \
+            'def apply(src, old, new):' \
+            '    count = src.count(old)' \
+            '    if count != 1:' \
+            '        raise SystemExit("single2spatial patch: expected exactly one match for " + repr(old) + " in " + str(path) + ", found " + str(count) + ". omicverse internals may have changed - update this patch.")' \
+            '    return src.replace(old, new)' \
+            '' \
+            'src = apply(src, "    sc = generate_sc_data\n", "    sc_data = generate_sc_data\n")' \
+            'src = apply(src, "        syn_spot = sc[cell_pool].sum(axis=1)\n", "        syn_spot = sc_data[cell_pool].sum(axis=1)\n")' \
+            'src = apply(src, "        adata = sc.AnnData(sc.T)\n", "        adata = sc.AnnData(sc_data.T)\n")' \
+            'src = apply(src, "        sc = sc.loc[marker, :]\n", "        sc_data = sc_data.loc[marker, :]\n")' \
+            'src = apply(src, "    return sc, sc_ct, spots, meta\n", "    return sc_data, sc_ct, spots, meta\n")' \
+            '' \
+            'src = apply(src, "            sc = sc.AnnData(self.sc_test.T)\n", "            adata = sc.AnnData(self.sc_test.T)\n")' \
+            'src = apply(src, "            sc.obs = self.cell_type[['\''Cell_type'\'']]\n", "            adata.obs = self.cell_type[['\''Cell_type'\'']]\n")' \
+            'src = apply(src, "            sc.tl.rank_genes_groups(sc, '\''Cell_type'\'', method='\''wilcoxon'\'')\n", "            sc.tl.rank_genes_groups(adata, '\''Cell_type'\'', method='\''wilcoxon'\'')\n")' \
+            'src = apply(src, "            marker_df = pd.DataFrame(sc.uns['\''rank_genes_groups'\'']['\''names'\'']).head(top_marker_num)\n", "            marker_df = pd.DataFrame(adata.uns['\''rank_genes_groups'\'']['\''names'\'']).head(top_marker_num)\n")' \
+            '' \
+            'path.write_text(src)' \
+            'print("patched " + str(path))' \
+            > /tmp/patch_map_utils.py && \
+          python3 /tmp/patch_map_utils.py && \
+          rm /tmp/patch_map_utils.py
+      - type: python
+        packages:
+          # Installed separately from the PyTorch CPU wheel index: the default
+          # PyPI torch wheel pulls in the full CUDA toolkit (~3GB of nvidia-cu13
+          # packages), which is useless in this GPU-less slim container.
+          - torch
+          - --index-url
+          - https://download.pytorch.org/whl/cpu
+
+    test_setup:
+      - type: python
+        packages:
+          - mudata~=0.3.8
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]
+  
