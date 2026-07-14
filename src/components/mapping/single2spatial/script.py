@@ -31,6 +31,7 @@ meta = {"temp_dir": "/tmp", "resources_dir": "."}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+
 logger = setup_logger()
 
 logger.info(f"Reading single-cell data from '{par['input_sc']}'...")

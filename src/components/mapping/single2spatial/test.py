@@ -20,7 +20,9 @@ def _prepare_sc_input(tmp_path):
 
 
 def _prepare_spatial_input(tmp_path):
-    mdata = mu.read_h5mu(meta["resources_dir"] + "/Visium_FFPE_Human_Ovarian_Cancer_tiny.h5mu")
+    mdata = mu.read_h5mu(
+        meta["resources_dir"] + "/Visium_FFPE_Human_Ovarian_Cancer_tiny.h5mu"
+    )
     adata = mdata.mod["rna"].copy()
 
     path = tmp_path / "input_spatial.h5ad"
@@ -62,8 +64,12 @@ def test_simple_execution(run_component, tmp_path):
     assert os.path.exists(output), "output h5ad was not created"
 
     sp_adata = ad.read_h5ad(output)
-    assert "spatial" in sp_adata.obsm, "Predicted coordinates missing from .obsm['spatial']"
-    assert sp_adata.obsm["spatial"].shape[1] == 2, "Predicted coordinates should have 2 dimensions"
+    assert "spatial" in sp_adata.obsm, (
+        "Predicted coordinates missing from .obsm['spatial']"
+    )
+    assert sp_adata.obsm["spatial"].shape[1] == 2, (
+        "Predicted coordinates should have 2 dimensions"
+    )
     assert sp_adata.n_obs > 0, "Output AnnData should contain predicted cells"
 
 
