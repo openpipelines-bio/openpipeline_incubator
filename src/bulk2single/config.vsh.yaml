@@ -1,0 +1,248 @@
+name: "bulk2single"
+namespace: mapping
+scope: "private"
+description: |
+  Deep-learning deconvolution mapper (based on the Bulk2Space deep-forest
+  algorithm) that generates a synthetic single-cell dataset from a bulk
+  expression matrix, using a reference single-cell dataset to learn
+  cell-type expression patterns. Writes the resulting single-cell AnnData
+  to disk.
+authors:
+  - __merge__: /src/authors/hannes_demeyer.yaml
+    roles: [ author, maintainer ]
+argument_groups:
+- name: Inputs
+  arguments:
+  - name: "--bulk_data"
+    type: file 
+    description: Input expression matrix with genes in rows and samples in columns.
+    direction: input 
+    required: true 
+    example: input_bulk.tsv
+  - name: "--input_sc"
+    type: file
+    description: Reference single-cell dataset used to learn cell-type expression patterns.
+    required: true
+    direction: input
+    example: input_sc.h5ad
+  - name: "--gene_id_mapping"
+    type: file
+    description: |
+      Optional two-column gene ID/symbol pair file, used to convert --bulk_data's
+      index (e.g. Ensembl gene IDs) to match the gene identifiers used in
+      --input_sc. Only needed when the two inputs use different gene naming
+      conventions; a prebuilt pair file for common genome builds (GRCh38,
+      GRCh37, GRCm39, T2T-CHM13, danRer7, danRer11) can be fetched with
+      omicverse's ov.utils.download_geneid_annotation_pair(). Skipped if not
+      provided, i.e. --bulk_data and --input_sc are assumed to already share
+      the same gene identifiers.
+    required: false
+    direction: input
+    example: pair_GRCm39.tsv
+
+- name: Arguments
+  arguments:
+  - name: "--celltype_key"
+    type: string
+    multiple: false
+    required: true
+    example: "Cell_type"
+    description: |
+      Column name in input_sc.obs that contains cell type annotations.
+  - name: "--bulk_group"
+    type: string
+    multiple: true
+    required: false
+    description: |
+      Optional sample grouping information for averaging bulk replicates.
+  - name: "--max_single_cells"
+    type: integer
+    multiple: false
+    required: false
+    default: 5000
+    description: |
+      Maximum number of reference cells retained for model fitting.
+  - name: "--top_marker_num"
+    type: integer
+    multiple: false
+    required: false
+    default: 500
+    description: |
+      Number of marker genes per cell type used by downstream preparation.
+  - name: "--ratio_num"
+    type: integer
+    multiple: false
+    required: false
+    default: 1
+    description: |
+      Multiplier controlling total generated cell counts.
+  - name: "--gpu"
+    type: string
+    required: false
+    default: "0"
+    description: |
+      Device selector for training: a CUDA device index (e.g. "0"), "mps" for
+      Apple Silicon, or "cpu" to force CPU. Passed to Bulk2Single as an int
+      (CUDA index), "mps", or -1 (CPU).
+  - name: "--batch_size"
+    type: integer
+    multiple: false
+    required: false
+    default: 512
+    description: |
+      Mini-batch size used during VAE training.
+  - name: "--learning_rate"
+    type: double
+    multiple: false
+    required: false
+    default: 1e-4
+    description: |
+      Learning rate used to train the VAE.
+  - name: "--hidden_size"
+    type: integer
+    multiple: false
+    required: false
+    default: 256
+    description: |
+      Size of the VAE's hidden layer.
+  - name: "--epoch_num"
+    type: integer
+    multiple: false
+    required: false
+    default: 3500
+    description: |
+      Number of epochs used to train the VAE.
+  - name: "--patience"
+    type: integer
+    multiple: false
+    required: false
+    default: 50
+    description: |
+      Number of epochs without improvement before early stopping.
+  - name: "--leiden_size"
+    type: integer
+    multiple: false
+    required: false
+    default: 25
+    description: |
+      Minimum Leiden cluster size retained when filtering generated cells;
+      smaller clusters are dropped as likely noise.
+  - name: "--n_comps"
+    type: integer
+    multiple: false
+    required: false
+    default: 100
+    description: |
+      Number of PCA components used when filtering generated cells. Must be
+      smaller than both the number of generated cells and the number of genes;
+      lower this for small datasets to avoid a PCA error.
+
+- name: Outputs
+  arguments:
+  - name: "--output"
+    type: file
+    description: Output h5ad AnnData file containing the generated single-cell profiles.
+    direction: output
+    required: true
+    example: output.h5ad
+  - name: "--output_cell_fractions"
+    type: file
+    description: |
+      Optional CSV file with the predicted cell-type fraction per bulk sample,
+      as computed before training (Bulk2Single.predicted_fraction()). Skipped
+      if not provided.
+    direction: output
+    required: false
+    example: output_cell_fractions.csv
+  - name: "--output_correlation"
+    type: file
+    description: |
+      Optional CSV file with the Pearson correlation (marker genes as anchors)
+      between each reference cell type in --input_sc and each cell type in the
+      generated output, as a QC check that generation didn't drift from the
+      reference biology. Rows are reference cell types, columns are generated
+      cell types. Skipped if not provided.
+    direction: output
+    required: false
+    example: output_correlation.csv
+  __merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: bulk2single.py
+  - path: /src/workflows/utils/setup_logger.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/bulk2single/input_bulk.tsv
+  - path: /resources_test/bulk2single/input_sc.h5ad
+  - path: /resources_test/bulk2single/pair_GRCm39.tsv
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        packages:
+          # No explicit anndata pin needed: omicverse (all versions) requires
+          # anndata<0.12, and pip's resolver already lands on a version
+          # satisfying that alongside scanpy's own anndata>=0.8 constraint
+          # (verified: resolves to anndata 0.11.4 without being listed here).
+          # Merging /src/base/requirements/anndata.yaml would still break this,
+          # since its anndata~=0.12.16 pin is incompatible with omicverse - so
+          # that file stays unmerged here.
+          - omicverse~=2.2.3
+          # Bulk2Single.filtered() clusters generated cells with
+          # scanpy.tl.leiden(), which needs this separate package - scanpy
+          # doesn't declare it as a hard dependency since Leiden clustering is
+          # an optional extra.
+          - leidenalg
+        __merge__: [/src/base/requirements/scanpy.yaml, .]
+      - type: docker
+        # Bulk2Single.predicted_fraction()'s 'scaden' branch calls
+        # ScadenDeconvolution(..., scaler=scaler), passing predicted_fraction's
+        # own `scaler` string parameter (e.g. 'mms', meant for the separate
+        # 'tape'/Deconvolution path) into ScadenDeconvolution's `scale` bool
+        # parameter, which doesn't accept a `scaler` keyword at all - raises
+        # TypeError: ScadenDeconvolution() got an unexpected keyword argument
+        # 'scaler'. Dropping the erroneous kwarg lets ScadenDeconvolution fall
+        # back to its own default (scale=True). The replacement is asserted to
+        # match exactly once so a future omicverse release that changes this
+        # code fails the build loudly instead of silently leaving the bug in
+        # place.
+        run: |
+          printf '%s\n' \
+            'import omicverse' \
+            'from pathlib import Path' \
+            '' \
+            'path = Path(omicverse.__file__).parent / "bulk2single" / "_bulk2single.py"' \
+            'src = path.read_text()' \
+            '' \
+            'old = "                           self.bulk_data.T, sep=sep,\n                           batch_size=batch_size, epochs=epochs, scaler=scaler)\n"' \
+            'new = "                           self.bulk_data.T, sep=sep,\n                           batch_size=batch_size, epochs=epochs)\n"' \
+            'count = src.count(old)' \
+            'if count != 1:' \
+            '    raise SystemExit("bulk2single patch: expected exactly one match for " + repr(old) + " in " + str(path) + ", found " + str(count) + ". omicverse internals may have changed - update this patch.")' \
+            'path.write_text(src.replace(old, new))' \
+            'print("patched " + str(path))' \
+            > /tmp/patch_bulk2single.py && \
+          python3 /tmp/patch_bulk2single.py && \
+          rm /tmp/patch_bulk2single.py
+      - type: python
+        packages:
+          # Installed separately from the PyTorch CPU wheel index: the default
+          # PyPI torch wheel pulls in the full CUDA toolkit (~3GB of nvidia-cu13
+          # packages), which is useless in this GPU-less slim container.
+          - torch
+          - --index-url
+          - https://download.pytorch.org/whl/cpu
+
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]
