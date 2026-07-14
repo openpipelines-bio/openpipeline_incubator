@@ -144,7 +144,7 @@ argument_groups:
 
 resources:
   - type: python_script
-    path: Single2Spatial.py
+    path: script.py
   - path: /src/workflows/utils/setup_logger.py
 test_resources:
   - type: python_script
