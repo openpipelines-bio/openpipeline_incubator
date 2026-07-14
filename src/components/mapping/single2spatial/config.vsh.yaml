@@ -131,6 +131,7 @@ argument_groups:
         type: file
         description: Output h5ad AnnData file.
         direction: output
+        required: true
         example: output.h5ad
 
       - name: "--obsm_output"
@@ -145,7 +146,7 @@ argument_groups:
 resources:
   - type: python_script
     path: script.py
-  - path: /src/workflows/utils/setup_logger.py
+  - path: /src/utils/setup_logger.py
 test_resources:
   - type: python_script
     path: test.py
@@ -160,33 +161,9 @@ engines:
           - procps
       - type: python
         packages:
-          # No explicit anndata pin needed: omicverse (all versions) requires
-          # anndata<0.12, and pip's resolver already lands on a version
-          # satisfying that alongside scanpy's own anndata>=0.8 constraint
-          # (verified: resolves to anndata 0.11.4 without being listed here).
-          # Merging /src/base/requirements/anndata.yaml would still break this,
-          # since its anndata~=0.12.16 pin is incompatible with omicverse - so
-          # that file stays unmerged here. omicverse is pinned to the exact
-          # version the create_st() patch below was verified against - unpinned,
-          # a future release could shift the source text the patch matches
-          # against without warning.
           - omicverse~=2.2.3
         __merge__: [/src/base/requirements/scanpy.yaml, .]
       - type: docker
-        # omicverse shadows a local `sc` variable with `import scanpy as sc` in
-        # two places, then calls scanpy-only attributes on the shadowed value:
-        #   - create_st() (_map_utils.py): `sc` holds a DataFrame, gets
-        #     rebound to the scanpy module, then `sc.T` is called on the
-        #     module instead of the DataFrame.
-        #   - DFRunner.__init__ (_map_utils.py): `sc` (the scanpy module) gets
-        #     rebound to a fresh AnnData, then `sc.tl.rank_genes_groups(...)`
-        #     is called on the AnnData instead of the module.
-        # Both raise AttributeError whenever marker_used=True. Renaming the
-        # non-scanpy variable in each spot (`sc_data`, `adata`) fixes both
-        # without touching the `import scanpy as sc` convention. Each
-        # replacement is asserted to match exactly once so a future omicverse
-        # release that changes this code fails the build loudly instead of
-        # silently leaving the bug in place.
         run: |
           printf '%s\n' \
             'import omicverse' \
@@ -219,9 +196,6 @@ engines:
           rm /tmp/patch_map_utils.py
       - type: python
         packages:
-          # Installed separately from the PyTorch CPU wheel index: the default
-          # PyPI torch wheel pulls in the full CUDA toolkit (~3GB of nvidia-cu13
-          # packages), which is useless in this GPU-less slim container.
           - torch
           - --index-url
           - https://download.pytorch.org/whl/cpu
