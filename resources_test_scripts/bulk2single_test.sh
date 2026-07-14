@@ -50,3 +50,10 @@ fi
 
 echo "Test data in $(pwd)"
 echo "Done."
+
+aws s3 sync \
+  "$(pwd)" \
+  s3://openpipelines-bio/openpipeline_incubator/resources_test/bulk2single \
+  --exclude "*.yaml" \
+  --delete \
+  --dryrun
