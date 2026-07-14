@@ -13,6 +13,10 @@ openpipeline_incubator x.x.x (unreleased)
 * `components/report/cell_count_report`: read the per-modality boolean keep-columns and emit a
   per-sample TSV of the cells surviving each filter stage (PR #1).
 
+* `components/mapping/bulk2single`: deep-learning deconvolution mapper (based on the Bulk2Space
+  deep-forest algorithm) that generates a synthetic single-cell dataset from a bulk expression
+  matrix, using a reference single-cell dataset to learn cell-type expression patterns (PR #5).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
