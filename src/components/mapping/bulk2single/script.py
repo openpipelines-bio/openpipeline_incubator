@@ -32,6 +32,7 @@ meta = {"temp_dir": "/tmp", "resources_dir": "."}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+
 logger = setup_logger()
 
 logger.info(f"Reading bulk data from '{par['bulk_data']}'...")
@@ -72,7 +73,9 @@ model = ov.bulk2single.Bulk2Single(
 cell_fraction_prediction = model.predicted_fraction()
 
 if par.get("output_cell_fractions"):
-    logger.info(f"Writing cell fraction predictions to '{par['output_cell_fractions']}'...")
+    logger.info(
+        f"Writing cell fraction predictions to '{par['output_cell_fractions']}'..."
+    )
     cell_fraction_prediction.to_csv(par["output_cell_fractions"])
 
 logger.info("Training: preprocessing...")
@@ -98,12 +101,16 @@ logger.info("Generating: generating single-cell data...")
 generate_adata = model.generate()
 
 logger.info("Generating: filtering out noise...")
-generate_adata = model.filtered(generate_adata, leiden_size=par["leiden_size"], n_comps=par["n_comps"])
+generate_adata = model.filtered(
+    generate_adata, leiden_size=par["leiden_size"], n_comps=par["n_comps"]
+)
 
 
 logger.info("Evaluating output...")
 if par.get("output_correlation"):
-    logger.info(f"Writing reference-vs-generated correlation to '{par['output_correlation']}'...")
+    logger.info(
+        f"Writing reference-vs-generated correlation to '{par['output_correlation']}'..."
+    )
     correlation_table = ov.bulk2single.bulk2single_plot_correlation(
         adata_sc, generate_adata, celltype_key=par["celltype_key"], return_table=True
     )
