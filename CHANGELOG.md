@@ -7,9 +7,6 @@ openpipeline_incubator x.x.x (unreleased)
 * `components/qc/calculate_qc_metrics_scanpy`: add per-cell/per-gene QC metrics to an `.h5mu`
   modality using `scanpy.pp.calculate_qc_metrics` (PR #1).
 
-* `components/qc/scrublet_doublet_detection`: flag (or optionally subset) doublets with the
-  Scrublet method, writing a doublet score and boolean keep-flag to `.obs` (PR #1).
-
 * `components/report/cell_count_report`: read the per-modality boolean keep-columns and emit a
   per-sample TSV of the cells surviving each filter stage (PR #1).
 
