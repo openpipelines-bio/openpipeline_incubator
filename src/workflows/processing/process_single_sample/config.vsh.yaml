@@ -12,7 +12,7 @@ description: |
   directory, and a single cell-count report covering every sample is written alongside it.
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ author, maintainer ]
+    roles: [ author ]
 argument_groups:
   - name: "Input"
     arguments:
