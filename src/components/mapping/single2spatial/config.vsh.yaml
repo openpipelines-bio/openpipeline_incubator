@@ -161,39 +161,8 @@ engines:
           - procps
       - type: python
         packages:
-          - omicverse~=2.2.3
+          - omicverse~=2.2.4
         __merge__: [/src/base/requirements/scanpy.yaml, .]
-      - type: docker
-        run: |
-          printf '%s\n' \
-            'import omicverse' \
-            'from pathlib import Path' \
-            '' \
-            'path = Path(omicverse.__file__).parent / "bulk2single" / "_map_utils.py"' \
-            'src = path.read_text()' \
-            '' \
-            'def apply(src, old, new):' \
-            '    count = src.count(old)' \
-            '    if count != 1:' \
-            '        raise SystemExit("single2spatial patch: expected exactly one match for " + repr(old) + " in " + str(path) + ", found " + str(count) + ". omicverse internals may have changed - update this patch.")' \
-            '    return src.replace(old, new)' \
-            '' \
-            'src = apply(src, "    sc = generate_sc_data\n", "    sc_data = generate_sc_data\n")' \
-            'src = apply(src, "        syn_spot = sc[cell_pool].sum(axis=1)\n", "        syn_spot = sc_data[cell_pool].sum(axis=1)\n")' \
-            'src = apply(src, "        adata = sc.AnnData(sc.T)\n", "        adata = sc.AnnData(sc_data.T)\n")' \
-            'src = apply(src, "        sc = sc.loc[marker, :]\n", "        sc_data = sc_data.loc[marker, :]\n")' \
-            'src = apply(src, "    return sc, sc_ct, spots, meta\n", "    return sc_data, sc_ct, spots, meta\n")' \
-            '' \
-            'src = apply(src, "            sc = sc.AnnData(self.sc_test.T)\n", "            adata = sc.AnnData(self.sc_test.T)\n")' \
-            'src = apply(src, "            sc.obs = self.cell_type[['\''Cell_type'\'']]\n", "            adata.obs = self.cell_type[['\''Cell_type'\'']]\n")' \
-            'src = apply(src, "            sc.tl.rank_genes_groups(sc, '\''Cell_type'\'', method='\''wilcoxon'\'')\n", "            sc.tl.rank_genes_groups(adata, '\''Cell_type'\'', method='\''wilcoxon'\'')\n")' \
-            'src = apply(src, "            marker_df = pd.DataFrame(sc.uns['\''rank_genes_groups'\'']['\''names'\'']).head(top_marker_num)\n", "            marker_df = pd.DataFrame(adata.uns['\''rank_genes_groups'\'']['\''names'\'']).head(top_marker_num)\n")' \
-            '' \
-            'path.write_text(src)' \
-            'print("patched " + str(path))' \
-            > /tmp/patch_map_utils.py && \
-          python3 /tmp/patch_map_utils.py && \
-          rm /tmp/patch_map_utils.py
       - type: python
         packages:
           - torch
