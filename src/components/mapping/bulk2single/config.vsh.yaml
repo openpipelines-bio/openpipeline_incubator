@@ -1,5 +1,5 @@
 name: "bulk2single"
-namespace: mapping
+namespace: components/mapping
 scope: "private"
 description: |
   Deep-learning deconvolution mapper (based on the Bulk2Space deep-forest
@@ -79,7 +79,7 @@ argument_groups:
   - name: "--gpu"
     type: string
     required: false
-    default: "0"
+    default: "cpu"
     description: |
       Device selector for training: a CUDA device index (e.g. "0"), "mps" for
       Apple Silicon, or "cpu" to force CPU. Passed to Bulk2Single as an int
@@ -186,28 +186,9 @@ engines:
           - procps
       - type: python
         packages:
-          - omicverse~=2.2.3
+          - omicverse~=2.2.4
           - leidenalg
         __merge__: [/src/base/requirements/scanpy.yaml, .]
-      - type: docker
-        run: |
-          printf '%s\n' \
-            'import omicverse' \
-            'from pathlib import Path' \
-            '' \
-            'path = Path(omicverse.__file__).parent / "bulk2single" / "_bulk2single.py"' \
-            'src = path.read_text()' \
-            '' \
-            'old = "                           self.bulk_data.T, sep=sep,\n                           batch_size=batch_size, epochs=epochs, scaler=scaler)\n"' \
-            'new = "                           self.bulk_data.T, sep=sep,\n                           batch_size=batch_size, epochs=epochs)\n"' \
-            'count = src.count(old)' \
-            'if count != 1:' \
-            '    raise SystemExit("bulk2single patch: expected exactly one match for " + repr(old) + " in " + str(path) + ", found " + str(count) + ". omicverse internals may have changed - update this patch.")' \
-            'path.write_text(src.replace(old, new))' \
-            'print("patched " + str(path))' \
-            > /tmp/patch_bulk2single.py && \
-          python3 /tmp/patch_bulk2single.py && \
-          rm /tmp/patch_bulk2single.py
       - type: python
         packages:
           - torch
