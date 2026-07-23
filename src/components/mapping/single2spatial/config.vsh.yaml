@@ -1,5 +1,5 @@
 name: "single2spatial"
-namespace: mapping
+namespace: components/mapping
 scope: "private"
 description: |
   Deep-learning mapper (based on the Bulk2Space deep-forest algorithm) that
@@ -120,7 +120,7 @@ argument_groups:
       - name: "--gpu"
         type: string
         required: false
-        default: "0"
+        default: "cpu"
         description: |
           Compute device selector: CUDA index (e.g. "0"), "mps" for Apple Silicon,
           or "cpu" to force CPU. Passed directly to Single2Spatial.
