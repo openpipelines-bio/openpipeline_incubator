@@ -19,6 +19,10 @@ repositories:
     repo: craftbox
     type: vsh
     tag: v0.3.2
+  - name: biobox
+    repo: biobox
+    type: vsh
+    tag: v0.4.2
 
 info:
   test_resources:
