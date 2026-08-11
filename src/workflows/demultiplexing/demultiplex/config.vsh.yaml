@@ -1,0 +1,100 @@
+name: "demultiplex"
+namespace: "workflows/demultiplexing"
+scope: "public"
+description: |
+  Demultiplex a sequencing run into per-sample FASTQ files and a manifest
+  describing them.
+
+  The input is inspected to detect whether it is an Illumina run folder, an
+  Element AVITI run folder, or a directory that already contains FASTQ files.
+
+  This wave only wires up the passthrough path: when the input is already FASTQ
+  (or `--skip_demultiplexing` is set), the FASTQ files are scanned directly into
+  a manifest. Demultiplexing of Illumina/Element run folders is not implemented yet.
+authors:
+  - __merge__: /src/authors/luke_zappia.yaml
+    roles: [ author ]
+argument_groups:
+  - name: "Input"
+    arguments:
+      - name: "--id"
+        required: true
+        type: string
+        description: ID of the sample.
+        example: foo
+      - name: "--input"
+        type: file
+        required: true
+        description: |
+          The sequencing run folder, a directory that already contains FASTQ
+          files, or a `.tar`/`.tar.gz`/`.tgz` archive of one.
+        example: run_dir
+      - name: "--sample_sheet"
+        type: file
+        required: false
+        description: |
+          Override for the sample sheet location. If not provided, looks for a
+          `SampleSheet.csv` at the top level of `--input`.
+        example: SampleSheet.csv
+
+  - name: "Demultiplexing"
+    arguments:
+      - name: "--demultiplexer"
+        type: string
+        required: false
+        choices: ["bclconvert", "bases2fastq"]
+        description: |
+          Expected matching demultiplexer. If the detected demultiplexer is
+          different an error is given.
+      - name: "--skip_demultiplexing"
+        type: boolean_true
+        description: |
+          Force the FASTQ passthrough path, regardless of what is actually
+          detected in `--input`.
+
+  - name: "Manifest"
+    arguments:
+      - name: "--include_undetermined"
+        type: boolean
+        default: false
+        description: |
+          Whether to include `Undetermined_S0_*` files in the manifest, as their
+          own sample id (`Undetermined`). When false, those files are excluded
+          entirely.
+
+  - name: "Output"
+    arguments:
+      - name: "--output_fastq"
+        type: file
+        required: true
+        direction: output
+        description: Directory containing the FASTQ files.
+        example: fastq/
+      - name: "--output_fastq_manifest"
+        type: file
+        required: true
+        direction: output
+        description: Manifest CSV describing the FASTQ files in `--output_fastq`.
+        example: fastq_manifest.csv
+
+resources:
+  - type: nextflow_script
+    path: main.nf
+    entrypoint: run_wf
+  - type: file
+    path: /src/workflows/utils/
+
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf_fastq_passthrough
+  - path: /resources_test/demultiplex_fastq
+
+dependencies:
+  - name: untar
+    repository: craftbox
+  - name: components/demultiplexing/detect_sequencing_input
+  - name: components/demultiplexing/create_fastq_manifest
+
+runners:
+  - type: nextflow
