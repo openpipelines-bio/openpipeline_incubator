@@ -142,7 +142,7 @@ def test_override_cycles_u16_single_cell_atac(
     )
 
     settings = parse_settings(output.read_text())
-    assert settings["OverrideCycles"] == "R1:Y50;I1:I8;I2:U16;R2:Y49"
+    assert settings["OverrideCycles"] == "Y50;I8;U16;Y49"
     assert settings["CreateFastqForIndexReads"] == "1"
     assert settings["TrimUMI"] == "0"
 
@@ -168,7 +168,7 @@ def test_override_cycles_u24_multiome_atac(
     )
 
     settings = parse_settings(output.read_text())
-    assert settings["OverrideCycles"] == "R1:Y50;I1:I8;I2:U24;R2:Y49"
+    assert settings["OverrideCycles"] == "Y50;I8;U24;Y49"
 
 
 def test_override_cycles_read_structure_order_independent(
@@ -198,7 +198,7 @@ def test_override_cycles_read_structure_order_independent(
     )
 
     settings = parse_settings(output.read_text())
-    assert settings["OverrideCycles"] == "R1:Y51;I1:I10;I2:U16;R2:Y49"
+    assert settings["OverrideCycles"] == "Y51;I10;U16;Y49"
 
 
 def test_creates_missing_bclconvert_settings_section(
@@ -232,7 +232,7 @@ def test_creates_missing_bclconvert_settings_section(
     settings = parse_settings(text)
     assert settings["CreateFastqForIndexReads"] == "1"
     assert settings["TrimUMI"] == "0"
-    assert settings["OverrideCycles"] == "R1:Y50;I1:I8;I2:U16;R2:Y49"
+    assert settings["OverrideCycles"] == "Y50;I8;U16;Y49"
     names = section_names(text)
     assert names == ["Header", "BCLConvert_Settings", "BCLConvert_Data"]
 
@@ -271,7 +271,7 @@ def test_overwrites_conflicting_existing_values(
     settings = parse_settings(output.read_text())
     assert settings["CreateFastqForIndexReads"] == "1"
     assert settings["TrimUMI"] == "0"
-    assert settings["OverrideCycles"] == "R1:Y50;I1:I8;I2:U16;R2:Y49"
+    assert settings["OverrideCycles"] == "Y50;I8;U16;Y49"
 
 
 @pytest.mark.parametrize("preset_args", [["--preset", "10x_atac"], []])
@@ -414,6 +414,45 @@ def test_refuses_existing_per_sample_override_cycles_column(
     message = err.value.stdout.decode("utf-8")
     assert "OverrideCycles" in message
     assert "per-sample" in message
+
+
+def test_matches_10x_cellranger_arc_atac_answer_key(
+    run_component, write_sample_sheet, write_detection_json, tmp_path
+):
+    """Cross-check against 10x Genomics' own officially-published answer key for their
+    cellranger-arc-tiny-bcl-atac-2.0.0 dataset
+    """
+    unpatched_sheet = (
+        "[Header]\n"
+        "FileFormatVersion,2\n"
+        "[BCLConvert_Data]\n"
+        "Lane,Sample_ID,index\n"
+        "1,test_sample_atac,TTGTAAGA\n"
+        "1,test_sample_atac,GGCGTTTC\n"
+        "1,test_sample_atac,CCTACCAT\n"
+        "1,test_sample_atac,AAACGGCG\n"
+    )
+    sample_sheet = write_sample_sheet(unpatched_sheet)
+    detection_json = write_detection_json(read_structure(r1=50, i1=8, i2=24, r2=49))
+    output = tmp_path / "output.csv"
+
+    run_component(
+        [
+            "--sample_sheet",
+            sample_sheet,
+            "--detection_json",
+            detection_json,
+            "--preset",
+            "10x_atac",
+            "--output",
+            output,
+        ]
+    )
+
+    settings = parse_settings(output.read_text())
+    assert settings["CreateFastqForIndexReads"] == "1"
+    assert settings["TrimUMI"] == "0"
+    assert settings["OverrideCycles"] == "Y50;I8;U24;Y49"
 
 
 @pytest.mark.parametrize(

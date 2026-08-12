@@ -136,6 +136,14 @@ def compute_override_cycles(read_structure):
     used for demultiplexing. The two published 10x examples differ only in this
     UMI length (U16 for single-cell ATAC, U24 for Multiome ATAC).
 
+    Emitted in plain positional form ('Y50;I8;U16;Y49'), in read-number order,
+    rather than the read-labelled form ('R1:Y50;I1:I8;I2:U16;R2:Y49') that some
+    BCL Convert versions also accept: BCL Convert 4.2.7, wrapped by this repo's
+    pinned biobox bcl_convert, rejects the labelled form ("Invalid OverrideCycles
+    character 'R'"), verified by running it against real dual-index BCL data.
+    Reads are always physically sequenced in R1, I1, I2, R2 order on Illumina
+    instruments, so the positional form is unambiguous here.
+
     Refuses (raises ValueError) unless there are exactly two genomic and two
     indexed reads, since the ATAC assumption this preset encodes does not hold
     for anything else.
@@ -153,10 +161,7 @@ def compute_override_cycles(read_structure):
 
     r1, r2 = genomic
     i1, i2 = indexed
-    return (
-        f"R1:Y{r1['num_cycles']};I1:I{i1['num_cycles']};I2:U{i2['num_cycles']};"
-        f"R2:Y{r2['num_cycles']}"
-    )
+    return f"Y{r1['num_cycles']};I{i1['num_cycles']};U{i2['num_cycles']};Y{r2['num_cycles']}"
 
 
 def set_setting(settings, key, value):

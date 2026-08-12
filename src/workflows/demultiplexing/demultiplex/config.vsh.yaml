@@ -7,13 +7,17 @@ description: |
 
   The input is inspected to detect whether it is an Illumina run folder, an
   Element AVITI run folder, or a directory that already contains FASTQ files.
+  Illumina input is run through `bcl_convert` and Element input through
+  `bases2fastq`. When the input is already FASTQ (or `--skip_demultiplexing` is
+  set), the FASTQ files are scanned directly into a manifest instead.
 
-  This wave only wires up the passthrough path: when the input is already FASTQ
-  (or `--skip_demultiplexing` is set), the FASTQ files are scanned directly into
-  a manifest. Demultiplexing of Illumina/Element run folders is not implemented yet.
+  A `--preset` can be applied before an Illumina conversion to patch the sample
+  sheet for a specific 10x Genomics chemistry when required.
+  ```
 authors:
   - __merge__: /src/authors/luke_zappia.yaml
     roles: [ author ]
+
 argument_groups:
   - name: "Input"
     arguments:
@@ -51,6 +55,84 @@ argument_groups:
         description: |
           Force the FASTQ passthrough path, regardless of what is actually
           detected in `--input`.
+      - name: "--preset"
+        type: string
+        required: false
+        choices: ["10x_atac"]
+        description: |
+          10x Genomics chemistry preset to apply to the sample sheet before
+          running `bcl_convert`. Only used when the detected (or requested)
+          demultiplexer is `bclconvert`. There is no GEX preset: it needs none
+          of the settings this applies. See `apply_bclconvert_preset` for what
+          `10x_atac` actually changes.
+
+  - name: "BCL Convert options"
+    arguments:
+      - name: "--bclconvert_no_lane_splitting"
+        type: boolean
+        default: false
+        description: Do not split FASTQ files by lane.
+      - name: "--bclconvert_tiles"
+        type: string
+        required: false
+        description: Process only a subset of tiles by a regular expression.
+        example: "s_[0-9]+_1"
+      - name: "--bclconvert_exclude_tiles"
+        type: string
+        required: false
+        description: Exclude a set of tiles by a regular expression.
+        example: "s_[0-9]+_1"
+      - name: "--bclconvert_first_tile_only"
+        type: boolean
+        default: false
+        description: |
+          Only convert the first tile of the input. For testing, not for production use.
+      - name: "--bclconvert_strict_mode"
+        type: boolean
+        default: false
+        description: Abort if any files are missing.
+      - name: "--bclconvert_fastq_gzip_compression_level"
+        type: integer
+        default: 1
+        description: FASTQ output gzip compression level (0-9).
+      - name: "--bclconvert_num_unknown_barcodes_reported"
+        type: integer
+        default: 1000
+        description: Number of top unknown barcodes to report.
+
+  - name: "bases2fastq options"
+    arguments:
+      - name: "--bases2fastq_legacy_fastq"
+        type: boolean
+        default: true
+        description: |
+          Use legacy Illumina-style FASTQ naming (e.g. `Sample_S1_L001_R1_001.fastq.gz`)
+          instead of Element's native naming (e.g. `Sample_R1.fastq.gz`), which is not
+          Cell Ranger compatible.
+      - name: "--bases2fastq_split_lanes"
+        type: boolean
+        default: false
+        description: Split FASTQ files by lane.
+      - name: "--bases2fastq_r1_cycles"
+        type: integer
+        required: false
+        description: Run parameters override, R1 cycles.
+      - name: "--bases2fastq_r2_cycles"
+        type: integer
+        required: false
+        description: Run parameters override, R2 cycles.
+      - name: "--bases2fastq_i1_cycles"
+        type: integer
+        required: false
+        description: Run parameters override, I1 cycles.
+      - name: "--bases2fastq_i2_cycles"
+        type: integer
+        required: false
+        description: Run parameters override, I2 cycles.
+      - name: "--bases2fastq_detect_adapters"
+        type: boolean
+        default: false
+        description: Detect adapter sequences, overriding any sequences present in the run manifest.
 
   - name: "Manifest"
     arguments:
@@ -76,6 +158,14 @@ argument_groups:
         direction: output
         description: Manifest CSV describing the FASTQ files in `--output_fastq`.
         example: fastq_manifest.csv
+      - name: "--output_demultiplexer_logs"
+        type: file
+        required: false
+        direction: output
+        description: |
+          Directory with the demultiplexer's own log files. Only produced when
+          this is set; the backend is not asked to generate logs otherwise.
+        example: demultiplexer_logs/
 
 resources:
   - type: nextflow_script
@@ -89,12 +179,19 @@ test_resources:
     path: test.nf
     entrypoint: test_wf_fastq_passthrough
   - path: /resources_test/demultiplex_fastq
+  - path: /resources_test/novaseq_covidseq_tiny
+  - path: /resources_test/cellranger_arc_tiny_bcl_atac
 
 dependencies:
   - name: untar
     repository: craftbox
   - name: components/demultiplexing/detect_sequencing_input
+  - name: components/demultiplexing/apply_bclconvert_preset
   - name: components/demultiplexing/create_fastq_manifest
+  - name: bcl_convert
+    repository: biobox
+  - name: bases2fastq
+    repository: biobox
 
 runners:
   - type: nextflow

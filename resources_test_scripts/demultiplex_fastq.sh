@@ -41,4 +41,5 @@ write_fastq "$DIR/Undetermined_S0_L001_R2_001.fastq.gz"
 aws s3 sync \
   "$DIR" \
   s3://openpipelines-bio/openpipeline_incubator/resources_test/"$ID" \
-  --delete
+  --delete \
+  --dryrun
