@@ -28,6 +28,8 @@ workflow test_wf_fastq_passthrough {
       assert state.output_fastq.isDirectory() : "'output_fastq' should be a directory."
       assert state.containsKey("output_fastq_manifest") : "Output should contain key 'output_fastq_manifest'."
       assert state.output_fastq_manifest.isFile() : "'output_fastq_manifest' should be a file."
+      assert state.output_sample_qc == null : "'output_sample_qc' should be null when --run_qc is not set."
+      assert state.output_multiqc == null : "'output_multiqc' should be null when --run_qc is not set."
       "Output: $output"
     }
     // Check output FASTQ file match
@@ -56,6 +58,45 @@ workflow test_wf_fastq_passthrough {
       assert output_list.size() == 1 : "output channel should contain one event"
       assert output_list[0][0] == "demultiplex_fastq_passthrough_test" : \
         "Output ID should be 'demultiplex_fastq_passthrough_test'"
+    }
+}
+
+
+workflow test_wf_qc {
+
+  resources_test = file(params.resources_test)
+
+  output_ch = Channel.fromList([
+      [
+        id: "demultiplex_qc_test",
+        input: resources_test.resolve("demultiplex_fastq"),
+        run_qc: true,
+        output_fastq: "demultiplex_qc_test.fastq",
+        output_fastq_manifest: "demultiplex_qc_test.manifest.csv",
+      ],
+    ])
+    | map { state -> [state.id, state] }
+    | demultiplex.run(
+      toState: { id, output, state -> output + [og_input: state.input] }
+    )
+    // Check falco + multiqc actually ran and produced non-empty output
+    | view { output ->
+      assert output.size() == 2 : "outputs should contain two elements; [id, state]"
+      def state = output[1]
+      assert state.containsKey("output_sample_qc") : "Output should contain key 'output_sample_qc'."
+      assert state.output_sample_qc.isDirectory() : "'output_sample_qc' should be a directory."
+      assert state.output_sample_qc.list().size() > 0 : "'output_sample_qc' should not be empty."
+      assert state.containsKey("output_multiqc") : "Output should contain key 'output_multiqc'."
+      assert state.output_multiqc.isFile() : "'output_multiqc' should be a file."
+      assert state.output_multiqc.size() > 0 : "'output_multiqc' should not be empty."
+      assert state.output_multiqc.name.endsWith(".html") : "'output_multiqc' should be an HTML report."
+      "Output: $output"
+    }
+    | toSortedList()
+    | map { output_list ->
+      assert output_list.size() == 1 : "output channel should contain one event"
+      assert output_list[0][0] == "demultiplex_qc_test" : \
+        "Output ID should be 'demultiplex_qc_test'"
     }
 }
 

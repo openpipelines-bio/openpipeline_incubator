@@ -144,6 +144,14 @@ argument_groups:
           own sample id (`Undetermined`). When false, those files are excluded
           entirely.
 
+  - name: "Quality control"
+    arguments:
+      - name: "--run_qc"
+        type: boolean_true
+        description: |
+          Run `falco` (a FastQC-compatible QC tool) over all output FASTQ
+          files and aggregate the result with `multiqc`.
+
   - name: "Output"
     arguments:
       - name: "--output_fastq"
@@ -166,6 +174,22 @@ argument_groups:
           Directory with the demultiplexer's own log files. Only produced when
           this is set; the backend is not asked to generate logs otherwise.
         example: demultiplexer_logs/
+      - name: "--output_sample_qc"
+        type: file
+        required: false
+        direction: output
+        description: |
+          Directory with the `falco` per-FASTQ QC output. Only produced when
+          `--run_qc` is set.
+        example: sample_qc/
+      - name: "--output_multiqc"
+        type: file
+        required: false
+        direction: output
+        description: |
+          `multiqc` HTML report aggregating `--output_sample_qc`. Only
+          produced when `--run_qc` is set.
+        example: multiqc_report.html
 
 resources:
   - type: nextflow_script
@@ -191,6 +215,10 @@ dependencies:
   - name: bcl_convert
     repository: biobox
   - name: bases2fastq
+    repository: biobox
+  - name: falco
+    repository: biobox
+  - name: multiqc
     repository: biobox
 
 runners:

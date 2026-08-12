@@ -15,14 +15,13 @@ DIR="$OUT"
 [ -d "$DIR" ] || mkdir -p "$DIR"
 
 # Synthesize a tiny FASTQ-only fixture for the demultiplex workflow's passthrough path.
-# create_fastq_manifest only inspects filenames (and file size, to warn on empty files), never
-# FASTQ content, so a short dummy record is enough; real gzip compression is not required.
+#
 # Covers:
 # - sample1: multi-lane (L001, L002), paired-end
 # - sample2: single-end (R1 only, no R2)
 # - Undetermined_S0: excluded from the manifest by default (--include_undetermined not set)
 write_fastq () {
-  cat > "$1" <<FASTQ
+  gzip -c > "$1" <<FASTQ
 @read1
 ACGTACGTAC
 +

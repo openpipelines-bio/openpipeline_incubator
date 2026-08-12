@@ -22,17 +22,19 @@ workflow run_wf {
       },
       toState: ["detection_json": "output"]
     )
-    // Read the detection results. Also null out output_demultiplexer_logs unless
-    // truly requested: an unset optional file output still arrives here as a
-    // non-null value (Viash backfills it to a literal, uninterpolated
-    // "$id.$key.<argname>" placeholder rather than leaving it null), so this is
-    // the only place that can tell "not requested" apart from a real path, and
-    // it must happen before the demux/passthrough split so both branches agree.
+    // Read the detection results.
     | map {id, state ->
       def detection = new groovy.json.JsonSlurper().parseText(state.detection_json.text)
       def logsRequested = state.output_demultiplexer_logs \
         && !state.output_demultiplexer_logs.toString().endsWith('$id.$key.output_demultiplexer_logs')
-      [id, state + ["detection": detection, "output_demultiplexer_logs": logsRequested ? state.output_demultiplexer_logs : null]]
+
+      [id, state + [
+        "detection": detection,
+        // Temporarily set optional outputs to null, they will be set later
+        "output_demultiplexer_logs": logsRequested ? state.output_demultiplexer_logs : null,
+        "output_sample_qc": null,
+        "output_multiqc": null,
+      ]]
     }
 
   // Split into two literal channels rather than using runEach's filter, which
@@ -129,9 +131,37 @@ workflow run_wf {
       toState: ["output_fastq_manifest": "output"]
     )
     | map {id, state -> [id, state + ["output_fastq": state.input]]}
+    // Run falco once over every FASTQ path in the manifest
+    | falco.run(
+      runIf: {id, state -> state.run_qc},
+      fromState: {id, state ->
+        def fastq_paths = state.output_fastq_manifest.splitCsv(header: true)*.path.collect{file(it)}.unique()
+        [
+          "input": fastq_paths,
+          "allow_empty_input": true,
+          // Disable falco reports, they don't work with multiple input files
+          "data_filename": null,
+          "report_filename": null,
+          "summary_filename": null,
+        ]
+      },
+      toState: ["output_sample_qc": "outdir"]
+    )
+    | multiqc.run(
+      runIf: {id, state -> state.run_qc},
+      fromState: {id, state ->
+        [
+          "input": [state.output_sample_qc],
+          // Set the falco file paths
+          "cl_config": "sp: {fastqc/data: {fn: '*_fastqc_data.txt'}}",
+        ]
+      },
+      toState: ["output_multiqc": "output_report"]
+    )
     | setState(
       [
-        "output_fastq", "output_fastq_manifest", "output_demultiplexer_logs"
+        "output_fastq", "output_fastq_manifest", "output_demultiplexer_logs",
+        "output_sample_qc", "output_multiqc"
       ]
     )
 
