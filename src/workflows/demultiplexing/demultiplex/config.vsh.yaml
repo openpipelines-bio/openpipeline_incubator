@@ -14,6 +14,10 @@ description: |
   A `--preset` can be applied before an Illumina conversion to patch the sample
   sheet for a specific 10x Genomics chemistry when required.
   ```
+info:
+  test_dependencies:
+    - name: demultiplex_test
+      namespace: test_workflows/demultiplexing
 authors:
   - __merge__: /src/authors/luke_zappia.yaml
     roles: [ author ]
@@ -202,9 +206,22 @@ test_resources:
   - type: nextflow_script
     path: test.nf
     entrypoint: test_wf_fastq_passthrough
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf_preset
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf_bases2fastq
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf_qc
   - path: /resources_test/demultiplex_fastq
   - path: /resources_test/novaseq_covidseq_tiny
   - path: /resources_test/cellranger_arc_tiny_bcl_atac
+  - path: /resources_test/bases2fastq_sim_tiny
 
 dependencies:
   - name: untar

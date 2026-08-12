@@ -1,0 +1,44 @@
+name: "demultiplex_test"
+namespace: "test_workflows/demultiplexing"
+scope: "test"
+description: |
+  Checks the output of the demultiplex workflow's integration tests. Verifies
+  the FASTQ manifest's contract: the documented columns are present, every
+  referenced FASTQ file exists, is non-empty, and its `filename`/`path` agree,
+  sample ids are non-empty, and R1/R2 files are paired per sample/lane.
+authors:
+  - __merge__: /src/authors/luke_zappia.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--output_fastq"
+        type: file
+        required: true
+        description: FASTQ directory emitted by the demultiplex workflow.
+        example: fastq/
+      - name: "--output_fastq_manifest"
+        type: file
+        required: true
+        description: Manifest CSV emitted by the demultiplex workflow, describing `--output_fastq`.
+        example: fastq_manifest.csv
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: python
+        packages:
+          - pandas
+    __merge__: /src/base/requirements/testworkflows_setup.yaml
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ singlecpu, lowmem ]

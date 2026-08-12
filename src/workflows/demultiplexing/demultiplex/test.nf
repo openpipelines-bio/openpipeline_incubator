@@ -1,6 +1,7 @@
 nextflow.enable.dsl=2
 
 include { demultiplex } from params.rootDir + "/target/nextflow/workflows/demultiplexing/demultiplex/main.nf"
+include { demultiplex_test } from params.rootDir + "/target/_test/nextflow/test_workflows/demultiplexing/demultiplex_test/main.nf"
 
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
@@ -53,6 +54,14 @@ workflow test_wf_fastq_passthrough {
         "Undetermined reads should be excluded by default (--include_undetermined not set)."
       [id, state]
     }
+    | demultiplex_test.run(
+      fromState: { id, state ->
+        [
+          "output_fastq": state.output_fastq,
+          "output_fastq_manifest": state.output_fastq_manifest,
+        ]
+      }
+    )
     | toSortedList()
     | map { output_list ->
       assert output_list.size() == 1 : "output channel should contain one event"
@@ -92,6 +101,14 @@ workflow test_wf_qc {
       assert state.output_multiqc.name.endsWith(".html") : "'output_multiqc' should be an HTML report."
       "Output: $output"
     }
+    | demultiplex_test.run(
+      fromState: { id, state ->
+        [
+          "output_fastq": state.output_fastq,
+          "output_fastq_manifest": state.output_fastq_manifest,
+        ]
+      }
+    )
     | toSortedList()
     | map { output_list ->
       assert output_list.size() == 1 : "output channel should contain one event"
@@ -162,6 +179,14 @@ workflow test_wf {
       }
       [id, state]
     }
+    | demultiplex_test.run(
+      fromState: { id, state ->
+        [
+          "output_fastq": state.output_fastq,
+          "output_fastq_manifest": state.output_fastq_manifest,
+        ]
+      }
+    )
     | toSortedList()
     | map { output_list ->
       assert output_list.size() == 1 : "output channel should contain one event"
@@ -210,10 +235,86 @@ workflow test_wf_preset {
       assert new File(i2_rows[0].path).length() > 0 : "I2 FASTQ file should not be empty."
       [id, state]
     }
+    | demultiplex_test.run(
+      fromState: { id, state ->
+        [
+          "output_fastq": state.output_fastq,
+          "output_fastq_manifest": state.output_fastq_manifest,
+        ]
+      }
+    )
     | toSortedList()
     | map { output_list ->
       assert output_list.size() == 1 : "output channel should contain one event"
       assert output_list[0][0] == "demultiplex_preset_test" : \
         "Output ID should be 'demultiplex_preset_test'"
+    }
+}
+
+workflow test_wf_bases2fastq {
+
+  resources_test = file(params.resources_test)
+
+  output_ch = Channel.fromList([
+      [
+        id: "demultiplex_bases2fastq_test",
+        input: resources_test.resolve("bases2fastq_sim_tiny"),
+        output_fastq: "demultiplex_bases2fastq_test.fastq",
+        output_fastq_manifest: "demultiplex_bases2fastq_test.manifest.csv",
+      ],
+    ])
+    | map { state -> [state.id, state] }
+    | demultiplex.run(
+      toState: { id, output, state -> output + [og_input: state.input] }
+    )
+    // Check expected output exists
+    | view { output ->
+      assert output.size() == 2 : "outputs should contain two elements; [id, state]"
+      def state = output[1]
+      assert state.containsKey("output_fastq") : "Output should contain key 'output_fastq'."
+      assert state.output_fastq.isDirectory() : "'output_fastq' should be a directory."
+      assert state.containsKey("output_fastq_manifest") : "Output should contain key 'output_fastq_manifest'."
+      assert state.output_fastq_manifest.isFile() : "'output_fastq_manifest' should be a file."
+      "Output: $output"
+    }
+    // Check the manifest reflects real bases2fastq output: 5 real samples, each
+    // paired-end (R1/R2) and split across the fixture's 2 lanes.
+    | map { id, state ->
+      def rows = state.output_fastq_manifest.splitCsv(header: true)
+      def expected_samples = (0..4).collect { "sample_${it}" }.toSet()
+      assert rows*.sample_id.toSet() == expected_samples : \
+        "Unexpected sample_ids: ${rows*.sample_id.unique()}"
+      assert !rows*.sample_id.contains("Undetermined") : \
+        "Undetermined reads should be excluded by default (--include_undetermined not set)."
+      assert rows*.read_type.toSet() == ["R1", "R2"].toSet() : \
+        "Expected only R1/R2 rows (paired-end run), found read types: ${rows*.read_type.unique()}"
+      assert rows*.lane.toSet() == ["1", "2"].toSet() : \
+        "Expected reads split across lanes 1 and 2, found lanes: ${rows*.lane.unique()}"
+      expected_samples.each { sample ->
+        ["1", "2"].each { lane ->
+          ["R1", "R2"].each { read_type ->
+            def matches = rows.findAll { it.sample_id == sample && it.lane == lane && it.read_type == read_type }
+            assert matches.size() == 1 : \
+              "Expected exactly one ${read_type} file for ${sample} in lane ${lane}, found ${matches.size()}."
+            def fastq_file = new File(matches[0].path)
+            assert fastq_file.length() > 0 : "${sample} lane ${lane} ${read_type} FASTQ file should not be empty."
+          }
+        }
+      }
+      [id, state]
+    }
+    | demultiplex_test.run(
+      fromState: { id, state ->
+        [
+          "output_fastq": state.output_fastq,
+          "output_fastq_manifest": state.output_fastq_manifest,
+        ]
+      }
+    )
+    | toSortedList()
+    | map { output_list ->
+      assert output_list.size() == 1 : "output channel should contain one event"
+      assert output_list[0][0] == "demultiplex_bases2fastq_test" : \
+        "Output ID should be 'demultiplex_bases2fastq_test'"
     }
 }
