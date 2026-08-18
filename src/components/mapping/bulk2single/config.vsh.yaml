@@ -80,10 +80,10 @@ argument_groups:
     type: string
     required: false
     default: "cpu"
+    choices: ["cpu", "gpu", "mps"]
     description: |
-      Device selector for training: a CUDA device index (e.g. "0"), "mps" for
-      Apple Silicon, or "cpu" to force CPU. Passed to Bulk2Single as an int
-      (CUDA index), "mps", or -1 (CPU).
+      Device selector for training: "gpu" to train on CUDA device 0, "mps" for
+      Apple Silicon, or "cpu" (default) to force CPU.
   - name: "--batch_size"
     type: integer
     multiple: false

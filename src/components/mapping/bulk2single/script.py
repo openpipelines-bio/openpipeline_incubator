@@ -13,7 +13,7 @@ par = {
     "max_single_cells": 5000,
     "top_marker_num": 500,
     "ratio_num": 1,
-    "gpu": "0",
+    "gpu": "cpu",
     "batch_size": 512,
     "learning_rate": 1e-4,
     "hidden_size": 256,
@@ -50,13 +50,13 @@ if par["celltype_key"] not in adata_sc.obs:
         f"Cell type column '{par['celltype_key']}' not found in .obs of the single-cell input."
     )
 
-gpu_par = str(par.get("gpu", "0"))
+gpu_par = par.get("gpu", "cpu")
 if gpu_par == "mps":
     gpu = "mps"
-elif gpu_par == "cpu":
-    gpu = -1
+elif gpu_par == "gpu":
+    gpu = 0
 else:
-    gpu = int(gpu_par)
+    gpu = -1
 
 logger.info(f"Predicting cell fraction of '{par['bulk_data']}'...")
 
