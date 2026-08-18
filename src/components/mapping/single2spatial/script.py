@@ -20,7 +20,7 @@ par = {
     "batch_size": 1000,
     "predicted_size": 32,
     "layer": None,
-    "gpu": "0",
+    "gpu": "cpu",
     "output": "output.h5ad",
     "obsm_output": "spatial",
     "output_compression": None,
@@ -66,13 +66,13 @@ elif not all(key in adata_sp.obs for key in spot_key):
         f"Spatial coordinates not found: '{obsm_key}' not in .obsm and {spot_key} not in .obs of the spatial input."
     )
 
-gpu_par = str(par.get("gpu", "0"))
+gpu_par = par.get("gpu", "cpu")
 if gpu_par == "mps":
     gpu = "mps"
-elif gpu_par == "cpu":
-    gpu = -1
+elif gpu_par == "gpu":
+    gpu = 0
 else:
-    gpu = int(gpu_par)
+    gpu = -1
 
 logger.info("Fitting Single2Spatial mapper...")
 st_model = ov.bulk2single.Single2Spatial(
