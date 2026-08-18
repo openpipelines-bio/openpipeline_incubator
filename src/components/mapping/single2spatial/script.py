@@ -102,6 +102,11 @@ obsm_output = par["obsm_output"]
 if obsm_output != "X_spatial":
     sp_adata.obsm[obsm_output] = sp_adata.obsm.pop("X_spatial")
 
+# Single2Spatial returns a pandas nullable "string"-dtype var index, which
+# anndata refuses to write by default (opt-in only, for backwards compat
+# with anndata < 0.11 readers).
+sp_adata.var.index = sp_adata.var.index.astype(str)
+
 logger.info(f"Writing output to '{par['output']}'...")
 sp_adata.write_h5ad(par["output"], compression=par.get("output_compression"))
 
