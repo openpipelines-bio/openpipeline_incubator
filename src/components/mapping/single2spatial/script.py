@@ -20,7 +20,7 @@ par = {
     "batch_size": 1000,
     "predicted_size": 32,
     "layer": None,
-    "gpu": "cpu",
+    "device_type": "cpu",
     "output": "output.h5ad",
     "obsm_output": "spatial",
     "output_compression": None,
@@ -66,10 +66,8 @@ elif not all(key in adata_sp.obs for key in spot_key):
         f"Spatial coordinates not found: '{obsm_key}' not in .obsm and {spot_key} not in .obs of the spatial input."
     )
 
-gpu_par = par.get("gpu", "cpu")
-if gpu_par == "mps":
-    gpu = "mps"
-elif gpu_par == "gpu":
+device_type_par = par.get("device_type", "cpu")
+if device_type_par == "gpu":
     gpu = 0
 else:
     gpu = -1
@@ -84,6 +82,15 @@ st_model = ov.bulk2single.Single2Spatial(
     marker_used=par["marker_used"],
     gpu=gpu,
 )
+
+if device_type_par != "cpu" and st_model.used_device.type == "cpu":
+    logger.warning(
+        f"--device_type {device_type_par!r} was requested but Single2Spatial fell "
+        f"back to CPU (used_device={st_model.used_device}); this container's torch "
+        "build may lack CUDA support, or no compatible device was found."
+    )
+else:
+    logger.info(f"Single2Spatial is using device: {st_model.used_device}")
 
 logger.info("Training mapping model and predicting spatial coordinates...")
 sp_adata = st_model.train(

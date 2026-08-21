@@ -117,14 +117,14 @@ argument_groups:
         description: |
           Use specified layer for expression values instead of .X from the modality.
 
-      - name: "--gpu"
+      - name: "--device_type"
         type: string
         required: false
         default: "cpu"
-        choices: ["cpu", "gpu", "mps"]
+        choices: ["cpu", "gpu"]
         description: |
-          Compute device selector: "gpu" to train on CUDA device 0, "mps" for
-          Apple Silicon, or "cpu" (default) to force CPU.
+          Compute device selector: "gpu" to train on CUDA device 0, or "cpu"
+          (default) to force CPU.
 
   - name: Outputs
     arguments:
@@ -168,7 +168,7 @@ engines:
         packages:
           - torch
           - --index-url
-          - https://download.pytorch.org/whl/cpu
+          - https://download.pytorch.org/whl/cu124
 
     test_setup:
       - type: python
@@ -180,5 +180,5 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [lowmem, singlecpu]
+      label: [lowmem, singlecpu, gpu]
   
