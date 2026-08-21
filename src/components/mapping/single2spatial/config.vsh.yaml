@@ -156,7 +156,6 @@ test_resources:
 engines:
   - type: docker
     image: python:3.13-slim
-    docker_run_args: ["--gpus", "all"]
     setup:
       - type: apt
         packages:
@@ -179,6 +178,7 @@ engines:
 
 runners:
   - type: executable
+    docker_run_args: ["--gpus", "all"]
   - type: nextflow
     directives:
       label: [lowmem, singlecpu, gpu]
