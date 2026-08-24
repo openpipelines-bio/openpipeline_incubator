@@ -3390,7 +3390,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/workflows/qc/qc_filter_prot",
     "viash_version" : "0.9.7",
-    "git_commit" : "076aa732d3b7c2a862e6b28067b23545993a3aaa",
+    "git_commit" : "d502be8412ce7c3e71531b722819e5af7b503a4b",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {
@@ -3402,6 +3402,11 @@ meta = [
           "type" : "s3",
           "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
           "dest" : "resources_test"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openpipelines-bio/openpipeline_spatial/resources_test/visium",
+          "dest" : "resources_test/visium"
         }
       ],
       "nextflow_labels_ci" : [
