@@ -17,6 +17,10 @@ openpipeline_incubator x.x.x (unreleased)
   deep-forest algorithm) that generates a synthetic single-cell dataset from a bulk expression
   matrix, using a reference single-cell dataset to learn cell-type expression patterns (PR #5).
 
+* `components/mapping/single2spatial`: deep-learning mapper (based on the Bulk2Space deep-forest
+  algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
+  single-cell and a spatial AnnData as input (PR #4).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
