@@ -3390,7 +3390,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_incubator/openpipeline_incubator/target/nextflow/workflows/qc/qc_filter_prot",
     "viash_version" : "0.9.7",
-    "git_commit" : "d502be8412ce7c3e71531b722819e5af7b503a4b",
+    "git_commit" : "f2003c79c43bf1182ac800aa0058b01c5d9f808b",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_incubator"
   },
   "package_config" : {

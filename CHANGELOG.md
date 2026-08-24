@@ -13,6 +13,10 @@ openpipeline_incubator x.x.x (unreleased)
 * `components/report/cell_count_report`: read the per-modality boolean keep-columns and emit a
   per-sample TSV of the cells surviving each filter stage (PR #1).
 
+* `components/mapping/bulk2single`: deep-learning deconvolution mapper (based on the Bulk2Space
+  deep-forest algorithm) that generates a synthetic single-cell dataset from a bulk expression
+  matrix, using a reference single-cell dataset to learn cell-type expression patterns (PR #5).
+
 * `components/mapping/single2spatial`: deep-learning mapper (based on the Bulk2Space deep-forest
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).

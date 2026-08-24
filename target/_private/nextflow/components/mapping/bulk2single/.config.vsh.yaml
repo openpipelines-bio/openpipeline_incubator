@@ -1,53 +1,61 @@
-name: "calculate_qc_metrics_scanpy"
-namespace: "components/qc"
+name: "bulk2single"
+namespace: "components/mapping"
 version: "build_main"
 authors:
-- name: "Dorien Roosen"
+- name: "Hannes De Meyer"
   roles:
   - "author"
   - "maintainer"
   info:
-    role: "Core Team Member"
+    role: "Contributor"
     links:
-      email: "dorien@data-intuitive.com"
-      github: "dorien-er"
-      linkedin: "dorien-roosen"
+      email: "hannes@data-intuitive.com"
     organizations:
     - name: "Data Intuitive"
       href: "https://www.data-intuitive.com"
-      role: "Data Scientist"
+      role: "Contributor"
 argument_groups:
 - name: "Inputs"
   arguments:
   - type: "file"
-    name: "--input"
-    description: "Input h5mu file."
+    name: "--bulk_data"
+    description: "Input expression matrix with genes in rows and samples in columns."
     info: null
     example:
-    - "input.h5mu"
+    - "input_bulk.tsv"
     must_exist: true
     create_parent: true
     required: true
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--modality"
-    description: "Which modality from the input MuData file to process.\n"
+  - type: "file"
+    name: "--input_sc"
+    description: "Reference single-cell dataset used to learn cell-type expression\
+      \ patterns."
     info: null
-    default:
-    - "rna"
-    required: false
+    example:
+    - "input_sc.h5ad"
+    must_exist: true
+    create_parent: true
+    required: true
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--layer"
-    description: "Layer from the modality to use as input data. If not provided, the\
-      \ .X attribute is used.\n"
+  - type: "file"
+    name: "--gene_id_mapping"
+    description: "Optional two-column gene ID/symbol pair file, used to convert --bulk_data's\n\
+      index (e.g. Ensembl gene IDs) to match the gene identifiers used in\n--input_sc.\
+      \ Only needed when the two inputs use different gene naming\nconventions; a\
+      \ prebuilt pair file for common genome builds (GRCh38,\nGRCh37, GRCm39, T2T-CHM13,\
+      \ danRer7, danRer11) can be fetched with\nomicverse's ov.utils.download_geneid_annotation_pair().\
+      \ Skipped if not\nprovided, i.e. --bulk_data and --input_sc are assumed to already\
+      \ share\nthe same gene identifiers.\n"
     info: null
     example:
-    - "raw_counts"
+    - "pair_GRCm39.tsv"
+    must_exist: true
+    create_parent: true
     required: false
     direction: "input"
     multiple: false
@@ -55,37 +63,136 @@ argument_groups:
 - name: "Arguments"
   arguments:
   - type: "string"
-    name: "--qc_vars"
-    description: "Keys to select boolean (containing only True or False) columns from\
-      \ .var. For each\ncell, the proportion and total of counts for genes flagged\
-      \ 'True' is calculated and\nstored as `pct_counts_<qc_var>` and `total_counts_<qc_var>`\
-      \ in .obs.\n"
+    name: "--celltype_key"
+    description: "Column name in input_sc.obs that contains cell type annotations.\n"
     info: null
     example:
-    - "mitochondrial,ribosomal"
+    - "Cell_type"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--bulk_group"
+    description: "Optional sample grouping information for averaging bulk replicates.\n"
+    info: null
     required: false
     direction: "input"
     multiple: true
     multiple_sep: ";"
   - type: "integer"
-    name: "--top_n_vars"
-    description: "Numbers of top genes used to calculate the cumulative proportion\
-      \ of counts\n(scanpy's `percent_top`). For each value `n`, a `pct_counts_in_top_<n>_genes`\n\
-      column is added to .obs. If not provided, these proportions are not calculated.\n"
-    info: null
-    required: false
-    min: 1
-    direction: "input"
-    multiple: true
-    multiple_sep: ";"
-  - type: "boolean"
-    name: "--log1p"
-    description: "Compute log1p-transformed versions of the metrics. For applicable\
-      \ metrics, an\nadditional `log1p_<metric>` column is added. Mirrors scanpy's\
-      \ `log1p` flag.\n"
+    name: "--max_single_cells"
+    description: "Maximum number of reference cells retained for model fitting.\n"
     info: null
     default:
-    - true
+    - 5000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--top_marker_num"
+    description: "Number of marker genes per cell type used by downstream preparation.\n"
+    info: null
+    default:
+    - 500
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--ratio_num"
+    description: "Multiplier controlling total generated cell counts.\n"
+    info: null
+    default:
+    - 1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--device_type"
+    description: "Device selector for training: \"gpu\" to train on CUDA device 0,\
+      \ or \"cpu\"\n(default) to force CPU.\n"
+    info: null
+    default:
+    - "cpu"
+    required: false
+    choices:
+    - "cpu"
+    - "gpu"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--batch_size"
+    description: "Mini-batch size used during VAE training.\n"
+    info: null
+    default:
+    - 512
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--learning_rate"
+    description: "Learning rate used to train the VAE.\n"
+    info: null
+    default:
+    - 1.0E-4
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--hidden_size"
+    description: "Size of the VAE's hidden layer.\n"
+    info: null
+    default:
+    - 256
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--epoch_num"
+    description: "Number of epochs used to train the VAE.\n"
+    info: null
+    default:
+    - 3500
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--patience"
+    description: "Number of epochs without improvement before early stopping.\n"
+    info: null
+    default:
+    - 50
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--leiden_size"
+    description: "Minimum Leiden cluster size retained when filtering generated cells;\n\
+      smaller clusters are dropped as likely noise.\n"
+    info: null
+    default:
+    - 25
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_comps"
+    description: "Number of PCA components used when filtering generated cells. Must\
+      \ be\nsmaller than both the number of generated cells and the number of genes;\n\
+      lower this for small datasets to avoid a PCA error.\n"
+    info: null
+    default:
+    - 100
     required: false
     direction: "input"
     multiple: false
@@ -94,10 +201,40 @@ argument_groups:
   arguments:
   - type: "file"
     name: "--output"
-    description: "Output h5mu file."
+    description: "Output h5ad AnnData file containing the generated single-cell profiles."
     info: null
     example:
-    - "output.h5mu"
+    - "output.h5ad"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_cell_fractions"
+    description: "Optional CSV file with the predicted cell-type fraction per bulk\
+      \ sample,\nas computed before training (Bulk2Single.predicted_fraction()). Skipped\n\
+      if not provided.\n"
+    info: null
+    example:
+    - "output_cell_fractions.csv"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_correlation"
+    description: "Optional CSV file with the Pearson correlation (marker genes as\
+      \ anchors)\nbetween each reference cell type in --input_sc and each cell type\
+      \ in the\ngenerated output, as a QC check that generation didn't drift from\
+      \ the\nreference biology. Rows are reference cell types, columns are generated\n\
+      cell types. Skipped if not provided.\n"
+    info: null
+    example:
+    - "output_correlation.csv"
     must_exist: true
     create_parent: true
     required: false
@@ -125,20 +262,22 @@ resources:
 - type: "file"
   path: "setup_logger.py"
 - type: "file"
-  path: "compress_h5mu.py"
-- type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Add quality control metrics to an .h5mu file using `scanpy.pp.calculate_qc_metrics`.\n\
-  \nThe metrics are added to .obs and .var of the selected modality, using scanpy's\n\
-  native column names (e.g. `total_counts`, `n_genes_by_counts`, `pct_counts_<qc_var>`,\n\
-  `pct_counts_in_top_<n>_genes`).\n"
+description: "Deep-learning deconvolution mapper (based on the Bulk2Space deep-forest\n\
+  algorithm) that generates a synthetic single-cell dataset from a bulk\nexpression\
+  \ matrix, using a reference single-cell dataset to learn\ncell-type expression patterns.\
+  \ Writes the resulting single-cell AnnData\nto disk.\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
   is_executable: true
 - type: "file"
-  path: "pbmc_1k_protein_v3_mms.h5mu"
+  path: "input_bulk.tsv"
+- type: "file"
+  path: "input_sc.h5ad"
+- type: "file"
+  path: "pair_GRCm39.tsv"
 info: null
 status: "enabled"
 scope:
@@ -164,8 +303,9 @@ runners:
   id: "nextflow"
   directives:
     label:
+    - "lowmem"
     - "singlecpu"
-    - "midmem"
+    - "gpu"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -239,19 +379,16 @@ engines:
   - type: "python"
     user: false
     packages:
-    - "anndata~=0.12.16"
-    - "awkward"
-    - "scipy~=1.17.1"
-    - "mudata~=0.3.8"
-    script:
-    - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
-      \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
-      ).partition(\\\".\\\")[0]) > 2\")"
+    - "scanpy~=1.11.4"
+    - "omicverse~=2.2.4"
+    - "leidenalg"
     upgrade: true
   - type: "python"
     user: false
     packages:
-    - "scanpy~=1.11.4"
+    - "torch"
+    - "--index-url"
+    - "https://download.pytorch.org/whl/cu124"
     upgrade: true
   test_setup:
   - type: "apt"
@@ -268,11 +405,11 @@ engines:
   entrypoint: []
   cmd: null
 build_info:
-  config: "src/components/qc/calculate_qc_metrics_scanpy/config.vsh.yaml"
+  config: "src/components/mapping/bulk2single/config.vsh.yaml"
   runner: "nextflow"
   engine: "docker"
-  output: "target/_private/nextflow/components/qc/calculate_qc_metrics_scanpy"
-  executable: "target/_private/nextflow/components/qc/calculate_qc_metrics_scanpy/main.nf"
+  output: "target/_private/nextflow/components/mapping/bulk2single"
+  executable: "target/_private/nextflow/components/mapping/bulk2single/main.nf"
   viash_version: "0.9.7"
   git_commit: "f2003c79c43bf1182ac800aa0058b01c5d9f808b"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"

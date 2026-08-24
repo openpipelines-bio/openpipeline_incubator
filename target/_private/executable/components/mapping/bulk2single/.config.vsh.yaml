@@ -1,198 +1,257 @@
-name: "cell_count_report"
-namespace: "components/report"
+name: "bulk2single"
+namespace: "components/mapping"
 version: "build_main"
 authors:
-- name: "Dorien Roosen"
+- name: "Hannes De Meyer"
   roles:
   - "author"
+  - "maintainer"
   info:
-    role: "Core Team Member"
+    role: "Contributor"
     links:
-      email: "dorien@data-intuitive.com"
-      github: "dorien-er"
-      linkedin: "dorien-roosen"
+      email: "hannes@data-intuitive.com"
     organizations:
     - name: "Data Intuitive"
       href: "https://www.data-intuitive.com"
-      role: "Data Scientist"
+      role: "Contributor"
 argument_groups:
 - name: "Inputs"
   arguments:
   - type: "file"
-    name: "--input"
-    alternatives:
-    - "-i"
-    description: "One or more h5mu files, each carrying the per-modality boolean keep-columns\
-      \ in .obs.\nThe per-sample counts of every input are combined into a single\
-      \ report.\n"
+    name: "--bulk_data"
+    description: "Input expression matrix with genes in rows and samples in columns."
     info: null
     example:
-    - "input.h5mu"
+    - "input_bulk.tsv"
     must_exist: true
     create_parent: true
     required: true
     direction: "input"
-    multiple: true
+    multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--modality"
-    description: "The RNA modality to read the RNA and scrublet keep-columns from."
+  - type: "file"
+    name: "--input_sc"
+    description: "Reference single-cell dataset used to learn cell-type expression\
+      \ patterns."
     info: null
-    default:
-    - "rna"
+    example:
+    - "input_sc.h5ad"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--gene_id_mapping"
+    description: "Optional two-column gene ID/symbol pair file, used to convert --bulk_data's\n\
+      index (e.g. Ensembl gene IDs) to match the gene identifiers used in\n--input_sc.\
+      \ Only needed when the two inputs use different gene naming\nconventions; a\
+      \ prebuilt pair file for common genome builds (GRCh38,\nGRCh37, GRCm39, T2T-CHM13,\
+      \ danRer7, danRer11) can be fetched with\nomicverse's ov.utils.download_geneid_annotation_pair().\
+      \ Skipped if not\nprovided, i.e. --bulk_data and --input_sc are assumed to already\
+      \ share\nthe same gene identifiers.\n"
+    info: null
+    example:
+    - "pair_GRCm39.tsv"
+    must_exist: true
+    create_parent: true
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--prot_modality"
-    description: "The protein modality to read the protein keep-columns from. If not\
-      \ provided, no\nprotein counts are reported.\n"
-    info: null
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--sample_id_column"
-    description: "The .obs column to group the counts by. If the column is not present\
-      \ in .obs, all\nobservations are treated as a single sample.\n"
-    info: null
-    default:
-    - "sample_id"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--sample_id"
-    description: "Fallback sample label per input file, in the same order as --input.\
-      \ Used as the\nsample id when --sample_id_column is absent from a file's .obs\
-      \ (e.g. the workflow\nevent id). When the column is present, it takes precedence\
-      \ and this is ignored.\n"
-    info: null
-    required: false
-    direction: "input"
-    multiple: true
-    multiple_sep: ";"
-  - type: "string"
-    name: "--rna_filter_columns"
-    description: "Boolean .obs columns (in the RNA modality) that together (logical\
-      \ AND) define the\ncells passing the RNA QC filters.\n"
-    info: null
-    required: false
-    direction: "input"
-    multiple: true
-    multiple_sep: ";"
-  - type: "string"
-    name: "--scrublet_filter_column"
-    description: "Boolean .obs column (in the RNA modality) with the scrublet keep-mask.\
-      \ If not\nprovided, the scrublet count column is omitted from the report.\n"
-    info: null
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--prot_filter_columns"
-    description: "Boolean .obs columns (in the protein modality) that together (logical\
-      \ AND) define\nthe cells passing the protein QC filters.\n"
-    info: null
-    required: false
-    direction: "input"
-    multiple: true
-    multiple_sep: ";"
-- name: "QC metrics"
+- name: "Arguments"
   arguments:
   - type: "string"
-    name: "--rna_qc_metrics"
-    description: "Per-cell QC metric .obs columns (in the RNA modality) to aggregate\
-      \ over the cells\nsurviving every filter. One column per (aggregation, metric)\
-      \ is added to the report,\nnamed `<modality>_<aggregation>_<metric>_after_all_filter`.\n"
+    name: "--celltype_key"
+    description: "Column name in input_sc.obs that contains cell type annotations.\n"
     info: null
-    default:
-    - "total_counts"
-    - "pct_counts_mt"
-    - "n_genes_by_counts"
+    example:
+    - "Cell_type"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--bulk_group"
+    description: "Optional sample grouping information for averaging bulk replicates.\n"
+    info: null
     required: false
     direction: "input"
     multiple: true
     multiple_sep: ";"
-  - type: "string"
-    name: "--prot_qc_metrics"
-    description: "Per-cell QC metric .obs columns (in the protein modality) to aggregate\
-      \ over the cells\nsurviving every filter. Only used when --prot_modality is\
-      \ provided.\n"
+  - type: "integer"
+    name: "--max_single_cells"
+    description: "Maximum number of reference cells retained for model fitting.\n"
     info: null
     default:
-    - "total_counts"
-    - "n_genes_by_counts"
+    - 5000
     required: false
     direction: "input"
-    multiple: true
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--top_marker_num"
+    description: "Number of marker genes per cell type used by downstream preparation.\n"
+    info: null
+    default:
+    - 500
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--ratio_num"
+    description: "Multiplier controlling total generated cell counts.\n"
+    info: null
+    default:
+    - 1
+    required: false
+    direction: "input"
+    multiple: false
     multiple_sep: ";"
   - type: "string"
-    name: "--qc_metric_aggregations"
-    description: "Aggregation functions applied to each QC metric over the surviving\
-      \ cells, per sample.\n"
+    name: "--device_type"
+    description: "Device selector for training: \"gpu\" to train on CUDA device 0,\
+      \ or \"cpu\"\n(default) to force CPU.\n"
     info: null
     default:
-    - "median"
-    - "mean"
-    - "max"
+    - "cpu"
+    required: false
+    choices:
+    - "cpu"
+    - "gpu"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--batch_size"
+    description: "Mini-batch size used during VAE training.\n"
+    info: null
+    default:
+    - 512
     required: false
     direction: "input"
-    multiple: true
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--learning_rate"
+    description: "Learning rate used to train the VAE.\n"
+    info: null
+    default:
+    - 1.0E-4
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--hidden_size"
+    description: "Size of the VAE's hidden layer.\n"
+    info: null
+    default:
+    - 256
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--epoch_num"
+    description: "Number of epochs used to train the VAE.\n"
+    info: null
+    default:
+    - 3500
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--patience"
+    description: "Number of epochs without improvement before early stopping.\n"
+    info: null
+    default:
+    - 50
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--leiden_size"
+    description: "Minimum Leiden cluster size retained when filtering generated cells;\n\
+      smaller clusters are dropped as likely noise.\n"
+    info: null
+    default:
+    - 25
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_comps"
+    description: "Number of PCA components used when filtering generated cells. Must\
+      \ be\nsmaller than both the number of generated cells and the number of genes;\n\
+      lower this for small datasets to avoid a PCA error.\n"
+    info: null
+    default:
+    - 100
+    required: false
+    direction: "input"
+    multiple: false
     multiple_sep: ";"
 - name: "Outputs"
   arguments:
   - type: "file"
     name: "--output"
-    alternatives:
-    - "-o"
-    description: "Output TSV file with the per-sample cell counts."
+    description: "Output h5ad AnnData file containing the generated single-cell profiles."
     info: null
     example:
-    - "cell_counts.tsv"
+    - "output.h5ad"
     must_exist: true
     create_parent: true
     required: true
     direction: "output"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--output_column_rna"
+  - type: "file"
+    name: "--output_cell_fractions"
+    description: "Optional CSV file with the predicted cell-type fraction per bulk\
+      \ sample,\nas computed before training (Bulk2Single.predicted_fraction()). Skipped\n\
+      if not provided.\n"
     info: null
-    default:
-    - "cell_count_after_rna_filter"
+    example:
+    - "output_cell_fractions.csv"
+    must_exist: true
+    create_parent: true
     required: false
-    direction: "input"
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_correlation"
+    description: "Optional CSV file with the Pearson correlation (marker genes as\
+      \ anchors)\nbetween each reference cell type in --input_sc and each cell type\
+      \ in the\ngenerated output, as a QC check that generation didn't drift from\
+      \ the\nreference biology. Rows are reference cell types, columns are generated\n\
+      cell types. Skipped if not provided.\n"
+    info: null
+    example:
+    - "output_correlation.csv"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
     multiple: false
     multiple_sep: ";"
   - type: "string"
-    name: "--output_column_scrublet"
+    name: "--output_compression"
+    description: "Compression format to use for the output AnnData and/or Mudata H5\
+      \ files.\nBy default no compression is applied.\n"
     info: null
-    default:
-    - "cell_count_after_scrublet_filter"
+    example:
+    - "gzip"
     required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--output_column_prot"
-    info: null
-    default:
-    - "cell_count_after_protein_filter"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--output_column_all"
-    info: null
-    default:
-    - "cell_count_after_all_filter"
-    required: false
+    choices:
+    - "gzip"
+    - "lzf"
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -205,16 +264,20 @@ resources:
 - type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Report the number of cells (observations) that pass each QC filter stage,\
-  \ per sample.\nReads boolean keep-columns (True = keep) that were written to .obs\
-  \ by upstream filter\ncomponents (run in flag-only mode, without subsetting) and\
-  \ writes a TSV with one row per\nsample. For each sample the number of cells passing\
-  \ the RNA filters, the scrublet filter,\nthe protein filters, and the combined (intersection\
-  \ of all) filters is reported.\n"
+description: "Deep-learning deconvolution mapper (based on the Bulk2Space deep-forest\n\
+  algorithm) that generates a synthetic single-cell dataset from a bulk\nexpression\
+  \ matrix, using a reference single-cell dataset to learn\ncell-type expression patterns.\
+  \ Writes the resulting single-cell AnnData\nto disk.\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
   is_executable: true
+- type: "file"
+  path: "input_bulk.tsv"
+- type: "file"
+  path: "input_sc.h5ad"
+- type: "file"
+  path: "pair_GRCm39.tsv"
 info: null
 status: "enabled"
 scope:
@@ -240,8 +303,9 @@ runners:
   id: "nextflow"
   directives:
     label:
-    - "singlecpu"
     - "lowmem"
+    - "singlecpu"
+    - "gpu"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -315,14 +379,16 @@ engines:
   - type: "python"
     user: false
     packages:
-    - "anndata~=0.12.16"
-    - "awkward"
-    - "scipy~=1.17.1"
-    - "mudata~=0.3.8"
-    script:
-    - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
-      \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
-      ).partition(\\\".\\\")[0]) > 2\")"
+    - "scanpy~=1.11.4"
+    - "omicverse~=2.2.4"
+    - "leidenalg"
+    upgrade: true
+  - type: "python"
+    user: false
+    packages:
+    - "torch"
+    - "--index-url"
+    - "https://download.pytorch.org/whl/cu124"
     upgrade: true
   test_setup:
   - type: "apt"
@@ -339,11 +405,11 @@ engines:
   entrypoint: []
   cmd: null
 build_info:
-  config: "src/components/report/cell_count_report/config.vsh.yaml"
-  runner: "nextflow"
+  config: "src/components/mapping/bulk2single/config.vsh.yaml"
+  runner: "executable"
   engine: "docker"
-  output: "target/_private/nextflow/components/report/cell_count_report"
-  executable: "target/_private/nextflow/components/report/cell_count_report/main.nf"
+  output: "target/_private/executable/components/mapping/bulk2single"
+  executable: "target/_private/executable/components/mapping/bulk2single/bulk2single"
   viash_version: "0.9.7"
   git_commit: "f2003c79c43bf1182ac800aa0058b01c5d9f808b"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_incubator"
