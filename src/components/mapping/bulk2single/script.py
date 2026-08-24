@@ -13,7 +13,7 @@ par = {
     "max_single_cells": 5000,
     "top_marker_num": 500,
     "ratio_num": 1,
-    "gpu": "cpu",
+    "device_type": "cpu",
     "batch_size": 512,
     "learning_rate": 1e-4,
     "hidden_size": 256,
@@ -50,10 +50,8 @@ if par["celltype_key"] not in adata_sc.obs:
         f"Cell type column '{par['celltype_key']}' not found in .obs of the single-cell input."
     )
 
-gpu_par = par.get("gpu", "cpu")
-if gpu_par == "mps":
-    gpu = "mps"
-elif gpu_par == "gpu":
+device_type_par = par.get("device_type", "cpu")
+if device_type_par == "gpu":
     gpu = 0
 else:
     gpu = -1
@@ -70,6 +68,16 @@ model = ov.bulk2single.Bulk2Single(
     ratio_num=par["ratio_num"],
     gpu=gpu,
 )
+
+if device_type_par != "cpu" and model.used_device.type == "cpu":
+    logger.warning(
+        f"--device_type {device_type_par!r} was requested but Bulk2Single fell "
+        f"back to CPU (used_device={model.used_device}); this container's torch "
+        "build may lack CUDA support, or no compatible device was found."
+    )
+else:
+    logger.info(f"Bulk2Single is using device: {model.used_device}")
+
 cell_fraction_prediction = model.predicted_fraction()
 
 if par.get("output_cell_fractions"):

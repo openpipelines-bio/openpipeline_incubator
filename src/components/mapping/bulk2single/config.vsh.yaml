@@ -76,14 +76,14 @@ argument_groups:
     default: 1
     description: |
       Multiplier controlling total generated cell counts.
-  - name: "--gpu"
+  - name: "--device_type"
     type: string
     required: false
     default: "cpu"
-    choices: ["cpu", "gpu", "mps"]
+    choices: ["cpu", "gpu"]
     description: |
-      Device selector for training: "gpu" to train on CUDA device 0, "mps" for
-      Apple Silicon, or "cpu" (default) to force CPU.
+      Device selector for training: "gpu" to train on CUDA device 0, or "cpu"
+      (default) to force CPU.
   - name: "--batch_size"
     type: integer
     multiple: false
@@ -193,7 +193,7 @@ engines:
         packages:
           - torch
           - --index-url
-          - https://download.pytorch.org/whl/cpu
+          - https://download.pytorch.org/whl/cu124
 
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
@@ -201,4 +201,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [lowmem, singlecpu]
+      label: [lowmem, singlecpu, gpu]
