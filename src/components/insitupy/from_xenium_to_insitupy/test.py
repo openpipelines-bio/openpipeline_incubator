@@ -1,5 +1,3 @@
-
-import subprocess
 import sys
 from pathlib import Path
 
@@ -10,29 +8,36 @@ from insitupy import InSituData
 ## VIASH START
 meta = {
     "name": "from_xenium_to_insitupy",
-    "resources_dir": "resources_test/xenium_multichannel/xenium_multicellseg_tiny",
+    "resources_dir": "resources_test/xenium_multichannel",
 }
 ## VIASH END
 
-input_path = Path(meta["resources_dir"])
+input_path = Path(meta["resources_dir"]) / "xenium_multicellseg_tiny"
+
+def assert_insitupy_output(path: Path):
+    assert path.is_dir(), "Output folder was not created."
+    try:
+        xd = InSituData.read(path)
+    except ValueError as e:
+        pytest.fail(f"{path.name} could not be read as an InSituData project: {e}")
+
+    try:
+        xd.load_all()
+    except RuntimeError as e:
+        pytest.fail(f"Not all modalities of {xd} could be loaded: {e}")
 
 
-def test_basic_execution(run_component, random_path):
-    output = random_path()
+def test_basic_execution(run_component, tmp_path):
+    output = tmp_path / "insitupy_project"
     run_component(
+        [
         "--input",
-        input_path, 
-        "--backend",
-        backend,
-        "nuclei_type", 
-        ,
-        "load_cell_segmentation_images": par["load_cell_segmentation_images"],
-        "load_background_images": par["load_background_images"],
-        "transcript_mode": par["transcript_mode"],
-        "restructure_transcripts": par["restructure_transcripts"],
+        str(input_path),
+        "--output",
+        str(output),
+        ]
     )
-
-
+    assert_insitupy_output(output)
 
 
 if __name__ == "__main__":
