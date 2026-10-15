@@ -21,6 +21,10 @@ openpipeline_incubator x.x.x (unreleased)
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).
 
+* `components/insitupy/from_xenium_to_insitupy`: convert a Xenium Onboard Analysis bundle into an
+  InSituPy project with `insitupy.io.read_xenium`, using either the native InSituPy or the
+  spatialdata-io backend (PR #10).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
