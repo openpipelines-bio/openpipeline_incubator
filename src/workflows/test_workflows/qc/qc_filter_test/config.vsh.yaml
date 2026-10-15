@@ -1,0 +1,51 @@
+name: "qc_filter_test"
+namespace: "test_workflows/qc"
+scope: "test"
+description: |
+  Checks the output of the qc_filter_rna / qc_filter_prot integration tests. Verifies that the
+  filters ran in flag-only mode: the modality's cells and genes are left untouched (no
+  subsetting) and the expected boolean keep-flag columns were written to .obs.
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ author ]
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Path to the h5mu emitted by the QC sub-workflow.
+        example: output.h5mu
+      - name: "--og_input"
+        type: file
+        required: true
+        description: Path to the original (unfiltered) h5mu fed into the workflow.
+        example: input.h5mu
+      - name: "--modality"
+        type: string
+        required: true
+        description: The modality the QC sub-workflow operated on.
+        example: rna
+      - name: "--keep_flag_columns"
+        type: string
+        multiple: true
+        required: true
+        description: |
+          Boolean keep-flag .obs columns (in the tested modality) that the workflow is expected
+          to have written.
+        example: [filter_counts_rna, filter_quantile_rna]
+resources:
+  - type: python_script
+    path: script.py
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: python
+        __merge__: /src/base/requirements/anndata_mudata.yaml
+    __merge__: /src/base/requirements/testworkflows_setup.yaml
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ singlecpu, lowmem ]
