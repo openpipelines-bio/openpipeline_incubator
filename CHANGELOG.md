@@ -21,6 +21,10 @@ openpipeline_incubator x.x.x (unreleased)
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).
 
+* `components/insitupy/from_visium_to_insitupy`: read a Visium (Space Ranger output) bundle with
+  `insitupy.io.read_visium` and save it as an InSituPy project, converting spot geometries to
+  micron coordinates using the required `--fullres_pixel_size` (PR #x).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
