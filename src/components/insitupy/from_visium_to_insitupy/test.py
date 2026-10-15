@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-
 import pytest
 from insitupy import InSituData
 
@@ -12,8 +11,11 @@ meta = {
 }
 ## VIASH END
 
-input_path = Path(meta["resources_dir"]) / "Visium_FFPE_Human_Ovarian_Cancer_tiny_spaceranger"
+input_path = (
+    Path(meta["resources_dir"]) / "Visium_FFPE_Human_Ovarian_Cancer_tiny_spaceranger"
+)
 pixel_size = 4.035
+
 
 def assert_insitupy_output(path: Path):
     assert path.is_dir(), "Output folder was not created."
@@ -29,6 +31,7 @@ def assert_insitupy_output(path: Path):
 
     return xd
 
+
 def test_basic_execution(run_component, tmp_path):
     output = tmp_path / "insitupy_project"
     run_component(
@@ -36,12 +39,13 @@ def test_basic_execution(run_component, tmp_path):
             "--input",
             str(input_path),
             "--fullres_pixel_size",
-            pixel_size,
+            str(pixel_size),
             "--output",
             str(output),
         ]
     )
     assert_insitupy_output(output)
+
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
