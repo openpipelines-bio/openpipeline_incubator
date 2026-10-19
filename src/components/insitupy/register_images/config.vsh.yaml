@@ -128,7 +128,8 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny
+  - path: /resources_test/xenium_multichannel
+  - path: /resources_test/visium
 engines:
   - type: docker
     image: python:3.12-slim
