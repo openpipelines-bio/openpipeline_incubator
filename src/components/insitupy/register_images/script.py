@@ -7,7 +7,7 @@ import sys
 
 ## VIASH START
 par = {
-    "input": "resources_test/insitupy/xenium_tiny_project", # Not existing yet
+    "input": "resources_test/insitupy/xenium_tiny_project",  # Not existing yet
     "image_path": "resources_test/xenium_multichannel/xenium_multicellseg_tiny/morphology_focus/ch0000_dapi.ome.tif",
     "channel_names": ["DAPI"],
     "channel_name_for_registration": "DAPI",
