@@ -1,0 +1,150 @@
+name: register_images
+namespace: insitupy
+scope: "private"
+description: |
+  Register an image (e.g. post-Xenium H&E or IF staining) to a template image of an
+  InSituPy project using SIFT feature matching, and save the project with the
+  registered image added. Downstream insitupy components load it with `InSituData.read`.
+keywords: [insitupy, registration, image, xenium]
+links:
+  documentation: https://insitupy.readthedocs.io/en/latest/generated/tools/insitupy.tl.register_images.html
+authors:
+  - __merge__: /src/authors/hannes_demeyer.yaml
+    roles: [ author, maintainer ]
+
+argument_groups:
+- name: Inputs
+  arguments:
+  - name: "--input"
+    alternatives: [-i]
+    type: file
+    description: |
+      Path of the InSituPy project folder containing the template image,
+      e.g. the output of `from_xenium_to_insitupy`.
+    required: true
+    example: "path/to/insitupy_project"
+
+- name: Image specifications
+  arguments:
+  - name: "--image_path"
+    type: file
+    required: true
+    description: |
+      Path to the image to be registered (`.tif` or `.ome.tif`). Axes for this image
+      are inferred from file metadata.
+    example: "path/to/image.ome.tif"
+  - name: "--channel_names"
+    type: string
+    multiple: true
+    required: true
+    description: |
+      Names of the channels in the image. Use "HE" for an H&E histology image.
+    example: ["CD20", "HER2", "DAPI"]
+  - name: "--channel_name_for_registration"
+    type: string
+    description: |
+      Name of the channel used for registration. Required for IF images.
+    example: "DAPI"
+  - name: "--template_image_name"
+    type: string
+    description: |
+      Name of the template image in the InSituPy project.
+    default: "nuclei"
+  - name: "--min_good_matches_per_area"
+    type: integer
+    description: |
+      Minimum number of good matches per mm^2 required for registration.
+    default: 5
+  - name: "--test_flipping"
+    type: boolean
+    description: |
+      Whether to test flipping of images during registration.
+    default: true
+  - name: "--decon_scale_factor"
+    type: double
+    description: |
+      Scale factor for deconvolution. Must be strictly positive.
+    default: 0.2
+  - name: "--deconvolve_template"
+    type: boolean_true
+    description: |
+      Whether to apply H&E color deconvolution to the template image. Set when the
+      template is an H&E RGB image.
+  - name: "--physicalsize"
+    type: string
+    description: |
+      Unit of physical size written to the OME metadata. If not set, micrometers are used.
+
+- name: QC specifications
+  arguments:
+  - name: "--debug"
+    type: boolean_true
+    description: |
+      Save registration QC/diagnostic files for successful runs to
+      `registered_images/registration_qc` in the `--output` folder. For histology registrations, also saves the
+      deconvolved target image, and the deconvolved template image if
+      `--deconvolve_template` is set.
+  - name: "--rank_matches_for_qc"
+    type: boolean
+    description: |
+      If true, apply additional QC ranking before plotting matches.
+      If false, keep original match order from feature extraction.
+    default: true
+  - name: "--identifier"
+    type: string
+    description: |
+      An identifier string printed as a header to distinguish output.
+      If not set, it is auto-generated from slide/sample ID.
+  - name: "--force_failure_qc"
+    type: boolean_true
+    description: |
+      Simulate a "not enough matches" failure even when sufficient matches are found.
+      The QC images are saved and NotEnoughFeatureMatchesError is raised.
+      Useful for testing the failure-path output without needing a bad image pair.
+  - name: "--raise_on_insufficient_matches"
+    type: boolean_true
+    description: |
+      Raise NotEnoughFeatureMatchesError when registration fails due to insufficient
+      feature matches. If not set, a warning is emitted and the project is saved
+      without the registered image.
+
+- name: Outputs
+  arguments:
+  - name: "--output"
+    alternatives: [-o]
+    type: file
+    direction: output
+    required: true
+    description: |
+      Output folder where the InSituPy project with the registered image will be saved.
+      The registered OME-TIFF images (and, with `--debug`, the registration QC files)
+      are always written to a `registered_images` subfolder of this folder.
+    example: "path/to/insitupy_project_registered"
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium_multichannel
+  - path: /resources_test/visium
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: [ procps, build-essential, git, libfontconfig1, libgl1, libgles2, libegl1, libglib2.0-0, libdbus-1-3, libxkbcommon0 ]
+      - type: python
+        packages: [ "insitupy-spatial[spatialdata]==0.12.1", "geopandas<1.2", pyqt5 ]
+      - type: docker
+        env: [ QT_QPA_PLATFORM=offscreen ]
+    test_setup:
+      - type: python
+        packages: [ pytest, viashpy ]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowcpu, midmem, lowdisk]
