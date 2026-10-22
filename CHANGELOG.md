@@ -21,6 +21,11 @@ openpipeline_incubator x.x.x (unreleased)
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).
 
+* `components/insitupy/insitupy_build_experiment`: combine single-sample InSituPy projects into
+  one multi-sample project with `insitupy.InSituExperiment.add`, adding `--sample_id` and optional
+  `--metadata` columns to the experiment metadata and optionally cropping each sample with
+  `InSituData.crop` (PR #14).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
