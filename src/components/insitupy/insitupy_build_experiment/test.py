@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 from insitupy import InSituExperiment
-import pandas as pd 
+import pandas as pd
 
 import pytest
 from insitupy.io import read_xenium
@@ -18,10 +18,12 @@ xenium_bundle = Path(meta["resources_dir"]) / "xenium_multicellseg_tiny"
 crop_xlim = (250, 600)
 crop_ylim = (300, 550)
 
+
 def assert_insitupy_output(path: Path):
     assert path.is_dir(), "Output folder was not created."
     exp = InSituExperiment.read(path)
     exp.load_all()
+
 
 metadata = pd.DataFrame(
     {
@@ -31,8 +33,9 @@ metadata = pd.DataFrame(
     }
 )
 
+
 # There are no insitupy resources on s3 yet, so this fixture converts the Xenium
-# bundle itself to 2 sample. 
+# bundle itself into two samples.
 # The second sample is a crop of the first.
 @pytest.fixture(scope="module")
 def insitupy_projects(tmp_path_factory):
@@ -48,33 +51,47 @@ def insitupy_projects(tmp_path_factory):
 
     return [sample_1, sample_2]
 
+
 def test_basic_execution(run_component, insitupy_projects, tmp_path):
     output = tmp_path / "insitupy_experiment"
     run_component(
         [
-            "--input", str(insitupy_projects[0]),
-            "--input", str(insitupy_projects[1]),
-            "--sample_id", "sample_1",
-            "--sample_id", "sample_2",
-            "--output", str(output),
+            "--input",
+            str(insitupy_projects[0]),
+            "--input",
+            str(insitupy_projects[1]),
+            "--sample_id",
+            "sample_1",
+            "--sample_id",
+            "sample_2",
+            "--output",
+            str(output),
         ]
     )
     assert_insitupy_output(output)
+
 
 def test_metadata(run_component, insitupy_projects, tmp_path):
     output = tmp_path / "insitupy_experiment"
     metadata.to_csv(tmp_path / "metadata.csv", index=False)
     run_component(
         [
-            "--input", str(insitupy_projects[0]),
-            "--input", str(insitupy_projects[1]),
-            "--sample_id", "sample_1",
-            "--sample_id", "sample_2",
-            "--metadata", str(tmp_path / "metadata.csv"),
-            "--output", str(output),
+            "--input",
+            str(insitupy_projects[0]),
+            "--input",
+            str(insitupy_projects[1]),
+            "--sample_id",
+            "sample_1",
+            "--sample_id",
+            "sample_2",
+            "--metadata",
+            str(tmp_path / "metadata.csv"),
+            "--output",
+            str(output),
         ]
     )
     assert_insitupy_output(output)
+
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
