@@ -21,6 +21,10 @@ openpipeline_incubator x.x.x (unreleased)
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).
 
+* `components/insitupy/from_insitupy_to_h5mu`: convert the cell-by-gene table of an InSituPy
+  project (single-sample `InSituData` or multi-sample `InSituExperiment`) to an `.h5mu` file,
+  keeping per-cell annotations in `.obs` and centroids in `.obsm["spatial"]` (PR #?).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
