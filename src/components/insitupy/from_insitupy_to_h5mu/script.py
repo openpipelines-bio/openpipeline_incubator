@@ -26,6 +26,7 @@ output_file = Path(par["output"])
 
 def convert_experiment(input_path: Path) -> AnnData:
     exp = InSituExperiment.read(input_path)
+    exp.load_cells()
     return exp.to_anndata(
         cells_layer=par["cells_layer"],
         label_col=par["obs_sample_id"],
