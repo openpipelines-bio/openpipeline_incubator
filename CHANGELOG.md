@@ -21,6 +21,10 @@ openpipeline_incubator x.x.x (unreleased)
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).
 
+* `components/insitupy/insitupy_annotate_cells`: import annotations and/or regions from
+  GeoJSON files into an InSituPy project (`InSituData` or `InSituExperiment`) and assign them
+  to the cells as `annotations-<key>` / `regions-<key>` columns in `.obs` (PR #16).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
