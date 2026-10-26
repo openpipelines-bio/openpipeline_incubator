@@ -23,7 +23,7 @@ openpipeline_incubator x.x.x (unreleased)
 
 * `components/insitupy/from_insitupy_to_h5mu`: convert the cell-by-gene table of an InSituPy
   project (single-sample `InSituData` or multi-sample `InSituExperiment`) to an `.h5mu` file,
-  keeping per-cell annotations in `.obs` and centroids in `.obsm["spatial"]` (PR #?).
+  keeping per-cell annotations in `.obs` and centroids in `.obsm["spatial"]` (PR #15).
 
 ### Workflows
 
