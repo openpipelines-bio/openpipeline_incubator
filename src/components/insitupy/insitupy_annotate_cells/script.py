@@ -7,10 +7,10 @@ par = {
     "input": "resources_test/insitupy/insitupy_experiment",  # Not existing yet
     "cells_layers": None,
     "input_regions": None,
-    "region_keys": None, 
+    "region_keys": None,
     "region_scale_factor": None,
     "input_annotations": None,
-    "annotation_keys": None, 
+    "annotation_keys": None,
     "annotation_scale_factor": None,
     "output": "insitupy_experiment",
 }
@@ -23,14 +23,6 @@ logger = setup_logger()
 input_file = Path(par["input"])
 output_file = Path(par["output"])
 
-def load_experiment(input_path: Path):
-    exp = InSituExperiment.read(input_path)
-    return exp
-
-
-def load_insitudata(input_path: Path):
-    xd = InSituData.read(input_path, load_all=False)
-    return xd
 
 def import_region_annot(data: InSituData):
     if par["input_regions"]:
@@ -63,6 +55,7 @@ def main():
     logger.info("Saving annotated project to '%s'...", output_file)
     data.saveas(output_file)
     logger.info("Done!")
+
 
 if __name__ == "__main__":
     main()
