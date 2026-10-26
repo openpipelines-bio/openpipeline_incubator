@@ -1,0 +1,116 @@
+name: insitupy_annotate_cells
+namespace: insitupy
+scope: public
+description: |
+  Import annotations and/or regions from external geometry files (e.g. GeoJSON or QuPath
+  exports) into an InSituPy project and assign them to the cells.
+
+  Each cell is labelled with the annotation or region polygon it falls in (`"unassigned"`
+  if none). The labels are added as `annotations-<key>` and `regions-<key>` columns to the
+  `.obs` of the cell table, so they are carried over by `from_insitupy_to_h5mu`.
+keywords: [insitupy, spatial, annotation, regions]
+links:
+  documentation: https://insitupy.readthedocs.io/en/latest/tutorials/01_demo_analysis/03_InSituPy_demo_annotations.html
+authors:
+  - __merge__: /src/authors/hannes_demeyer.yaml
+    roles: [ author ]
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        alternatives: [-i]
+        type: file
+        required: true
+        description: |
+          Path to an InSituPy project folder, either a single-sample project (`InSituData`)
+          or a multi-sample project (`InSituExperiment`).
+        example: "path/to/insitupy_project"
+      - name: --cells_layers
+        type: string
+        multiple: true
+        description: |
+          Cell segmentation layer(s) to assign the annotations and regions to. If not set,
+          they are assigned to all layers.
+        example: [ "cellular", "nuclear" ]
+
+  - name: Annotation arguments
+    arguments:
+      - name: --input_annotations
+        type: file
+        multiple: true
+        description: |
+          Annotation files to import, e.g. GeoJSON or QuPath exports.
+        example: [ "path/to/annotations.geojson" ]
+      - name: --annotation_keys
+        type: string
+        multiple: true
+        description: |
+          Key under which each annotation file is stored. Must have the same length as
+          `--input_annotations`.
+        example: [ "pathologist" ]
+      - name: --annotation_scale_factor
+        type: double
+        description: |
+          Pixel size in um/pixel used to convert the pixel coordinates of the annotation
+          files to um. Required when `--input_annotations` is set.
+        example: 0.2125
+
+  - name: Region arguments
+    arguments:
+      - name: --input_regions
+        type: file
+        multiple: true
+        description: |
+          Region files to import, e.g. GeoJSON exports.
+        example: [ "path/to/regions.geojson" ]
+      - name: --region_keys
+        type: string
+        multiple: true
+        description: |
+          Key under which each region file is stored. Must have the same length as
+          `--input_regions`.
+        example: [ "tissue_regions" ]
+      - name: --region_scale_factor
+        type: double
+        description: |
+          Pixel size in um/pixel used to convert the pixel coordinates of the region files
+          to um. Required when `--input_regions` is set.
+        example: 0.2125
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        alternatives: [-o]
+        type: file
+        direction: output
+        required: true
+        description: |
+          Path to the annotated InSituPy project folder.
+        example: "path/to/insitupy_annotated_project"
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: [ procps, build-essential, git, libfontconfig1, libgl1, libgles2, libegl1, libglib2.0-0, libdbus-1-3, libxkbcommon0 ]
+      - type: python
+        packages: [ "insitupy-spatial[spatialdata]==0.12.1", "geopandas<1.2", pyqt5 ]
+      - type: docker
+        env: [ QT_QPA_PLATFORM=offscreen ]
+    test_setup:
+      - type: python
+        packages: [ pytest, viashpy ]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowcpu, midmem, lowdisk]
