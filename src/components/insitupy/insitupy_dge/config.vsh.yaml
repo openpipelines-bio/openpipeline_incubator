@@ -1,0 +1,195 @@
+name: insitupy_dge
+namespace: insitupy
+scope: public
+description: |
+  Differential gene expression analysis on an InSituPy project (`insitupy.tl.dge`).
+
+  Compares the gene expression of a target group of cells against a reference group. Both
+  groups are selected by annotation, cell type (an `.obs` column) and/or region, either within
+  the same project or against one or more reference projects. The expression matrix must be
+  log1p-normalized, and the annotations and regions must already be part of the project
+  (see `insitupy_annotate_cells`).
+
+  The results are written to a folder with the DGE table (`main.csv`), the analysis
+  parameters (`config.toml`) and, with `--consider_neighbors`, the neighbourhood comparisons
+  (`target_neighborhood.csv`, `ref_neighborhood.csv`).
+keywords: [insitupy, spatial, differential expression, dge, annotation, regions]
+links:
+  documentation: https://insitupy.readthedocs.io/en/latest/generated/tools/insitupy.tl.dge.html
+authors:
+  - __merge__: /src/authors/hannes_demeyer.yaml
+    roles: [ author ]
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        alternatives: [-i]
+        type: file
+        required: true
+        description: |
+          Path to a single-sample InSituPy project folder (`InSituData`) containing the
+          target cells.
+        example: "path/to/insitupy_project"
+      - name: --cells_layer
+        type: string
+        description: |
+          Cell segmentation layer to use. If not set, the main layer is used.
+        example: "cellular"
+
+  - name: Target arguments
+    arguments:
+      - name: --target_annotation_tuple
+        type: string
+        multiple: true
+        description: |
+          Annotation selecting the target cells, as exactly two values: the annotation key and
+          the annotation name.
+        example: [ "pathologist", "tumor" ]
+      - name: --target_cell_type_tuple
+        type: string
+        multiple: true
+        description: |
+          Cell type selecting the target cells, as exactly two values: the `.obs` column and
+          the cell type within that column.
+        example: [ "cell_type", "T cell" ]
+      - name: --target_region_tuple
+        type: string
+        multiple: true
+        description: |
+          Region restricting the target cells, as exactly two values: the region key and the
+          region name.
+        example: [ "tissue_regions", "region_1" ]
+      - name: --target_name
+        type: string
+        description: |
+          Label of the target group in the results.
+        example: "tumor"
+      - name: --target_metadata
+        type: string
+        multiple: true
+        description: |
+          Additional metadata stored with the target group in the results, as `key=value`
+          pairs.
+        example: [ "condition=treated", "patient=P1" ]
+
+  - name: Reference arguments
+    arguments:
+      - name: --ref
+        type: file
+        multiple: true
+        description: |
+          Single-sample InSituPy project folder(s) (`InSituData`) to take the reference cells
+          from. If not set, the reference cells are taken from `--input`.
+        example: [ "path/to/reference_project" ]
+      - name: --ref_annotation_tuple
+        type: string
+        multiple: true
+        default: [ "same" ]
+        description: |
+          Annotation selecting the reference cells, as exactly two values (annotation key and
+          name), or a single value: `same` to use the same annotation as the target, or `rest`
+          to use all cells outside the target annotation. `rest` cannot be combined with
+          `--ref`.
+        example: [ "pathologist", "healthy" ]
+      - name: --ref_cell_type_tuple
+        type: string
+        multiple: true
+        default: [ "same" ]
+        description: |
+          Cell type selecting the reference cells, as exactly two values (`.obs` column and
+          cell type), or a single value: `same` to use the same cell type as the target, or
+          `rest` to use all other cell types. `rest` cannot be combined with `--ref`.
+        example: [ "cell_type", "B cell" ]
+      - name: --ref_region_tuple
+        type: string
+        multiple: true
+        default: [ "same" ]
+        description: |
+          Region restricting the reference cells, as exactly two values (region key and name),
+          or `same` to use the same region as the target.
+        example: [ "tissue_regions", "region_2" ]
+      - name: --ref_name
+        type: string
+        description: |
+          Label of the reference group in the results.
+        example: "healthy"
+      - name: --ref_metadata
+        type: string
+        multiple: true
+        description: |
+          Additional metadata stored with the reference group in the results, as `key=value`
+          pairs.
+        example: [ "condition=control", "patient=P2" ]
+
+  - name: Statistical arguments
+    arguments:
+      - name: --method
+        type: string
+        choices: [ "t-test", "wilcoxon", "logreg", "t-test_overestim_var" ]
+        default: "t-test"
+        description: |
+          Statistical method used for the differential expression analysis.
+      - name: --consider_neighbors
+        type: boolean_true
+        description: |
+          Additionally compare, for the target and the reference group separately, each cell
+          against its spatial neighbourhood (fixed 20 um radius), written to
+          `target_neighborhood.csv` and `ref_neighborhood.csv`. This does not change the main
+          target-vs-reference comparison. The neighbourhood is restricted to cells within the
+          same annotation and region selection, but spans all cell types. Not supported with
+          `--method logreg`.
+      - name: --exclude_ambiguous_assignments
+        type: boolean_true
+        description: |
+          Exclude cells that are assigned to both the target and the reference selection. Only
+          applies when target and reference come from the same project.
+      - name: --force_assignment
+        type: boolean_true
+        description: |
+          Re-assign the annotations and regions to the cells, even if they were already
+          assigned.
+      - name: --skip_log1p_check
+        type: boolean_true
+        description: |
+          Skip the check that the expression matrix (`.X`) of the target and reference cells
+          is log1p-normalized. By default, the analysis stops on data that is known not to be
+          log1p-normalized (e.g. raw counts).
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        alternatives: [-o]
+        type: file
+        direction: output
+        required: true
+        description: |
+          Path to the output folder with the DGE results (`main.csv`, `config.toml` and, with
+          `--consider_neighbors`, `target_neighborhood.csv` and `ref_neighborhood.csv`).
+        example: "path/to/dge_results"
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: [ procps, build-essential, git, libfontconfig1, libgl1, libgles2, libegl1, libglib2.0-0, libdbus-1-3, libxkbcommon0 ]
+      - type: python
+        packages: [ "insitupy-spatial[spatialdata]==0.12.1", "geopandas<1.2", pyqt5 ]
+      - type: docker
+        env: [ QT_QPA_PLATFORM=offscreen ]
+    test_setup:
+      - type: python
+        packages: [ pytest, viashpy ]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowcpu, midmem, lowdisk]
