@@ -51,8 +51,8 @@ argument_groups:
       - name: --annotation_scale_factor
         type: double
         description: |
-          Pixel size in µm/pixel used to convert the pixel coordinates of the annotation
-          files to µm. Required when `--input_annotations` is set.
+          Pixel size in um/pixel used to convert the pixel coordinates of the annotation
+          files to um. Required when `--input_annotations` is set.
         example: 0.2125
 
   - name: Region arguments
@@ -73,8 +73,8 @@ argument_groups:
       - name: --region_scale_factor
         type: double
         description: |
-          Pixel size in µm/pixel used to convert the pixel coordinates of the region files
-          to µm. Required when `--input_regions` is set.
+          Pixel size in um/pixel used to convert the pixel coordinates of the region files
+          to um. Required when `--input_regions` is set.
         example: 0.2125
 
   - name: Outputs
