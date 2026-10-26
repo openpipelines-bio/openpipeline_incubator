@@ -21,6 +21,11 @@ openpipeline_incubator x.x.x (unreleased)
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).
 
+* `components/insitupy/insitupy_quantify_signal`: quantify the fluorescence signal of an image
+  (e.g. an IF staining) per cell or nucleus in an InSituPy project (`InSituData` or
+  `InSituExperiment`), adding it as `<image_name>_signal_<compartment>_<method>` to `.obs`
+  (PR #17).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
