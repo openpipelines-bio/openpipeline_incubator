@@ -21,6 +21,12 @@ openpipeline_incubator x.x.x (unreleased)
   algorithm) that projects single-cell RNA-seq profiles onto spatial coordinates, taking a
   single-cell and a spatial AnnData as input (PR #4).
 
+* `components/insitupy/insitupy_dge`: differential gene expression analysis on an InSituPy
+  project (`InSituData` or `InSituExperiment`), comparing a target group of cells against a
+  reference group selected by annotation, cell type and/or region, within the same project or
+  against other samples, and writing the results to a folder (`main.csv`, `config.toml`)
+  (PR #19).
+
 ### Workflows
 
 * `workflows/qc/qc_filter_rna`: single-sample, unimodal RNA sub-workflow that computes QC and
