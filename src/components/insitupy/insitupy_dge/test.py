@@ -1,5 +1,4 @@
 import json
-import subprocess
 import sys
 from pathlib import Path
 
@@ -55,7 +54,9 @@ def annotated_xd(tmp_path_factory):
         shapes / "annot.geojson",
         {"tumor": ((350, 450), (350, 450)), "healthy": ((250, 350), (300, 550))},
     )
-    region = write_geojson(shapes / "region.geojson", {"tissue": ((0, 2000), (0, 2000))})
+    region = write_geojson(
+        shapes / "region.geojson", {"tissue": ((0, 2000), (0, 2000))}
+    )
 
     xd = read_xenium(xenium_bundle, verbose=False)
     xd.import_annotations(files=annot, keys="test_annot", scale_factor=1)
@@ -105,10 +106,14 @@ def test_insitudata(run_component, insitupy_insitudata, tmp_path):
     output = tmp_path / "dge_insitudata"
     run_component(
         [
-            "--input", str(insitupy_insitudata),
-            "--target_annotation_tuple", "test_annot;tumor",
-            "--ref_annotation_tuple", "rest",
-            "--output", str(output),
+            "--input",
+            str(insitupy_insitudata),
+            "--target_annotation_tuple",
+            "test_annot;tumor",
+            "--ref_annotation_tuple",
+            "rest",
+            "--output",
+            str(output),
         ]
     )
     assert_outputs(output)
@@ -118,15 +123,24 @@ def test_insitudata_ref_annotation(run_component, insitupy_insitudata, tmp_path)
     output = tmp_path / "dge_ref_annotation"
     run_component(
         [
-            "--input", str(insitupy_insitudata),
-            "--target_annotation_tuple", "test_annot;tumor",
-            "--target_region_tuple", "test_region;tissue",
-            "--target_name", "tumor",
-            "--target_metadata", "condition=treated",
-            "--ref_annotation_tuple", "test_annot;healthy",
-            "--ref_name", "healthy",
-            "--ref_metadata", "condition=control",
-            "--output", str(output),
+            "--input",
+            str(insitupy_insitudata),
+            "--target_annotation_tuple",
+            "test_annot;tumor",
+            "--target_region_tuple",
+            "test_region;tissue",
+            "--target_name",
+            "tumor",
+            "--target_metadata",
+            "condition=treated",
+            "--ref_annotation_tuple",
+            "test_annot;healthy",
+            "--ref_name",
+            "healthy",
+            "--ref_metadata",
+            "condition=control",
+            "--output",
+            str(output),
         ]
     )
     assert_outputs(output)
@@ -136,11 +150,16 @@ def test_insitudata_cell_type(run_component, insitupy_insitudata, tmp_path):
     output = tmp_path / "dge_cell_type"
     run_component(
         [
-            "--input", str(insitupy_insitudata),
-            "--target_annotation_tuple", "test_annot;tumor",
-            "--target_cell_type_tuple", "cell_type;A",
-            "--ref_cell_type_tuple", "rest",
-            "--output", str(output),
+            "--input",
+            str(insitupy_insitudata),
+            "--target_annotation_tuple",
+            "test_annot;tumor",
+            "--target_cell_type_tuple",
+            "cell_type;A",
+            "--ref_cell_type_tuple",
+            "rest",
+            "--output",
+            str(output),
         ]
     )
     assert_outputs(output)
@@ -152,10 +171,14 @@ def test_insitudata_ref_project(
     output = tmp_path / "dge_ref_project"
     run_component(
         [
-            "--input", str(insitupy_insitudata),
-            "--target_annotation_tuple", "test_annot;tumor",
-            "--ref", str(insitupy_insitudata_ref),
-            "--output", str(output),
+            "--input",
+            str(insitupy_insitudata),
+            "--target_annotation_tuple",
+            "test_annot;tumor",
+            "--ref",
+            str(insitupy_insitudata_ref),
+            "--output",
+            str(output),
         ]
     )
     assert_outputs(output)
@@ -165,11 +188,15 @@ def test_insitudata_neighbors(run_component, insitupy_insitudata, tmp_path):
     output = tmp_path / "dge_neighbors"
     run_component(
         [
-            "--input", str(insitupy_insitudata),
-            "--target_annotation_tuple", "test_annot;tumor",
-            "--ref_annotation_tuple", "test_annot;healthy",
+            "--input",
+            str(insitupy_insitudata),
+            "--target_annotation_tuple",
+            "test_annot;tumor",
+            "--ref_annotation_tuple",
+            "test_annot;healthy",
             "--consider_neighbors",
-            "--output", str(output),
+            "--output",
+            str(output),
         ]
     )
     assert_outputs(
@@ -182,11 +209,16 @@ def test_experiment(run_component, insitupy_experiment, tmp_path):
     output = tmp_path / "dge_experiment"
     run_component(
         [
-            "--input", str(insitupy_experiment),
-            "--target_id", "0",
-            "--ref_id", "1",
-            "--target_annotation_tuple", "test_annot;tumor",
-            "--output", str(output),
+            "--input",
+            str(insitupy_experiment),
+            "--target_id",
+            "0",
+            "--ref_id",
+            "1",
+            "--target_annotation_tuple",
+            "test_annot;tumor",
+            "--output",
+            str(output),
         ]
     )
     assert_outputs(output)
@@ -196,11 +228,16 @@ def test_experiment_rest(run_component, insitupy_experiment, tmp_path):
     output = tmp_path / "dge_experiment_rest"
     run_component(
         [
-            "--input", str(insitupy_experiment),
-            "--target_id", "0",
-            "--ref_id", "rest",
-            "--target_annotation_tuple", "test_annot;tumor",
-            "--output", str(output),
+            "--input",
+            str(insitupy_experiment),
+            "--target_id",
+            "0",
+            "--ref_id",
+            "rest",
+            "--target_annotation_tuple",
+            "test_annot;tumor",
+            "--output",
+            str(output),
         ]
     )
     assert_outputs(output)

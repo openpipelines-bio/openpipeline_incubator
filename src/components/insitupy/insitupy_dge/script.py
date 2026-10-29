@@ -13,13 +13,13 @@ par = {
     "target_cell_type_tuple": ["cell_type", "T cell"],
     "target_region_tuple": ["tissue_regions", "region_1"],
     "target_name": "tumor",
-    "target_metadata": [ "condition=treated", "patient=P1" ],
+    "target_metadata": ["condition=treated", "patient=P1"],
     "ref": None,
-    "ref_annotation_tuple": [ "pathologist", "healthy" ],
+    "ref_annotation_tuple": ["pathologist", "healthy"],
     "ref_cell_type_tuple": ["same"],
     "ref_region_tuple": ["same"],
     "ref_name": "healthy",
-    "ref_metadata": [ "condition=control", "patient=P2" ],
+    "ref_metadata": ["condition=control", "patient=P2"],
     "method": "t-test",
     "consider_neighbors": False,
     "exclude_ambiguous_assignments": False,
@@ -36,6 +36,7 @@ logger = setup_logger()
 input_file = Path(par["input"])
 output_file = Path(par["output"])
 
+
 def to_tuple(values, arg, keywords=()):
     if not values:
         return None
@@ -43,24 +44,38 @@ def to_tuple(values, arg, keywords=()):
         return values[0]
     if len(values) != 2:
         allowed = f" or one of {list(keywords)}" if keywords else ""
-        raise ValueError(f"--{arg} needs exactly two values (key, name){allowed}, got {values}.")
+        raise ValueError(
+            f"--{arg} needs exactly two values (key, name){allowed}, got {values}."
+        )
     return tuple(values)
+
 
 def to_dict(input_pairs: list):
     dict_pairs = {}
-    for pair in input_pairs: 
+    for pair in input_pairs:
         pair_splitted = pair.split("=")
         dict_pairs[pair_splitted[0]] = pair_splitted[1]
     return dict_pairs
 
+
 # Arguments accepted by both insitupy.tools.dge and InSituExperiment.dge
 kwargs = {
-    "target_annotation_tuple": to_tuple(par["target_annotation_tuple"], "target_annotation_tuple"),
-    "target_cell_type_tuple": to_tuple(par["target_cell_type_tuple"], "target_cell_type_tuple"),
+    "target_annotation_tuple": to_tuple(
+        par["target_annotation_tuple"], "target_annotation_tuple"
+    ),
+    "target_cell_type_tuple": to_tuple(
+        par["target_cell_type_tuple"], "target_cell_type_tuple"
+    ),
     "target_region_tuple": to_tuple(par["target_region_tuple"], "target_region_tuple"),
-    "ref_annotation_tuple": to_tuple(par["ref_annotation_tuple"], "ref_annotation_tuple", ("same", "rest")),
-    "ref_cell_type_tuple": to_tuple(par["ref_cell_type_tuple"], "ref_cell_type_tuple", ("same", "rest")),
-    "ref_region_tuple": to_tuple(par["ref_region_tuple"], "ref_region_tuple", ("same",)),
+    "ref_annotation_tuple": to_tuple(
+        par["ref_annotation_tuple"], "ref_annotation_tuple", ("same", "rest")
+    ),
+    "ref_cell_type_tuple": to_tuple(
+        par["ref_cell_type_tuple"], "ref_cell_type_tuple", ("same", "rest")
+    ),
+    "ref_region_tuple": to_tuple(
+        par["ref_region_tuple"], "ref_region_tuple", ("same",)
+    ),
     "method": par["method"],
     "exclude_ambiguous_assignments": par["exclude_ambiguous_assignments"],
     "force_assignment": par["force_assignment"],
@@ -72,10 +87,13 @@ insitudata_kwargs = {
     "cells_layer": par["cells_layer"],
     "target_name": par["target_name"],
     "ref_name": par["ref_name"],
-    "target_metadata": to_dict(par["target_metadata"]) if par["target_metadata"] else None,
+    "target_metadata": to_dict(par["target_metadata"])
+    if par["target_metadata"]
+    else None,
     "ref_metadata": to_dict(par["ref_metadata"]) if par["ref_metadata"] else None,
     "consider_neighbors": par["consider_neighbors"],
 }
+
 
 def convert_ref_id(ref_input: list[str] | None):
     if not ref_input:
@@ -86,22 +104,27 @@ def convert_ref_id(ref_input: list[str] | None):
         return int(ref_input[0])
     return [int(x) for x in ref_input]
 
+
 def dge_insitudata(xd_obj: InSituData, ref: list[InSituData] | None = None):
     dge_results = dge(
-        target = xd_obj, 
-        ref = ref,
+        target=xd_obj,
+        ref=ref,
         **kwargs,
         **insitudata_kwargs,
     )
     return dge_results
 
-def dge_experiment(exp: InSituExperiment, target_id: int, ref_id: list[int] | str | None ):
+
+def dge_experiment(
+    exp: InSituExperiment, target_id: int, ref_id: list[int] | str | None
+):
     dge_results = exp.dge(
-        target_id = target_id, 
-        ref_id = convert_ref_id(ref_id),
+        target_id=target_id,
+        ref_id=convert_ref_id(ref_id),
         **kwargs,
     )
     return dge_results
+
 
 def main():
     logger.info("Loading InSituPy object...")
@@ -127,4 +150,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
