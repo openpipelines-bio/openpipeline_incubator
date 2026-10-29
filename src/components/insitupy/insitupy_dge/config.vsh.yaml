@@ -27,14 +27,32 @@ argument_groups:
         type: file
         required: true
         description: |
-          Path to a single-sample InSituPy project folder (`InSituData`) containing the
-          target cells.
+          Path to a single-sample InSituPy project folder (`InSituData`) or an InSituPy
+          experiment folder (`InSituExperiment`) containing the target cells.
         example: "path/to/insitupy_project"
       - name: --cells_layer
         type: string
         description: |
-          Cell segmentation layer to use. If not set, the main layer is used.
+          Cell segmentation layer to use. If not set, the main layer is used. Only used with a
+          single-sample (`InSituData`) input.
         example: "cellular"
+
+  - name: Multi-sample (InSituExperiment) inputs
+    arguments:
+      - name: --target_id
+        type: integer
+        description: |
+          Row index in the `InSituExperiment` metadata of the sample containing the target cells.
+          If not set, the first sample is used.
+        default: 0
+      - name: --ref_id
+        type: string
+        multiple: true
+        description: |
+          Row index or indices in the `InSituExperiment` metadata of the sample(s) to take the
+          reference cells from, or `rest` to use all samples except the target. If not set, the
+          reference cells are taken from the target sample.
+        example: [ "rest" ]
 
   - name: Target arguments
     arguments:
@@ -62,14 +80,15 @@ argument_groups:
       - name: --target_name
         type: string
         description: |
-          Label of the target group in the results.
+          Label of the target group in the results. Only used with a single-sample
+          (`InSituData`) input; for an `InSituExperiment`, the `uid` of the sample is used.
         example: "tumor"
       - name: --target_metadata
         type: string
         multiple: true
         description: |
           Additional metadata stored with the target group in the results, as `key=value`
-          pairs.
+          pairs. Only used with a single-sample (`InSituData`) input.
         example: [ "condition=treated", "patient=P1" ]
 
   - name: Reference arguments
@@ -84,41 +103,42 @@ argument_groups:
       - name: --ref_annotation_tuple
         type: string
         multiple: true
-        default: [ "same" ]
         description: |
           Annotation selecting the reference cells, as exactly two values (annotation key and
           name), or a single value: `same` to use the same annotation as the target, or `rest`
           to use all cells outside the target annotation. `rest` cannot be combined with
           `--ref`.
+        default: [ "same" ]
         example: [ "pathologist", "healthy" ]
       - name: --ref_cell_type_tuple
         type: string
         multiple: true
-        default: [ "same" ]
         description: |
           Cell type selecting the reference cells, as exactly two values (`.obs` column and
           cell type), or a single value: `same` to use the same cell type as the target, or
           `rest` to use all other cell types. `rest` cannot be combined with `--ref`.
+        default: [ "same" ]
         example: [ "cell_type", "B cell" ]
       - name: --ref_region_tuple
         type: string
         multiple: true
-        default: [ "same" ]
         description: |
           Region restricting the reference cells, as exactly two values (region key and name),
           or `same` to use the same region as the target.
+        default: [ "same" ]
         example: [ "tissue_regions", "region_2" ]
       - name: --ref_name
         type: string
         description: |
-          Label of the reference group in the results.
+          Label of the reference group in the results. Only used with a single-sample
+          (`InSituData`) input; for an `InSituExperiment`, the `uid` of the sample(s) is used.
         example: "healthy"
       - name: --ref_metadata
         type: string
         multiple: true
         description: |
           Additional metadata stored with the reference group in the results, as `key=value`
-          pairs.
+          pairs. Only used with a single-sample (`InSituData`) input.
         example: [ "condition=control", "patient=P2" ]
 
   - name: Statistical arguments
@@ -137,7 +157,7 @@ argument_groups:
           `target_neighborhood.csv` and `ref_neighborhood.csv`. This does not change the main
           target-vs-reference comparison. The neighbourhood is restricted to cells within the
           same annotation and region selection, but spans all cell types. Not supported with
-          `--method logreg`.
+          `--method logreg`. Only used with a single-sample (`InSituData`) input.
       - name: --exclude_ambiguous_assignments
         type: boolean_true
         description: |
